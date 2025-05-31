@@ -86,14 +86,7 @@ class GeneticOptimizer:
         random_pull: bool = False,
     ) -> tuple[DesignGenetic, DesignGenetic]:
 
-        parent_heaps = [par.heap.copy() for par in parents]
-        temp_parents = []
-        for i, par in enumerate(parents):
-            temp_par = DesignGenetic(inclusions=None, rng=par.rng)
-            temp_par.heap = parent_heaps[i]
-            temp_parents.append(temp_par)
-
-        parents = temp_parents
+        parents = [par.copy() for par in parents]
 
         n = len(parents)
         leftovers: List[Optional[Sample]] = [None] * n
@@ -112,9 +105,7 @@ class GeneticOptimizer:
                 pulled.append(r)
 
             length = min(r.probability for r in pulled)
-            if length <= 0:
-                break
-
+            
             all_chunks = [self._chunk_ids(r.ids, n) for r in pulled]
             child_ids: set[int] = set()
             child_ids2: set[int] = set()
