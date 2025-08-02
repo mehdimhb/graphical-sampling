@@ -76,6 +76,26 @@ class GeometricSamplingGA:
         self.diversity_history = []
         self.parameter_history = []
         
+        # Enhanced statistics tracking
+        self.fitness_statistics = {
+            'best_per_generation': [],
+            'worst_per_generation': [],
+            'mean_per_generation': [],
+            'std_per_generation': []
+        }
+        self.population_statistics = {
+            'sample_count_mean': [],
+            'sample_count_std': [],
+            'sample_count_min': [],
+            'sample_count_max': []
+        }
+        self.convergence_statistics = {
+            'fitness_improvements': [],
+            'stagnation_periods': [],
+            'diversity_drops': [],
+            'parameter_changes': []
+        }
+        
         # Algorithm components initialization
         self.optimizer = GeneticOptimizer()
         self.criterion = VarNHT(auxiliary_var, inclusions)
@@ -384,6 +404,10 @@ class GeometricSamplingGA:
             # Calculate population diversity and adapt parameters
             population_diversity = self.calculate_population_diversity(population, fitness_scores)
             self.diversity_history.append(population_diversity)
+            
+            # Collect detailed statistics
+            self._collect_generation_statistics(population, fitness_scores, population_diversity)
+            
             self.adapt_parameters(current_best_fitness, population_diversity, generation, max_generations)
             
             if verbose and generation % 10 == 0:
@@ -412,6 +436,56 @@ class GeometricSamplingGA:
                 print("❌ Best design failed validation!")
         
         return self.best_design
+
+    def _collect_generation_statistics(self, population: List[DesignGenetic], fitness_scores: List[float], diversity: float):
+        """
+        Collect comprehensive statistics about the current generation
+        """
+        # Fitness statistics
+        self.fitness_statistics['best_per_generation'].append(np.min(fitness_scores))
+        self.fitness_statistics['worst_per_generation'].append(np.max(fitness_scores))
+        self.fitness_statistics['mean_per_generation'].append(np.mean(fitness_scores))
+        self.fitness_statistics['std_per_generation'].append(np.std(fitness_scores))
+        
+        # Population structure statistics
+        sample_counts = [len(design.heap) for design in population]
+        self.population_statistics['sample_count_mean'].append(np.mean(sample_counts))
+        self.population_statistics['sample_count_std'].append(np.std(sample_counts))
+        self.population_statistics['sample_count_min'].append(np.min(sample_counts))
+        self.population_statistics['sample_count_max'].append(np.max(sample_counts))
+        
+        # Convergence tracking
+        if len(self.fitness_statistics['best_per_generation']) > 1:
+            current_best = self.fitness_statistics['best_per_generation'][-1]
+            previous_best = self.fitness_statistics['best_per_generation'][-2]
+            improvement = previous_best - current_best
+            self.convergence_statistics['fitness_improvements'].append(improvement)
+        else:
+            self.convergence_statistics['fitness_improvements'].append(0.0)
+        
+        # Track stagnation periods
+        self.convergence_statistics['stagnation_periods'].append(self.stagnation_counter)
+        
+        # Track diversity drops
+        if len(self.diversity_history) > 1:
+            diversity_change = self.diversity_history[-1] - self.diversity_history[-2]
+            self.convergence_statistics['diversity_drops'].append(diversity_change)
+        else:
+            self.convergence_statistics['diversity_drops'].append(0.0)
+        
+        # Track parameter changes if adaptive
+        if self.adaptive_parameters and len(self.parameter_history) > 1:
+            current_params = self.parameter_history[-1]
+            previous_params = self.parameter_history[-2]
+            param_changes = 0
+            param_changes += abs(current_params['mutation_rate'] - previous_params['mutation_rate']) > 0.001
+            param_changes += abs(current_params['elitism_rate'] - previous_params['elitism_rate']) > 0.001
+            param_changes += current_params['population_size'] != previous_params['population_size']
+            param_changes += abs(current_params['diversity_threshold'] - previous_params['diversity_threshold']) > 0.0001
+            param_changes += current_params['mutation_intensity'] != previous_params['mutation_intensity']
+            self.convergence_statistics['parameter_changes'].append(param_changes)
+        else:
+            self.convergence_statistics['parameter_changes'].append(0)
 
     def _adjust_population_size(self, population: List[DesignGenetic], fitness_scores: List[float]) -> Tuple[List[DesignGenetic], List[float]]:
         """
@@ -470,15 +544,152 @@ class GeometricSamplingGA:
 
     def get_statistics(self) -> dict:
         """
-        Get algorithm performance statistics
+        Get comprehensive algorithm performance statistics
         """
         return {
+            # Basic statistics
             'best_fitness': self.best_fitness,
             'fitness_history': self.fitness_history,
+            'diversity_history': self.diversity_history,
             'generations_run': len(self.fitness_history),
-            'convergence_generation': np.argmin(self.fitness_history),
-            'improvement_ratio': (self.fitness_history[0] - self.best_fitness) / self.fitness_history[0] if self.fitness_history[0] > 0 else 0
+            'convergence_generation': np.argmin(self.fitness_history) if self.fitness_history else 0,
+            'improvement_ratio': (self.fitness_history[0] - self.best_fitness) / self.fitness_history[0] if self.fitness_history and self.fitness_history[0] > 0 else 0,
+            
+            # Enhanced fitness statistics
+            'fitness_statistics': self.fitness_statistics,
+            
+            # Population structure statistics  
+            'population_statistics': self.population_statistics,
+            
+            # Convergence behavior statistics
+            'convergence_statistics': self.convergence_statistics,
+            
+            # Parameter evolution (if adaptive)
+            'parameter_history': self.parameter_history if self.adaptive_parameters else [],
+            
+            # Summary metrics
+            'total_improvements': sum(1 for imp in self.convergence_statistics.get('fitness_improvements', []) if imp > 1e-6),
+            'max_stagnation_period': max(self.convergence_statistics.get('stagnation_periods', [0])),
+            'average_diversity': np.mean(self.diversity_history) if self.diversity_history else 0,
+            'final_sample_count': len(self.best_design.heap) if self.best_design else 0
         }
+
+    def plot_evolution_statistics(self, save_path: str = None):
+        """
+        Create comprehensive plots showing algorithm evolution over time
+        """
+        try:
+            import matplotlib.pyplot as plt
+            import matplotlib.gridspec as gridspec
+        except ImportError:
+            print("matplotlib not available. Please install it to generate plots: pip install matplotlib")
+            return
+            
+        # Create figure with subplots
+        fig = plt.figure(figsize=(20, 15))
+        gs = gridspec.GridSpec(3, 3, figure=fig)
+        
+        generations = range(len(self.fitness_history))
+        
+        # 1. Fitness Evolution
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax1.plot(generations, self.fitness_statistics['best_per_generation'], 'b-', label='Best', linewidth=2)
+        ax1.plot(generations, self.fitness_statistics['mean_per_generation'], 'g--', label='Mean', alpha=0.7)
+        ax1.fill_between(generations, 
+                        np.array(self.fitness_statistics['mean_per_generation']) - np.array(self.fitness_statistics['std_per_generation']),
+                        np.array(self.fitness_statistics['mean_per_generation']) + np.array(self.fitness_statistics['std_per_generation']),
+                        alpha=0.3, color='gray', label='±1 STD')
+        ax1.set_title('Fitness Evolution Over Time')
+        ax1.set_xlabel('Generation')
+        ax1.set_ylabel('Fitness (Variance)')
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # 2. Population Diversity
+        ax2 = fig.add_subplot(gs[0, 1])
+        ax2.plot(generations, self.diversity_history, 'r-', linewidth=2)
+        ax2.set_title('Population Diversity Over Time')
+        ax2.set_xlabel('Generation')
+        ax2.set_ylabel('Diversity Index')
+        ax2.grid(True, alpha=0.3)
+        
+        # 3. Sample Count Distribution
+        ax3 = fig.add_subplot(gs[0, 2])
+        ax3.plot(generations, self.population_statistics['sample_count_mean'], 'purple', label='Mean', linewidth=2)
+        ax3.fill_between(generations,
+                        self.population_statistics['sample_count_min'],
+                        self.population_statistics['sample_count_max'],
+                        alpha=0.3, color='purple', label='Min-Max Range')
+        ax3.set_title('Sample Count per Design')
+        ax3.set_xlabel('Generation')
+        ax3.set_ylabel('Number of Samples')
+        ax3.legend()
+        ax3.grid(True, alpha=0.3)
+        
+        # 4. Adaptive Parameters (if available)
+        if self.adaptive_parameters and self.parameter_history:
+            ax4 = fig.add_subplot(gs[1, 0])
+            param_gens = [p['generation'] for p in self.parameter_history]
+            ax4.plot(param_gens, [p['mutation_rate'] for p in self.parameter_history], 'b-', label='Mutation Rate')
+            ax4.plot(param_gens, [p['elitism_rate'] for p in self.parameter_history], 'g-', label='Elitism Rate')
+            ax4.plot(param_gens, [p['diversity_threshold'] for p in self.parameter_history], 'r-', label='Diversity Threshold')
+            ax4.set_title('Adaptive Parameters Evolution')
+            ax4.set_xlabel('Generation')
+            ax4.set_ylabel('Parameter Value')
+            ax4.legend()
+            ax4.grid(True, alpha=0.3)
+        
+        # 5. Convergence Behavior
+        ax5 = fig.add_subplot(gs[1, 1])
+        ax5.plot(generations, self.convergence_statistics['fitness_improvements'], 'orange', alpha=0.7)
+        ax5.set_title('Fitness Improvements per Generation')
+        ax5.set_xlabel('Generation')
+        ax5.set_ylabel('Improvement')
+        ax5.grid(True, alpha=0.3)
+        
+        # 6. Stagnation Tracking
+        ax6 = fig.add_subplot(gs[1, 2])
+        ax6.plot(generations, self.convergence_statistics['stagnation_periods'], 'red', alpha=0.7)
+        ax6.set_title('Stagnation Periods')
+        ax6.set_xlabel('Generation')
+        ax6.set_ylabel('Stagnation Counter')
+        ax6.grid(True, alpha=0.3)
+        
+        # 7. Population Size Evolution (if adaptive)
+        if self.adaptive_parameters and self.parameter_history:
+            ax7 = fig.add_subplot(gs[2, 0])
+            ax7.plot(param_gens, [p['population_size'] for p in self.parameter_history], 'navy', linewidth=2)
+            ax7.set_title('Population Size Evolution')
+            ax7.set_xlabel('Generation')
+            ax7.set_ylabel('Population Size')
+            ax7.grid(True, alpha=0.3)
+        
+        # 8. Mutation Intensity Evolution (if adaptive)
+        if self.adaptive_parameters and self.parameter_history:
+            ax8 = fig.add_subplot(gs[2, 1])
+            ax8.plot(param_gens, [p['mutation_intensity'] for p in self.parameter_history], 'darkorange', linewidth=2)
+            ax8.set_title('Mutation Intensity Evolution')
+            ax8.set_xlabel('Generation')
+            ax8.set_ylabel('Mutation Intensity')
+            ax8.grid(True, alpha=0.3)
+        
+        # 9. Parameter Changes Activity
+        if self.convergence_statistics['parameter_changes']:
+            ax9 = fig.add_subplot(gs[2, 2])
+            ax9.bar(generations, self.convergence_statistics['parameter_changes'], alpha=0.7, color='teal')
+            ax9.set_title('Parameter Adaptation Activity')
+            ax9.set_xlabel('Generation')
+            ax9.set_ylabel('Number of Parameter Changes')
+            ax9.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.suptitle('Genetic Algorithm Evolution Statistics', fontsize=16, y=0.98)
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"Plot saved to: {save_path}")
+        
+        plt.show()
 
     def print_best_design_info(self):
         """
