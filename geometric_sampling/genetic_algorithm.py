@@ -4,20 +4,29 @@ Based on the paper's geometric sampling framework for optimal variance reduction
 """
 import numpy as np
 from typing import List, Tuple
+
 from geometric_sampling.design import DesignGenetic
 from geometric_sampling.GeneticOptimizer import GeneticOptimizer
 from geometric_sampling.criteria import VarNHT
 
 
 class GeometricSamplingGA:
+    # Algorithm constants
+    DEFAULT_MAX_GENERATIONS = 1000
+    VALIDATION_TOLERANCE = 1e-6
+    EARLY_SEARCH_PHASE = 0.3
+    LATE_SEARCH_PHASE = 0.7
+    
     def __init__(
         self, 
         inclusions: np.ndarray, 
         auxiliary_var: np.ndarray,
-        population_size: int = 30,
-        elitism_rate: float = 0.1,
-        mutation_intensity: int = 5,
-        use_partitions: bool = True
+        population_size: int = 40,
+        elitism_rate: float = 0.15,
+        mutation_intensity: int = 3,
+        use_partitions: bool = True,
+        random_pull: bool = False,
+        adaptive_parameters: bool = True     # New: enable adaptive control
     ):
         """
         Initialize Geometric Sampling Genetic Algorithm
@@ -26,17 +35,48 @@ class GeometricSamplingGA:
             inclusions: First-order inclusion probabilities for each unit
             auxiliary_var: Auxiliary variable for variance calculation (for VarNHT criterion)
             population_size: Number of designs in population
-            elitism_rate: Fraction of best designs to preserve each generation
+            elitism_rate: Initial fraction of best designs to preserve each generation
             mutation_intensity: Number of segment interchanges per mutation
             use_partitions: Whether to use partition constraints during mutation
+            adaptive_parameters: Whether to use adaptive parameter control
         """
+
+        # Core algorithm parameters
         self.inclusions = inclusions
         self.auxiliary_var = auxiliary_var
+        self.initial_population_size = population_size
         self.population_size = population_size
+        self.initial_elitism_rate = elitism_rate
         self.elitism_rate = elitism_rate
+        self.initial_mutation_intensity = mutation_intensity
         self.mutation_intensity = mutation_intensity
         self.use_partitions = use_partitions
+        self.adaptive_parameters = adaptive_parameters
         
+        # Adaptive parameter control settings
+        self.mutation_rate = 0.8 if adaptive_parameters else 1.0  # Start high for exploration
+        self.min_mutation_rate = 0.1
+        self.max_mutation_rate = 0.9
+        self.improvement_threshold = 1e-6  # Minimum improvement to be considered progress
+        self.stagnation_counter = 0
+        
+        # Adaptive diversity threshold settings
+        self.initial_diversity_threshold = 0.03
+        self.diversity_threshold = 0.03  # Dynamic: will adapt based on search phase
+        self.min_diversity_threshold = 0.015  # More aggressive threshold for late search
+        self.max_diversity_threshold = 0.1   # Conservative threshold for early search
+        
+        # Adaptive mutation intensity settings
+        self.min_mutation_intensity = 1
+        self.max_mutation_intensity = min(8, mutation_intensity * 2)  # Domain-safe upper bound
+        
+        # Performance tracking
+        self.generation = 0
+        self.last_best_fitness = float('inf')
+        self.diversity_history = []
+        self.parameter_history = []
+        
+        # Algorithm components initialization
         self.optimizer = GeneticOptimizer()
         self.criterion = VarNHT(auxiliary_var, inclusions)
         self.rng = np.random.default_rng()
@@ -50,10 +90,11 @@ class GeometricSamplingGA:
             self.partitions = None
             self.border_units = None
         
-        # Track algorithm progress
+        # Algorithm state tracking
         self.fitness_history = []
         self.best_design = None
         self.best_fitness = float('inf')
+        self.random_pull = random_pull
 
     def create_initial_population(self) -> List[DesignGenetic]:
         """
@@ -75,7 +116,7 @@ class GeometricSamplingGA:
             for _ in range(num_interchanges):
                 if len(variant.heap) >= 2:
                     variant.iterate(
-                        random_pull=True,
+                        random_pull=self.random_pull,
                         switch_coefficient=0.5,
                         partitions=self.partitions,
                         border_units=self.border_units
@@ -115,16 +156,20 @@ class GeometricSamplingGA:
 
     def mutate_design(self, design: DesignGenetic) -> DesignGenetic:
         """
-        Apply segment interchange operations (Algorithm 4 from paper)
+        Apply segment interchange operations with adaptive mutation rate
         Each iterate() call performs one segment swap between two samples
         """
+        # Adaptive mutation: apply mutation based on current mutation rate
+        if self.rng.random() > self.mutation_rate:
+            return design.copy()
+        
         mutated = design.copy()
         
         # Apply several segment interchanges to increase entropy
         for _ in range(self.mutation_intensity):
             if len(mutated.heap) >= 2:
                 mutated.iterate(
-                    random_pull=True,
+                    random_pull=self.random_pull,
                     switch_coefficient=self.rng.uniform(0.3, 0.7),  # Vary interchange size
                     partitions=self.partitions,
                     border_units=self.border_units
@@ -139,7 +184,7 @@ class GeometricSamplingGA:
         Create offspring by combining geometric arrangements from two parents
         """
         try:
-            child1, child2 = self.optimizer.combine_n_parents([parent1, parent2], random_pull=True)
+            child1, child2 = self.optimizer.combine_n_parents([parent1, parent2], random_pull=self.random_pull)
             
             # Clean up children
             child1.merge_identical()
@@ -172,10 +217,138 @@ class GeometricSamplingGA:
         # Check if all units are present and probabilities match
         for i, expected_prob in enumerate(self.inclusions):
             actual_prob = id_probs.get(i, 0)
-            if abs(actual_prob - expected_prob) > 1e-6:
+            if abs(actual_prob - expected_prob) > self.VALIDATION_TOLERANCE:
                 return False
         
         return True
+
+    def calculate_population_diversity(self, population: List[DesignGenetic], fitness_scores: List[float]) -> float:
+        """
+        Calculate population diversity based on fitness variance and design structure differences
+        Returns value between 0 (no diversity) and 1 (high diversity)
+        """
+        if len(population) < 2:
+            return 0.0
+        
+        # Fitness diversity component
+        fitness_std = np.std(fitness_scores)
+        fitness_mean = np.mean(fitness_scores)
+        fitness_diversity = fitness_std / (fitness_mean + 1e-10) if fitness_mean > 0 else 0
+        
+        # Structural diversity component (number of samples in each design)
+        sample_counts = [len(design.heap) for design in population]
+        structural_diversity = np.std(sample_counts) / (np.mean(sample_counts) + 1e-10)
+        
+        # Combined diversity score (normalized to 0-1)
+        combined_diversity = (fitness_diversity + structural_diversity) / 2
+        return min(1.0, combined_diversity)
+
+    def adapt_parameters(self, current_fitness: float, population_diversity: float, generation: int, max_generations: int = None):
+        """
+        Adapt algorithm parameters based on current performance and population state
+        Research-based adaptive control following established GA principles
+        Enhanced with adaptive diversity_threshold and mutation_intensity
+        """
+        if not self.adaptive_parameters:
+            return
+        
+        if max_generations is None:
+            max_generations = self.DEFAULT_MAX_GENERATIONS
+        
+        # Check for improvement
+        improvement = self.last_best_fitness - current_fitness
+        has_improvement = improvement > self.improvement_threshold
+        
+        if has_improvement:
+            self.stagnation_counter = 0
+            self.last_best_fitness = current_fitness
+        else:
+            self.stagnation_counter += 1
+        
+        # Calculate search phase indicators
+        search_progress = generation / max_generations if max_generations > 0 else 0.5
+        
+        # Adaptive diversity threshold (Research principle: tighter control in later phases)
+        if search_progress < self.EARLY_SEARCH_PHASE:
+            # Early phase: conservative threshold to allow natural exploration
+            target_threshold = self.max_diversity_threshold * (1.0 - search_progress * 0.5)
+        elif search_progress < self.LATE_SEARCH_PHASE:
+            # Middle phase: standard threshold with slight tightening
+            target_threshold = self.initial_diversity_threshold * (1.0 - search_progress * 0.3)
+        else:
+            # Late phase: aggressive threshold for exploitation
+            target_threshold = self.min_diversity_threshold + (self.initial_diversity_threshold - self.min_diversity_threshold) * (1.0 - search_progress)
+        
+        # Adjust based on current performance
+        if self.stagnation_counter > 15:
+            # Long stagnation: relax threshold to encourage more drastic action
+            target_threshold *= 1.5
+        elif has_improvement and population_diversity > self.diversity_threshold:
+            # Good progress with diversity: maintain current sensitivity
+            target_threshold = self.diversity_threshold
+        
+        # Smooth adaptation
+        self.diversity_threshold = 0.7 * self.diversity_threshold + 0.3 * target_threshold
+        self.diversity_threshold = np.clip(self.diversity_threshold, self.min_diversity_threshold, self.max_diversity_threshold)
+        
+        # Adaptive mutation intensity (Research principle: adaptive disruption strength)
+        if population_diversity < self.diversity_threshold and self.stagnation_counter > 10:
+            # Low diversity + stagnation: increase disruption
+            self.mutation_intensity = min(self.max_mutation_intensity, self.mutation_intensity + 1)
+        elif has_improvement and population_diversity > self.diversity_threshold * 1.5:
+            # Good progress with high diversity: reduce disruption for fine-tuning
+            self.mutation_intensity = max(self.min_mutation_intensity, self.mutation_intensity - 1)
+        elif search_progress > 0.8:
+            # Late search: conservative mutations for exploitation
+            target_intensity = max(self.min_mutation_intensity, int(self.initial_mutation_intensity * 0.7))
+            self.mutation_intensity = max(target_intensity, self.mutation_intensity - 1) if self.mutation_intensity > target_intensity else self.mutation_intensity
+        
+        # Ensure mutation intensity stays within safe bounds
+        self.mutation_intensity = np.clip(self.mutation_intensity, self.min_mutation_intensity, self.max_mutation_intensity)
+        
+        # Adaptive mutation rate (key research principle: exploration → exploitation)
+        if population_diversity < self.diversity_threshold:
+            # Low diversity: increase mutation for exploration
+            self.mutation_rate = min(self.max_mutation_rate, self.mutation_rate * 1.1)
+        elif has_improvement:
+            # Making progress: gradually reduce mutation for exploitation
+            self.mutation_rate = max(self.min_mutation_rate, self.mutation_rate * 0.98)
+        else:
+            # Stagnant: increase mutation slightly
+            self.mutation_rate = min(self.max_mutation_rate, self.mutation_rate * 1.05)
+        
+        # Adaptive elitism rate
+        if has_improvement and population_diversity > self.diversity_threshold:
+            # Good progress with diversity: increase elitism to preserve gains
+            self.elitism_rate = min(0.3, self.initial_elitism_rate * 1.2)
+        elif population_diversity < self.diversity_threshold:
+            # Low diversity: reduce elitism to allow more exploration
+            self.elitism_rate = max(0.05, self.initial_elitism_rate * 0.8)
+        else:
+            # Default: gradually return to initial rate
+            target_rate = self.initial_elitism_rate
+            self.elitism_rate = 0.9 * self.elitism_rate + 0.1 * target_rate
+        
+        # Adaptive population size (expand if needed for diversity)
+        if self.stagnation_counter > 20 and population_diversity < self.diversity_threshold:
+            self.population_size = min(80, int(self.population_size * 1.1))
+        elif self.stagnation_counter == 0 and population_diversity > 0.5:
+            # Good progress: can reduce population for efficiency
+            self.population_size = max(self.initial_population_size, int(self.population_size * 0.95))
+        
+        # Record parameter history for analysis
+        self.parameter_history.append({
+            'generation': generation,
+            'mutation_rate': self.mutation_rate,
+            'elitism_rate': self.elitism_rate,
+            'population_size': self.population_size,
+            'diversity': population_diversity,
+            'diversity_threshold': self.diversity_threshold,
+            'mutation_intensity': self.mutation_intensity,
+            'stagnation': self.stagnation_counter,
+            'improvement': improvement,
+            'search_progress': search_progress
+        })
 
     def run(self, max_generations: int = 100, verbose: bool = True) -> DesignGenetic:
         """
@@ -193,6 +366,8 @@ class GeometricSamplingGA:
         population = self.create_initial_population()
         
         for generation in range(max_generations):
+            self.generation = generation
+            
             # Evaluate fitness for all designs
             fitness_scores = [self.evaluate_fitness(design) for design in population]
             
@@ -206,58 +381,24 @@ class GeometricSamplingGA:
             
             self.fitness_history.append(current_best_fitness)
             
+            # Calculate population diversity and adapt parameters
+            population_diversity = self.calculate_population_diversity(population, fitness_scores)
+            self.diversity_history.append(population_diversity)
+            self.adapt_parameters(current_best_fitness, population_diversity, generation, max_generations)
+            
             if verbose and generation % 10 == 0:
-                print(f"Generation {generation}: Best fitness = {current_best_fitness:.8f}")
+                print(f"Generation {generation}: Best fitness = {current_best_fitness:.8f}, "
+                      f"Diversity = {population_diversity:.3f}, "
+                      f"MutRate = {self.mutation_rate:.3f}, "
+                      f"Elite = {self.elitism_rate:.3f}, "
+                      f"DivThresh = {self.diversity_threshold:.4f}, "
+                      f"MutInt = {self.mutation_intensity}")
+            
+            # Adjust population size if needed
+            population, fitness_scores = self._adjust_population_size(population, fitness_scores)
             
             # Create next generation
-            # 1. Elitism: preserve best designs
-            new_population = self.select_elites(population, fitness_scores)
-            
-            # 2. Fill rest with offspring
-            while len(new_population) < self.population_size:
-                # Tournament selection
-                parent1 = self.tournament_selection(population, fitness_scores)
-                parent2 = self.tournament_selection(population, fitness_scores)
-                
-                # Crossover
-                child1, child2 = self.crossover(parent1, parent2)
-                
-                # Mutation
-                child1 = self.mutate_design(child1)
-                child2 = self.mutate_design(child2)
-                
-                # Validate and add children
-                if self.validate_design(child1):
-                    new_population.append(child1)
-                if len(new_population) < self.population_size and self.validate_design(child2):
-                    new_population.append(child2)
-                
-                # Safety check to prevent infinite loop
-                if len(new_population) >= self.population_size:
-                    break
-            
-            # Trim to exact population size
-            population = new_population[:self.population_size]
-            if generation == 29:
-                for design in population:
-                    design.merge_identical()
-
-                for design in population:
-                    print("*"*50)
-                    for sample in design.heap:
-                        if len(sample.ids) !=4:
-                            print(f"Sample {sample.index} has {len(sample.ids)} IDs, expected 4")
-                for design in population:
-                    id_probs_tmp = {}
-
-                    print("&"*100)
-                    for sample in design.heap:
-                        for unit in sample.ids:
-                            id_probs_tmp[unit] = id_probs_tmp.get(unit, 0) + sample.probability
-                    for unit, prob in sorted(id_probs_tmp.items()):
-                        print(f"ID {unit}: {prob}")
-                # for design in population:
-                #     design.show()
+            population = self._create_next_generation(population, fitness_scores)
         
         if verbose:
             print("="*50)
@@ -271,6 +412,61 @@ class GeometricSamplingGA:
                 print("❌ Best design failed validation!")
         
         return self.best_design
+
+    def _adjust_population_size(self, population: List[DesignGenetic], fitness_scores: List[float]) -> Tuple[List[DesignGenetic], List[float]]:
+        """
+        Adjust population size if needed and return updated population and fitness scores
+        """
+        if len(population) == self.population_size:
+            return population, fitness_scores
+            
+        if len(population) < self.population_size:
+            # Need to add individuals
+            while len(population) < self.population_size:
+                new_design = self.create_initial_population()[0]  # Create one new individual
+                population.append(new_design)
+        else:
+            # Need to remove individuals (keep the best ones)
+            combined = list(zip(population, fitness_scores))
+            combined.sort(key=lambda x: x[1])  # Sort by fitness
+            population = [design for design, _ in combined[:self.population_size]]
+        
+        # Recalculate fitness scores for the adjusted population
+        fitness_scores = [self.evaluate_fitness(design) for design in population]
+        return population, fitness_scores
+
+    def _create_next_generation(self, population: List[DesignGenetic], fitness_scores: List[float]) -> List[DesignGenetic]:
+        """
+        Create the next generation using elitism, crossover, and mutation
+        """
+        # 1. Elitism: preserve best designs
+        new_population = self.select_elites(population, fitness_scores)
+        
+        # 2. Fill rest with offspring
+        while len(new_population) < self.population_size:
+            # Tournament selection
+            parent1 = self.tournament_selection(population, fitness_scores)
+            parent2 = self.tournament_selection(population, fitness_scores)
+            
+            # Crossover
+            child1, child2 = self.crossover(parent1, parent2)
+            
+            # Mutation
+            child1 = self.mutate_design(child1)
+            child2 = self.mutate_design(child2)
+            
+            # Validate and add children
+            if self.validate_design(child1):
+                new_population.append(child1)
+            if len(new_population) < self.population_size and self.validate_design(child2):
+                new_population.append(child2)
+            
+            # Safety check to prevent infinite loop
+            if len(new_population) >= self.population_size:
+                break
+        
+        # Trim to exact population size
+        return new_population[:self.population_size]
 
     def get_statistics(self) -> dict:
         """
