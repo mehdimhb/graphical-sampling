@@ -1,5 +1,3 @@
-import copy
-import time
 from functools import lru_cache
 from math import isclose
 from typing import List, Optional
@@ -45,6 +43,8 @@ class GeneticOptimizer:
         return partitions, border_units
 
     def _chunk_ids(self, ids: frozenset[int], n_parts: int) -> List[set[int]]:
+        """Split a set of IDs into n_parts chunks based on the assumption(fixed size) that each chunk will have an equal number of IDs."""
+
         lst = sorted(ids)
         base, rem = divmod(len(lst), n_parts)
         chunks, idx = [], 0
@@ -105,13 +105,13 @@ class GeneticOptimizer:
                 pulled.append(r)
 
             length = min(r.probability for r in pulled)
-            
+
             all_chunks = [self._chunk_ids(r.ids, n) for r in pulled]
             child_ids: set[int] = set()
             child_ids2: set[int] = set()
             for i in range(n):
-                child_ids |= all_chunks[i][i]
-                child_ids2 |= all_chunks[i][(i + 1) % n]
+                child_ids.update(all_chunks[i][i])
+                child_ids2.update(all_chunks[i][(i + 1) % n])
             child = Sample(length, frozenset(child_ids), index=[child_design.step, []])
             child2 = Sample(
                 length, frozenset(child_ids2), index=[child_design2.step, []]
