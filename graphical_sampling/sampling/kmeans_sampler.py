@@ -1,4 +1,6 @@
 from functools import cached_property
+from math import sqrt
+import pandas as pd
 import numpy as np
 from numpy.typing import NDArray
 from typing import List, Tuple, Union, Optional
@@ -13,7 +15,7 @@ from .builder import ClusteringZoneBuilder, SweepingZoneBuilder, ClusterBuilder,
 from .order import Order, LexicoXY, LexicoYX, Random, Angle, DistFromOrigin, Projection, DistFromCentroid, \
     Spiral, MaxCoord, Snake, HilbertCurve, Change  # All OrderStrategy implementations
 from ..design import Design
-from ..measure import Density, Moran, LocalBalance
+from ..measure import Density, Moran, LocalBalance, Voronoi
 
 
 class KMeansSampler:
@@ -167,6 +169,7 @@ class KMeansSampler:
         if 'density_scores' in self.__dict__: del self.density_scores
         if 'moran_scores' in self.__dict__: del self.moran_scores
         if 'local_balance_scores' in self.__dict__: del self.local_balance_scores
+        if 'voronoi_scores' in self.__dict__: del self.voronoi_scores
 
 
         # Re-compute relevant properties
@@ -176,6 +179,7 @@ class KMeansSampler:
         _ = self.density_scores
         _ = self.moran_scores
         _ = self.local_balance_scores
+        _ = self.voronoi_scores
 
     def reorder_change(
             self,
@@ -476,33 +480,83 @@ class KMeansSampler:
         local_balance = LocalBalance(self.population)
         return local_balance.score(self.all_samples)
 
-    def expected_score(self, all_samples_scores: NDArray):
+    @cached_property
+    def voronoi_scores(self):
+        if self.all_samples.size == 0:
+            return np.array([])
+        voronoi = Voronoi(self.population)
+        return voronoi.score(self.all_samples)
+
+    def expected_score(self, all_samples_scores: NDArray) -> float:
         if all_samples_scores.size == 0 or self.all_samples_probs.size == 0:
             ValueError("There are no samples to compute density scores for.")
 
         return float(np.sum(all_samples_scores * self.all_samples_probs))
 
-    def expected_density_score(self):
+    def expected_density_score(self) -> float:
         return self.expected_score(self.density_scores)
 
-    def expected_moran_score(self):
+    def expected_moran_score(self) -> float:
         return self.expected_score(self.moran_scores)
 
-    def expected_local_balance_score(self):
+    def expected_local_balance_score(self) -> float:
         return self.expected_score(self.local_balance_scores)
 
-    def var_score(self, all_samples_scores: NDArray):
+    def expected_voronoi_score(self) -> float:
+        return self.expected_score(self.voronoi_scores)
+
+    def var_score(self, all_samples_scores: NDArray) -> float:
         if all_samples_scores.size == 0 or self.all_samples_probs.size == 0:
-            return ValueError("There are no samples to compute density scores for.")
+            ValueError("There are no samples to compute density scores for.")
 
         expected_val = self.expected_score(all_samples_scores)
         return float(np.sum(all_samples_scores ** 2 * self.all_samples_probs) - expected_val ** 2)
 
-    def var_density_score(self):
+    def var_density_score(self) -> float:
         return self.var_score(self.density_scores)
 
-    def var_moran_score(self):
+    def var_moran_score(self) -> float:
         return self.var_score(self.moran_scores)
 
-    def var_local_balance_score(self):
+    def var_local_balance_score(self) -> float:
         return self.var_score(self.local_balance_scores)
+
+    def var_voronoi_score(self) -> float:
+        return self.var_score(self.voronoi_scores)
+
+    def std_density_score(self) -> float:
+        return sqrt(self.var_score(self.density_scores))
+
+    def std_moran_score(self) -> float:
+        return sqrt(self.var_score(self.moran_scores))
+
+    def std_local_balance_score(self) -> float:
+        return sqrt(self.var_score(self.local_balance_scores))
+
+    def std_voronoi_score(self) -> float:
+        return sqrt(self.var_score(self.voronoi_scores))
+
+    def score_summary_df(self) -> pd.DataFrame:
+        """
+        Return a pandas DataFrame summarizing expected score and standard deviation
+        for the four measures: density, moran, local_balance, and voronoi.
+
+        Index:   measure name
+        Columns: ["expected", "std"]
+        """
+        data = {
+            "measure": ["density", "moran", "local_balance", "voronoi"],
+            "expected": [
+                self.expected_density_score(),
+                self.expected_moran_score(),
+                self.expected_local_balance_score(),
+                self.expected_voronoi_score(),
+            ],
+            "std": [
+                self.std_density_score(),
+                self.std_moran_score(),
+                self.std_local_balance_score(),
+                self.std_voronoi_score(),
+            ],
+        }
+        return pd.DataFrame(data).set_index("measure")

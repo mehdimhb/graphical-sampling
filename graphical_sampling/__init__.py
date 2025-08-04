@@ -3,6 +3,7 @@ from importlib import metadata
 from .design import Design
 from .new_design import NewDesign
 from .population import Population
+from .plot import plot
 from . import criteria
 from . import search
 from . import sampling
@@ -23,5 +24,6 @@ __all__ = [
     "clustering",
     "random",
     "measure",
+    "plot",
 ]
 
