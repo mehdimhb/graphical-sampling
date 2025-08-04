@@ -10,7 +10,7 @@ class VarNHT(Criteria):
             [
                 np.sum(
                     self.auxiliary_variable[list(sample.ids)]
-                    / self.inclusion_probability[list(sample.ids)]
+                    / self.inclusion_probability[list(sample.ids)][:, np.newaxis]  # Fix broadcasting
                 )
                 for sample in design
             ]
