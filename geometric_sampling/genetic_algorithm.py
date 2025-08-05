@@ -82,7 +82,7 @@ class GeometricSamplingGA:
                 if len(design.heap) >= 2:
                     design.iterate(
                         random_pull=self.random_pull,
-                        switch_coefficient=0.5,
+                        switch_coefficient=(self.rng.integers(1, 100) / 100),
                         partitions=self.partitions,
                         border_units=self.border_units
                     )
@@ -93,14 +93,14 @@ class GeometricSamplingGA:
 
         return population
 
-    def chaotic_initial_population(self, M=100, alpha=0.5):
+    def chaotic_initial_population(self, M=100):
         population = []
         for _ in range(self.population_size):
             design = DesignGenetic(self.inclusions, rng=self.rng)
-            for _ in range(10):
+            for _ in range(M):
                 design.iterate(
                     random_pull=self.random_pull,
-                    switch_coefficient=self.rng.uniform(alpha * 0.5, alpha * 1.5),
+                    switch_coefficient=(self.rng.integers(1, 100) / 100),
                     partitions=self.partitions,
                     border_units=self.border_units
                 )
@@ -174,27 +174,16 @@ class GeometricSamplingGA:
             return design.copy()
 
         mutated = design.copy()
-        # if self.rng.random() < 0.2:  # 20% chance: apply chaotic mutation
-        #     for _ in range(self.mutation_intensity * 5):
-        #         mutated.iterate(
-        #             random_pull=self.random_pull,
-        #             switch_coefficient=self.rng.uniform(0.2, 0.8),
-        #             partitions=None,  # intentionally ignore partitions
-        #             border_units=self.border_units
-        #         )
-        #         if design.changes % 3 == 0 :
-        #             mutated.merge_identical()
-        mutated.merge_identical()
         # Apply several segment interchanges to increase entropy
-        for _ in range(self.mutation_intensity * 15):
+        for _ in range(self.mutation_intensity):
             if len(mutated.heap) >= 2:
                 mutated.iterate(
                     random_pull=self.random_pull,
-                    switch_coefficient=self.rng.uniform(0.3, 0.7),
+                    switch_coefficient=(self.rng.integers(1, 100) / 100),
                     partitions=self.partitions,
                     border_units=self.border_units
                 )
-            # if design.changes % 5 == 0 :
+            # if design.changes % self.mutation_intensity == 0 :
             #     mutated.merge_identical()
         mutated.merge_identical()
         return mutated
@@ -301,10 +290,9 @@ class GeometricSamplingGA:
 
         # Initialize population
         population = self.create_initial_population()[:self.population_size // 2] + \
-                     self.chaotic_initial_population(M=20, alpha=0.7)[:self.population_size // 2]
+                     self.chaotic_initial_population(M=150)[:self.population_size // 2]
 
         for generation in range(max_generations):
-
             # Evaluate fitness for all designs
             fitness_scores = [self.evaluate_fitness(design) for design in population]
 
