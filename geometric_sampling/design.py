@@ -174,6 +174,7 @@ class DesignGenetic(Design):
 
         new_samples = [Sample(prob, ids, idx) for ids, (prob, idx) in merged.items()]
         self.heap = MaxHeap(initial_heap=new_samples, rng=self.rng)
+        self.changes = 0
 
     def push_initial_design(self, inclusions: Collection[float], perm: Optional[list[int]] = None):
         if perm is None:
