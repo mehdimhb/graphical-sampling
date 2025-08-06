@@ -11,7 +11,7 @@ from ..population import Population
 from ..clustering import AuxiliaryBalancedKMeans
 from .entity import Zone, Cluster  # Assuming these are in .entity
 from .builder import ClusteringZoneBuilder, SweepingZoneBuilder, ClusterBuilder, \
-    BaseZoneBuilder  # Assuming these are in .builder
+    BaseZoneBuilder, ClusterInClusterBuilder # Assuming these are in .builder
 from .order import Order, LexicoXY, LexicoYX, Random, Angle, DistFromOrigin, Projection, DistFromCentroid, \
     Spiral, MaxCoord, Snake, HilbertCurve, Change  # All OrderStrategy implementations
 from ..design import Design
@@ -23,9 +23,10 @@ class KMeansSampler:
             self,
             population: Population,  # Now takes a Population object directly
             *,
-            n: int,  # This n is likely n_clusters for Sampler
+            n: int | tuple[int],  # This n is likely n_clusters for Sampler
             n_zones: int | Tuple[int, int],  # Can be int for clustering, tuple for sweep
             split_size: float,
+            cluster_in_cluster: bool = False,
             zone_builder: str = "sweep",
             units_order: str = "lexico-xy",  # Default for units within zones
             zones_order: str = "lexico-xy",  # Default for zones within clusters
@@ -41,7 +42,7 @@ class KMeansSampler:
         self.coords = self.population.coords
         self.probs = self.population.probs
 
-        self.n = n  # Number of clusters
+        self.n = np.prod(n) if cluster_in_cluster else n  # Number of clusters
         self.split_size = split_size
         self.zone_builder_str = zone_builder
 
@@ -77,11 +78,18 @@ class KMeansSampler:
             raise ValueError(f"Invalid zone_mode: {self.zone_builder_str}. Must be 'cluster' or 'sweep'.")
 
         # 3. Initialize ClusterBuilder
-        self.cluster_builder = ClusterBuilder(
-            n_clusters=self.n,
-            zone_builder=zone_builder_obj,
-            split_size=self.split_size
-        )
+        if cluster_in_cluster:
+            self.cluster_builder = ClusterInClusterBuilder(
+                n_clusters=n,
+                zone_builder=zone_builder_obj,
+                split_size=self.split_size
+            )
+        else:
+            self.cluster_builder = ClusterBuilder(
+                n_clusters=self.n,
+                zone_builder=zone_builder_obj,
+                split_size=self.split_size
+            )
 
         # 4. Build clusters (which internally build zones)
         if clusters is None:

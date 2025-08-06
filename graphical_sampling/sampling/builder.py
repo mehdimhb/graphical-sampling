@@ -435,6 +435,86 @@ class ClusterBuilder:
         return clusters, ab_kmeans.labels, ab_kmeans.centroids
 
 
+class ClusterInClusterBuilder:
+
+    def __init__(self,
+                 n_clusters: tuple[int],
+                 zone_builder: BaseZoneBuilder,
+                 split_size: float = 0.01):
+
+        self._n_clusters = n_clusters
+        self._zone_builder = zone_builder
+        self._split_size = split_size
+        self._next_cluster_id = 0  # To assign unique IDs to clusters, initialized to 0
+
+        if not isinstance(self._zone_builder, BaseZoneBuilder):
+            raise TypeError("zone_builder must be an instance of BaseZoneBuilder (or its subclass).")
+
+    def _get_next_cluster_id(self) -> int:
+        """
+        Generates and returns a unique integer ID for a new cluster.
+        This method ensures each cluster created by the builder has a distinct identifier.
+        """
+        cluster_id = self._next_cluster_id
+        self._next_cluster_id += 1
+        return cluster_id
+
+    def inside_clustering(self, k: int, population: Population, index_share: np.ndarray) -> List[np.ndarray]:
+        indices = index_share[:, 0].astype(np.int64)
+        shares = index_share[:, 1]
+        ab_kmeans = AuxiliaryBalancedKMeans(k=k, split_size=self._split_size)
+        ab_kmeans.fit(population.subset(indices, shares))
+        return generate_index_shares(k, ab_kmeans.membership, indices)
+
+    def build_clusters(self, population: Population) -> Tuple[List[Cluster], np.ndarray, np.ndarray]:
+        """
+        Builds a list of Cluster objects by first applying balanced k-means
+        clustering to the entire population, and then using the configured
+        ZoneBuilder to create zones within each resulting cluster.
+
+        Args:
+            population (Population): The overall Population object containing all
+                                     units to be clustered and zoned.
+
+        Returns:
+            List[Cluster]: A list of Cluster objects, each containing
+                           its assigned zones.
+        """
+        self._next_cluster_id = 0  # Reset the cluster ID counter for a new build operation
+
+        clusters_index_share = [np.column_stack((np.arange(population.N), np.ones(population.N)))]
+        i = 0
+        while len(clusters_index_share) < np.prod(self._n_clusters):
+            new_clusters_index_share = []
+            for index_share in clusters_index_share:
+                new_clusters_index_share.extend(self.inside_clustering(self._n_clusters[i], population, index_share))
+            clusters_index_share = new_clusters_index_share[:]
+            i += 1
+
+        clusters: List[Cluster] = []
+        membership = np.zeros((population.N, np.prod(self._n_clusters)))
+        for i, index_share in enumerate(clusters_index_share):
+            if index_share.size == 0:
+                continue
+
+            zones_for_cluster = self._zone_builder.build_zones(population, index_share)
+
+            new_cluster_id = self._get_next_cluster_id()
+
+            new_cluster = Cluster(id=new_cluster_id, _zones=zones_for_cluster)
+
+            clusters.append(new_cluster)
+
+            for row in index_share:
+                index, share = int(row[0]), row[1]
+                membership[index, i] = share
+
+        labels: np.ndarray = np.argmax(membership, axis=1)
+        centroids: np.ndarray = np.array([population.coords[labels == i].mean(axis=0) for i in range(np.prod(self._n_clusters))])
+
+        return clusters, labels, centroids
+
+
 def generate_index_shares(n: int, membership: np.ndarray, source_indices: Optional[np.ndarray] = None) -> List[np.ndarray]:
     """
     Prepares a list of `index_share` arrays, where each array corresponds to a cluster or zone

@@ -3,7 +3,7 @@ from .random_sampling import RandomSampling
 from .kmeans_sampler import KMeansSampler
 from .entity import Population, Zone, Cluster  # Assuming these are in .entity
 from .builder import ClusteringZoneBuilder, SweepingZoneBuilder, ClusterBuilder, \
-    BaseZoneBuilder  # Assuming these are in .builder
+    BaseZoneBuilder, ClusterInClusterBuilder  # Assuming these are in .builder
 from .order import Order, LexicoXY, LexicoYX, Random, Angle, DistFromOrigin, Projection, DistFromCentroid, \
     Spiral, MaxCoord, Snake, HilbertCurve, Change  # All OrderStrategy implementations
 
@@ -18,6 +18,7 @@ __all__ = [
     "ClusteringZoneBuilder",
     "SweepingZoneBuilder",
     "ClusterBuilder",
+    "ClusterInClusterBuilder",
     "BaseZoneBuilder",
     "Order",
     "LexicoXY",
