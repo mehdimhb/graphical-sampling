@@ -1,4 +1,4 @@
-from .criteria import VarNHT, MoranCriteria
+from .criteria import VarNHT, MoranCriteria, MoranWithPenaltyCriteria
 
 
-__all__ = ["VarNHT", "MoranCriteria"]
+__all__ = ["VarNHT", "MoranCriteria", "MoranWithPenaltyCriteria"]

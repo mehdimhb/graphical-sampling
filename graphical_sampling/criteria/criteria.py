@@ -45,3 +45,8 @@ class MoranCriteria(Criteria):
     def evaluate(self, design: NewDesign) -> float:
         return design.kmeans.expected_moran_score()
 
+
+class MoranWithPenaltyCriteria(Criteria):
+    def evaluate(self, design: NewDesign) -> float:
+        return design.kmeans.expected_moran_score() + (1-np.sum(design.kmeans.all_samples_probs))
+

@@ -43,6 +43,7 @@ class KMeansSampler:
         self.probs = self.population.probs
 
         self.n = np.prod(n) if cluster_in_cluster else n  # Number of clusters
+        self.cluster_in_cluster = cluster_in_cluster
         self.split_size = split_size
         self.zone_builder_str = zone_builder
 
