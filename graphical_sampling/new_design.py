@@ -21,6 +21,7 @@ class NewDesign:
         new_kmeans = KMeansSampler(
             population = self.kmeans.population,
             n=self.kmeans.n,
+            n_clusters=self.kmeans.n_clusters,
             cluster_in_cluster=self.kmeans.cluster_in_cluster,
             n_zones=self.kmeans.n_zones_value,
             split_size=self.kmeans.split_size,
