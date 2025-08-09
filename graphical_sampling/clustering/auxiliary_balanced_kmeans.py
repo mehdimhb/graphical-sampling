@@ -120,7 +120,7 @@ class AuxiliaryBalancedKMeans:
         kmeans = KMeansConstrained(
             n_clusters=self.k,
             size_min=cluster_size,
-            size_max=cluster_size + 1,  # Allows for slight variation in cluster sizes
+            size_max=cluster_size+1 if self.k > 1 else cluster_size,  # Allows for slight variation in cluster sizes
             n_jobs=-1,
             random_state=42 # For reproducibility
         )
