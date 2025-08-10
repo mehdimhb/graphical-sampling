@@ -1,9 +1,10 @@
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from geometric_sampling.design import DesignGenetic
 from geometric_sampling.GeneticOptimizer import GeneticOptimizer
 from geometric_sampling.criteria import VarNHT
+from geometric_sampling.monitoring import GAMonitor
 
 
 class GeometricSamplingGA:
@@ -24,6 +25,9 @@ class GeometricSamplingGA:
             random_pull: bool = False,
             adaptive_parameters: bool = False,
             selection_pressure: float = 1.5,
+            enable_monitoring: bool = True,
+            enable_live_plots: bool = False,
+            save_metrics: bool = True,
 
     ):
         # Core algorithm parameters
@@ -36,6 +40,10 @@ class GeometricSamplingGA:
         self.selection_pressure = selection_pressure
         self.use_partitions = use_partitions
         self.adaptive_parameters = adaptive_parameters
+
+        # Monitoring setup
+        self.enable_monitoring = enable_monitoring
+        self.monitor = GAMonitor(enable_live_plots=enable_live_plots, save_data=save_metrics) if enable_monitoring else None
 
         # diversity threshold
         self.diversity_threshold = 0.1
@@ -278,7 +286,8 @@ class GeometricSamplingGA:
         self.mutation_rate = max(0.05, min(0.8, self.mutation_rate))
 
     def run(self, max_generations: int = 100,
-            verbose: bool = True) -> DesignGenetic:
+            verbose: bool = True,
+            save_report_path: Optional[str] = None) -> DesignGenetic:
 
         if verbose:
             print("Initializing Geometric Sampling Genetic Algorithm...")
@@ -306,6 +315,10 @@ class GeometricSamplingGA:
 
             self.fitness_history.append(current_best_fitness)
 
+            # Record metrics if monitoring is enabled
+            if self.monitor:
+                self.monitor.record_generation(generation, population, fitness_scores, self)
+
             # Calculate population diversity and adapt parameters
             population_diversity = self.calculate_population_diversity(population, fitness_scores)
 
@@ -330,6 +343,20 @@ class GeometricSamplingGA:
                 print("✅ Best design passes validation!")
             else:
                 print("❌ Best design failed validation!")
+
+        # Generate final monitoring report
+        if self.monitor:
+            if verbose:
+                print("\n📊 Generating monitoring report...")
+            
+            final_stats = self.monitor.generate_final_report(save_path=save_report_path)
+            
+            if verbose and final_stats:
+                print(f"📈 Algorithm Performance Summary:")
+                print(f"   • Total Runtime: {final_stats.get('total_runtime', 0):.2f} seconds")
+                print(f"   • Convergence Rate: {final_stats.get('convergence_rate', 0):.6f}")
+                print(f"   • Average Improvement: {final_stats.get('average_improvement', 0):.6f}")
+                print(f"   • Final Diversity: {final_stats.get('final_diversity', 0):.3f}")
 
         return self.best_design
 
@@ -389,4 +416,59 @@ class GeometricSamplingGA:
 
         # Trim to exact population size
         return new_population[:self.population_size]
+    
+    def get_monitoring_data(self) -> Optional[List]:
+        """
+        Get the complete monitoring data for analysis.
+        
+        Returns:
+            List of GAMetrics objects if monitoring is enabled, None otherwise
+        """
+        if self.monitor:
+            return self.monitor.metrics_history
+        return None
+    
+    def save_monitoring_data(self, filepath: str):
+        """
+        Save monitoring data to CSV file.
+        
+        Args:
+            filepath: Path where to save the CSV file
+        """
+        if self.monitor:
+            self.monitor.save_metrics_to_csv(filepath)
+        else:
+            print("❌ Monitoring is not enabled. Cannot save monitoring data.")
+    
+    def plot_fitness_evolution(self, save_path: Optional[str] = None):
+        """
+        Create a simple fitness evolution plot.
+        
+        Args:
+            save_path: Optional path to save the plot
+        """
+        if not self.monitor or not self.monitor.metrics_history:
+            print("❌ No monitoring data available for plotting.")
+            return
+        
+        import matplotlib.pyplot as plt
+        
+        generations = [m.generation for m in self.monitor.metrics_history]
+        best_fitness = [m.best_fitness for m in self.monitor.metrics_history]
+        mean_fitness = [m.mean_fitness for m in self.monitor.metrics_history]
+        
+        plt.figure(figsize=(10, 6))
+        plt.plot(generations, best_fitness, 'b-', label='Best Fitness', linewidth=2)
+        plt.plot(generations, mean_fitness, 'r--', label='Mean Fitness', alpha=0.7)
+        plt.xlabel('Generation')
+        plt.ylabel('Fitness Value')
+        plt.title('Fitness Evolution Over Generations')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"Fitness evolution plot saved to: {save_path}")
+        
+        plt.show()
 

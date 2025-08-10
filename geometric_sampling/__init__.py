@@ -8,8 +8,10 @@ from . import clustering
 from . import random
 from . import measure
 
-
-__version__ = metadata.version("geometric_sampling")
+try:
+    __version__ = metadata.version("geometric_sampling")
+except metadata.PackageNotFoundError:
+    __version__ = "0.1.0-dev"  # Development version
 
 __all__ = [
     "Design",
