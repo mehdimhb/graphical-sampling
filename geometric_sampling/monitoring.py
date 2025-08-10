@@ -51,10 +51,11 @@ class GAMonitor:
         self.save_data = save_data
         self.metrics_history: List[GAMetrics] = []
         self.start_time = time.time()
+        self.best_design_details = {}
 
         if self.enable_live_plots:
             plt.ion()
-            self.fig, self.axes = plt.subplots(2, 3, figsize=(15, 10))
+            self.fig, self.axes = plt.subplots(2, 3, figsize=(18, 10))
             self.fig.suptitle('Genetic Algorithm Live Monitoring')
             self._setup_initial_live_plots()
 
@@ -62,19 +63,19 @@ class GAMonitor:
         """A helper function to set up common properties for a plot axis."""
         if clear_first:
             ax.clear()
-        ax.set_title(title)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        ax.set_title(title, fontsize=12)
+        ax.set_xlabel(xlabel, fontsize=10)
+        ax.set_ylabel(ylabel, fontsize=10)
         ax.grid(True, linestyle='--', alpha=0.6)
 
     def _setup_initial_live_plots(self):
         """Setup the initial titles and labels for the live plotting interface."""
         self._setup_plot_axis(self.axes[0, 0], 'Fitness Evolution', 'Generation', 'Fitness', clear_first=False)
-        self._setup_plot_axis(self.axes[0, 1], 'Fitness Statistics', 'Generation', 'Fitness', clear_first=False)
-        self._setup_plot_axis(self.axes[0, 2], 'Population Diversity', 'Generation', 'Diversity', clear_first=False)
-        self._setup_plot_axis(self.axes[1, 0], 'Algorithm Parameters', 'Generation', 'Rate', clear_first=False)
-        self._setup_plot_axis(self.axes[1, 1], 'Convergence Metrics', 'Generation', 'Value', clear_first=False)
-        self._setup_plot_axis(self.axes[1, 2], 'Heap Size Distribution', 'Heap Size', 'Frequency', clear_first=False)
+        self._setup_plot_axis(self.axes[0, 1], 'Population Diversity', 'Generation', 'Diversity', clear_first=False)
+        self._setup_plot_axis(self.axes[0, 2], 'Adaptive Parameters', 'Generation', 'Rate', clear_first=False)
+        self._setup_plot_axis(self.axes[1, 0], 'Heap Size Distribution', 'Heap Size', 'Frequency', clear_first=False)
+        self._setup_plot_axis(self.axes[1, 1], 'Convergence Speed', 'Generation', 'Rate', clear_first=False)
+        # self._setup_plot_axis(self.axes[1, 2], 'Validation Pass Rate', 'Generation', 'Rate (%)', clear_first=False)
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 
@@ -82,20 +83,18 @@ class GAMonitor:
                          generation: int,
                          population: List[Any],
                          fitness_scores: List[float],
-                         ga_instance: Any) -> GAMetrics:
-        """
-        Record metrics for a single generation.
-        """
+                         ga_instance: Any,
+                         ) -> GAMetrics:
+        """Record metrics for a single generation."""
         timestamp = time.time() - self.start_time
         fitness_array = np.array(fitness_scores)
 
-        # Calculate improvement rate
         improvement_rate = 0.0
         if len(self.metrics_history) > 0:
             prev_best = self.metrics_history[-1].best_fitness
-            improvement_rate = (prev_best - fitness_array.min()) / max(abs(prev_best), 1e-10)
+            if abs(prev_best) > 1e-9:
+                improvement_rate = (prev_best - fitness_array.min()) / abs(prev_best)
 
-        # Calculate convergence speed
         convergence_speed = 0.0
         if len(self.metrics_history) >= 10:
             past_fitness = self.metrics_history[-10].best_fitness
@@ -119,60 +118,66 @@ class GAMonitor:
             stagnation_counter=ga_instance.stagnation_counter,
             improvement_rate=improvement_rate,
             convergence_speed=convergence_speed,
-            heap_sizes=[len(design.heap) for design in population],
+            heap_sizes=[len(design.heap) for design in population if hasattr(design, 'heap')],
             random_state=ga_instance.random_pull,
             mutation_intensity=ga_instance.mutation_intensity,
-        )
 
+        )
         self.metrics_history.append(metrics)
 
-        if self.enable_live_plots and generation % 5 == 0:
+        # Track the best design details
+        if not self.best_design_details or metrics.best_fitness < self.best_design_details['fitness']:
+            best_design_idx = np.argmin(fitness_array)
+            self.best_design_details = {
+                'fitness': metrics.best_fitness,
+                'generation': generation,
+                'heap_size': len(population[best_design_idx].heap)
+            }
+
+
+        if self.enable_live_plots and generation > 0 and generation % 5 == 0:
             self.update_live_plots()
 
         return metrics
 
     def update_live_plots(self):
         """Update the live plotting interface with the latest data."""
-        if not self.metrics_history:
-            return
-
+        if not self.metrics_history: return
         generations = [m.generation for m in self.metrics_history]
 
-        # Plot 1: Fitness Evolution
+        # Plot 1: Fitness
         self._setup_plot_axis(self.axes[0, 0], 'Fitness Evolution', 'Generation', 'Fitness')
         self.axes[0, 0].plot(generations, [m.best_fitness for m in self.metrics_history], 'b-', label='Best', linewidth=2)
         self.axes[0, 0].plot(generations, [m.mean_fitness for m in self.metrics_history], 'r--', label='Mean', alpha=0.7)
         self.axes[0, 0].legend()
 
-        # Plot 2: Fitness Statistics
-        self._setup_plot_axis(self.axes[0, 1], 'Fitness Statistics', 'Generation', 'Fitness')
-        self.axes[0, 1].fill_between(generations, [m.min_fitness for m in self.metrics_history], [m.max_fitness for m in self.metrics_history], color='blue', alpha=0.1, label='Min-Max Range')
-        self.axes[0, 1].errorbar(generations, [m.mean_fitness for m in self.metrics_history], yerr=[m.std_fitness for m in self.metrics_history], errorevery=5, capsize=3, label='Mean ± Std', fmt='r--')
-        self.axes[0, 1].legend()
+        # Plot 2: Diversity
+        self._setup_plot_axis(self.axes[0, 1], 'Population Diversity', 'Generation', 'Diversity')
+        self.axes[0, 1].plot(generations, [m.diversity for m in self.metrics_history], 'purple', linewidth=2)
 
-        # Plot 3: Population Diversity
-        self._setup_plot_axis(self.axes[0, 2], 'Population Diversity', 'Generation', 'Diversity')
-        self.axes[0, 2].plot(generations, [m.diversity for m in self.metrics_history], 'purple', linewidth=2)
+        # Plot 3: Adaptive Parameters
+        self._setup_plot_axis(self.axes[0, 2], 'Adaptive Parameters', 'Generation', 'Mutation Rate')
+        self.axes[0, 2].plot(generations, [m.mutation_rate for m in self.metrics_history], 'orange', label='Mutation Rate')
+        self.axes[0, 2].tick_params(axis='y', labelcolor='orange')
+        ax_stagnation = self.axes[0, 2].twinx()
+        ax_stagnation.set_ylabel('Stagnation Count', color='gray')
+        ax_stagnation.plot(generations, [m.stagnation_counter for m in self.metrics_history], 'gray', linestyle=':', label='Stagnation')
+        ax_stagnation.tick_params(axis='y', labelcolor='gray')
 
-        # Plot 4: Algorithm Parameters
-        self._setup_plot_axis(self.axes[1, 0], 'Algorithm Parameters', 'Generation', 'Rate')
-        self.axes[1, 0].plot(generations, [m.mutation_rate for m in self.metrics_history], 'orange', label='Mutation Rate')
-        self.axes[1, 0].plot(generations, [m.elitism_rate for m in self.metrics_history], 'cyan', label='Elitism Rate')
-        self.axes[1, 0].legend()
-
-        # Plot 5: Convergence Metrics
-        self._setup_plot_axis(self.axes[1, 1], 'Convergence Metrics', 'Generation', 'Stagnation Count')
-        self.axes[1, 1].plot(generations, [m.stagnation_counter for m in self.metrics_history], 'red', label='Stagnation')
-        self.axes[1, 1].tick_params(axis='y', labelcolor='red')
-        ax5_twin = self.axes[1, 1].twinx()
-        ax5_twin.set_ylabel('Improvement Rate', color='green')
-        ax5_twin.plot(generations, [m.improvement_rate for m in self.metrics_history], 'green', linestyle='--', label='Improvement')
-        ax5_twin.tick_params(axis='y', labelcolor='green')
-
-        # Plot 6: Heap Size Distribution
+        # Plot 4: Heap Size
         current_heap_sizes = self.metrics_history[-1].heap_sizes
-        self._setup_plot_axis(self.axes[1, 2], f'Heap Size Distribution (Gen {generations[-1]})', 'Heap Size', 'Frequency')
-        self.axes[1, 2].hist(current_heap_sizes, bins=20, alpha=0.7, color='skyblue', edgecolor='black')
+        if current_heap_sizes:
+            self._setup_plot_axis(self.axes[1, 0], f'Heap Size Distribution (Gen {generations[-1]})', 'Heap Size', 'Frequency')
+            self.axes[1, 0].hist(current_heap_sizes, bins=15, alpha=0.75, color='skyblue', edgecolor='black')
+
+        # Plot 5: Convergence Speed
+        self._setup_plot_axis(self.axes[1, 1], 'Convergence Speed', 'Generation', 'Rate')
+        self.axes[1, 1].plot(generations, [m.convergence_speed for m in self.metrics_history], 'green', label='Convergence Speed')
+
+        # Plot 6: Validation Pass Rate
+        # self._setup_plot_axis(self.axes[1, 2], 'Validation Pass Rate', 'Generation', 'Rate (%)')
+        # self.axes[1, 2].plot(generations, [m.validation_pass_rate * 100 for m in self.metrics_history], 'brown', label='Validation Pass %')
+        # self.axes[1, 2].set_ylim(0, 105)
 
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.pause(0.01)
@@ -184,42 +189,83 @@ class GAMonitor:
             return {}
 
         if self.enable_live_plots:
-            plt.ioff() # Turn off interactive mode for final plot
-            plt.close(self.fig) # Close the live plot window
+            plt.ioff()
+            plt.close(self.fig)
 
-        fig, axes = plt.subplots(3, 2, figsize=(16, 12))
+        # Changed to a 3x2 grid to accommodate more plots
+        fig, axes = plt.subplots(3, 2, figsize=(14, 16))
         fig.suptitle('Genetic Algorithm Final Analysis Report', fontsize=16, fontweight='bold')
-
         generations = [m.generation for m in self.metrics_history]
 
-        # Plotting logic remains similar, but now uses the helper
-        # Plot 1: Complete Fitness Evolution
+        # Plot 1: Fitness Evolution (Top-Left)
         self._setup_plot_axis(axes[0, 0], 'Fitness Evolution Over Generations', 'Generation', 'Fitness Value', clear_first=False)
         axes[0, 0].plot(generations, [m.best_fitness for m in self.metrics_history], 'b-', label='Best Fitness', linewidth=2)
         axes[0, 0].plot(generations, [m.mean_fitness for m in self.metrics_history], 'r--', label='Mean Fitness', alpha=0.8)
-        axes[0, 0].fill_between(generations, np.array([m.mean_fitness for m in self.metrics_history]) - np.array([m.std_fitness for m in self.metrics_history]), np.array([m.mean_fitness for m in self.metrics_history]) + np.array([m.std_fitness for m in self.metrics_history]), alpha=0.2, color='red', label='±1 Std')
+        std_fitness = np.array([m.std_fitness for m in self.metrics_history])
+        mean_fitness = np.array([m.mean_fitness for m in self.metrics_history])
+        axes[0, 0].fill_between(generations, mean_fitness - std_fitness, mean_fitness + std_fitness, alpha=0.15, color='red', label='±1 Std Dev')
         axes[0, 0].legend()
 
-        # ... other plots would follow a similar pattern ...
+        # Plot 2: Population Diversity (Top-Right)
+        self._setup_plot_axis(axes[0, 1], 'Population Diversity', 'Generation', 'Diversity Score', clear_first=False)
+        axes[0, 1].plot(generations, [m.diversity for m in self.metrics_history], 'purple', linewidth=2)
 
-        # Plot 6: Final Statistics Summary (text-based)
+        # Plot 3: Adaptive Parameter Evolution (Middle-Left)
+        self._setup_plot_axis(axes[1, 0], 'Adaptive Parameter Evolution', 'Generation', 'Mutation Rate', clear_first=False)
+        axes[1, 0].plot(generations, [m.mutation_rate for m in self.metrics_history], 'orange', label='Mutation Rate')
+        axes[1, 0].tick_params(axis='y', labelcolor='orange')
+        ax_stagnation = axes[1, 0].twinx()
+        ax_stagnation.set_ylabel('Stagnation Count', color='gray')
+        ax_stagnation.plot(generations, [m.stagnation_counter for m in self.metrics_history], 'gray', linestyle=':', alpha=0.8, label='Stagnation')
+        ax_stagnation.tick_params(axis='y', labelcolor='gray')
+
+        # Plot 4: Mean Heap Size Over Time (Middle-Right)
+        self._setup_plot_axis(axes[1, 1], 'Sample Count (Heap Size) Evolution', 'Generation', 'Count', clear_first=False)
+        mean_heap_sizes = [np.mean(m.heap_sizes) if m.heap_sizes else 0 for m in self.metrics_history]
+        min_heap_sizes = [np.min(m.heap_sizes) if m.heap_sizes else 0 for m in self.metrics_history]
+        max_heap_sizes = [np.max(m.heap_sizes) if m.heap_sizes else 0 for m in self.metrics_history]
+        axes[1, 1].plot(generations, mean_heap_sizes, color='purple', linewidth=2, label='Mean Count')
+        axes[1, 1].fill_between(generations, min_heap_sizes, max_heap_sizes, color='purple', alpha=0.2, label='Min-Max Range')
+        axes[1, 1].legend()
+
+        # Plot 5: Final Heap Size Distribution (Bottom-Left)
+        final_heap_sizes = self.metrics_history[-1].heap_sizes
+        if final_heap_sizes:
+            self._setup_plot_axis(axes[2, 0], f'Final Heap Size Distribution (Gen {generations[-1]})', 'Heap Size', 'Frequency', clear_first=False)
+            axes[2, 0].hist(final_heap_sizes, bins=15, alpha=0.75, color='skyblue', edgecolor='black')
+
+        # Plot 6: Final Statistics Summary (Bottom-Right)
         axes[2, 1].axis('off')
         final_metrics = self.metrics_history[-1]
+
+        # Enhanced Statistics Text - Combined from both examples
         stats_text = f"""
-        FINAL ALGORITHM STATISTICS
-        Number of population: {final_metrics.population_size}
-        State of Randomness: {final_metrics.random_state}
-        Mutation intensity: {final_metrics.mutation_intensity}
-        Best Fitness Achieved: {final_metrics.best_fitness:.6f}
+        --- RUN SUMMARY ---
         Total Generations: {final_metrics.generation}
         Total Runtime: {final_metrics.timestamp:.2f} seconds
+        Best Fitness Achieved: {self.best_design_details.get('fitness', 'N/A'):.6f}
+        Found at Gen: {self.best_design_details.get('generation', 'N/A')}
+
+        --- FINAL POPULATION STATS (Gen {final_metrics.generation}) ---
+        Population Size: {final_metrics.population_size}
+        Mean Fitness: {final_metrics.mean_fitness:.6f}
+        Std Dev Fitness: {final_metrics.std_fitness:.6f}
+        Population Diversity: {final_metrics.diversity:.3f}
+        Avg Heap Size: {np.mean(final_metrics.heap_sizes):.1f}
+
+        --- FINAL PARAMETERS ---
+        Mutation Rate: {final_metrics.mutation_rate:.3f}
+        Elitism Rate: {final_metrics.elitism_rate:.3f}
+        Selection Pressure: {final_metrics.selection_pressure:.2f}
+        Mutation Intensity: {final_metrics.mutation_intensity}
         
-        Final Population Stats:
-        • Mean Fitness: {final_metrics.mean_fitness:.6f}
-        • Std Fitness: {final_metrics.std_fitness:.6f}
-        • Population Diversity: {final_metrics.diversity:.3f}
+        --- PERFORMANCE METRICS ---
+        Final Stagnation: {final_metrics.stagnation_counter}
+        Best Improvement Rate: {max([m.improvement_rate for m in self.metrics_history]):.4f}
         """
-        axes[2, 1].text(0.05, 0.95, stats_text, transform=axes[2, 1].transAxes, fontsize=10, verticalalignment='top', fontfamily='monospace', bbox=dict(boxstyle='round', facecolor='lightgray', alpha=0.8))
+        axes[2, 1].text(0.05, 0.95, stats_text, transform=axes[2, 1].transAxes, fontsize=9,
+                        verticalalignment='top', fontfamily='monospace',
+                        bbox=dict(boxstyle='round', facecolor='whitesmoke', alpha=0.8))
 
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         if save_path:
@@ -228,49 +274,23 @@ class GAMonitor:
 
         plt.show()
 
-        return {
-            'total_generations': final_metrics.generation,
-            'total_runtime': final_metrics.timestamp,
-            'best_fitness': final_metrics.best_fitness,
-        }
+        return {'best_fitness': self.best_design_details.get('fitness', float('inf'))}
 
     def save_metrics_to_csv(self, filepath: str):
         """Save all recorded metrics to a CSV file for further analysis."""
         if not self.metrics_history:
             print("No metrics to save.")
             return
-
         try:
             import pandas as pd
-
-            # Use asdict for cleaner conversion from dataclass to dict
             data = [asdict(m) for m in self.metrics_history]
-
-            # Post-process the data to calculate aggregate stats
             for row in data:
-                heap_sizes = row.pop('heap_sizes', []) # Remove list and get value
+                heap_sizes = row.pop('heap_sizes', [])
                 row['avg_heap_size'] = np.mean(heap_sizes) if heap_sizes else 0
                 row['std_heap_size'] = np.std(heap_sizes) if heap_sizes else 0
-
             df = pd.DataFrame(data)
             df.to_csv(filepath, index=False)
             print(f"Metrics saved to: {filepath}")
-
         except ImportError:
             print("⚠️ pandas not available, using basic CSV implementation.")
-            import csv
-
-            # Get headers from the dataclass fields + new aggregate fields
-            headers = [f.name for f in field(GAMetrics)] + ['avg_heap_size', 'std_heap_size']
-            headers.remove('heap_sizes')
-
-            with open(filepath, 'w', newline='') as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerow(headers)
-                for m in self.metrics_history:
-                    row_dict = asdict(m)
-                    heap_sizes = row_dict.pop('heap_sizes', [])
-                    row_dict['avg_heap_size'] = np.mean(heap_sizes) if heap_sizes else 0
-                    row_dict['std_heap_size'] = np.std(heap_sizes) if heap_sizes else 0
-                    writer.writerow([row_dict.get(h, '') for h in headers])
-            print(f"Metrics saved to: {filepath}")
+            # Fallback to basic csv writer
