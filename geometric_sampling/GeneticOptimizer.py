@@ -1,6 +1,6 @@
 from functools import lru_cache
 from math import isclose
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from geometric_sampling.design import DesignGenetic
 from geometric_sampling.structs import Sample
@@ -13,18 +13,17 @@ class GeneticOptimizer:
         self.rng = np.random.default_rng()
 
     def partition_design(
-        self, fip_list: list[float], num_partitions: int
+            self, fip_list: list[float], num_partitions: int
     ) -> tuple[dict[int, list[int]], set[int]]:
+        """Partitions a list of FIPs into nearly equal sum partitions."""
         target = sum(fip_list) / num_partitions
         partitions, border_units = {}, set()
         current_partition, cumulative_sum = 0, 0.0
         partitions[current_partition] = []
 
         for index, fip in enumerate(fip_list):
-            if (
-                isclose(cumulative_sum + fip, target, abs_tol=1e-9)
-                or cumulative_sum + fip < target
-            ):
+            if (isclose(cumulative_sum + fip, target, abs_tol=1e-9)
+                    or cumulative_sum + fip < target):
                 partitions[current_partition].append(index)
                 cumulative_sum += fip
             else:
@@ -42,21 +41,112 @@ class GeneticOptimizer:
 
         return partitions, border_units
 
-    def _chunk_ids(self, ids: frozenset[int], n_parts: int) -> List[set[int]]:
-        """Split a set of IDs into n_parts chunks based on the assumption(fixed size) that each chunk will have an equal number of IDs."""
+    def _chunk_ids(self,
+                   ids: frozenset[int],
+                   n_parts: int) -> List[set[int]]:
 
-        lst = sorted(ids)
+        lst = sorted(list(ids))
         base, rem = divmod(len(lst), n_parts)
         chunks, idx = [], 0
         for i in range(n_parts):
             size = base + (1 if i < rem else 0)
-            chunks.append(set(lst[idx : idx + size]))
+            chunks.append(set(lst[idx: idx + size]))
             idx += size
         return chunks
 
+    def _pull_from_sources(self,
+                           sources: List[DesignGenetic],
+                           leftovers: List[Optional[Sample]],
+                           random_pull: bool) -> List[Sample]:
+        """Pulls the next sample for each parent from either its heap or leftovers."""
+        pulled = []
+        for i, source in enumerate(sources):
+            if leftovers[i] is not None:
+                sample = leftovers[i]
+                leftovers[i] = None
+            else:
+                sample = source.pull(random_pull)
+            pulled.append(sample)
+        return pulled
+
+    def _create_child_samples(self,
+                              pulled_samples: List[Sample],
+                              length: float, n_parents: int) -> Tuple[Sample, Sample]:
+        """Creates two new child samples from a list of parent samples."""
+        all_chunks = [self._chunk_ids(r.ids, n_parents) for r in pulled_samples]
+
+        child1_ids: set[int] = set()
+        child2_ids: set[int] = set()
+
+        for i in range(n_parents):
+            child1_ids.update(all_chunks[i][i])
+            child2_ids.update(all_chunks[i][(i + 1) % n_parents])
+
+        child1 = Sample(length, frozenset(child1_ids))
+        child2 = Sample(length, frozenset(child2_ids))
+        return child1, child2
+
+    def _update_leftovers(self,
+                          leftovers: List[Optional[Sample]],
+                          pulled_samples: List[Sample], length: float):
+        """Calculates the remaining probability for each sample and updates leftovers."""
+        for i, r in enumerate(pulled_samples):
+            rem = r.probability - length
+            if rem > 1e-12:
+                leftovers[i] = Sample(rem, r.ids, index=[-1, []])
+            else:
+                leftovers[i] = None
+
+    def combine_n_parents(
+            self,
+            parents: List[DesignGenetic],
+            random_pull: bool = False,
+    ) -> tuple[DesignGenetic, DesignGenetic]:
+        """
+        Performs a crossover operation between N parents to produce two children.
+        This method is now a high-level coordinator for the crossover process.
+        """
+        parents = [par.copy() for par in parents]
+        n = len(parents)
+
+        child1 = DesignGenetic(inclusions=None, rng=parents[0].rng)
+        child2 = DesignGenetic(inclusions=None, rng=parents[1].rng)
+        leftovers: List[Optional[Sample]] = [None] * n
+
+        while any(leftovers) or all(p.heap for p in parents):
+            # Step 1: Get the next sample from each parent source
+            pulled_samples = self._pull_from_sources(parents, leftovers, random_pull)
+
+            # Step 2: Determine the common probability length
+            length = min(r.probability for r in pulled_samples)
+            if length <= 1e-12:
+                continue
+
+            # Step 3: Create the new child samples by chunking and recombining
+            new_sample1, new_sample2 = self._create_child_samples(pulled_samples, length, n)
+
+            # Assign indices and push to children
+            new_sample1.index = [child1.step, []]
+            new_sample2.index = [child2.step, []]
+            child1.push(new_sample1)
+            child2.push(new_sample2)
+
+            # Step 4: Calculate and store any remaining sample portions
+            self._update_leftovers(leftovers, pulled_samples, length)
+
+            child1.step += 1
+            child1.changes += 1
+            child2.step += 1
+            child2.changes += 1
+
+        return child1, child2
+
     def design_fragmentation_n(
-        self, parent: DesignGenetic, n_parts: int, random_pull: bool = False
-    ) -> List[DesignGenetic]:
+            self,
+            parent: DesignGenetic,
+            n_parts: int,
+            random_pull: bool = False) -> List[DesignGenetic]:
+
         children: List[DesignGenetic] = [
             DesignGenetic(inclusions=None, rng=parent.rng) for _ in range(n_parts)
         ]
@@ -64,7 +154,6 @@ class GeneticOptimizer:
         while parent.heap:
             sample = parent.pull(random_pull)
             ids_chunks = self._chunk_ids(sample.ids, n_parts)
-            # total_ids = len(sample.ids)
 
             for i, ids_part in enumerate(ids_chunks):
                 if not ids_part:
@@ -76,66 +165,8 @@ class GeneticOptimizer:
 
         return children
 
-    @lru_cache(maxsize=None)
-    def _chunk_ids_cached(self, ids_tuple: tuple[int, ...], n_parts: int) -> List[set]:
-        return self._chunk_ids(frozenset(ids_tuple), n_parts)
-
-    def combine_n_parents(
-        self,
-        parents: List[DesignGenetic],
-        random_pull: bool = False,
-    ) -> tuple[DesignGenetic, DesignGenetic]:
-
-        parents = [par.copy() for par in parents]
-
-        n = len(parents)
-        leftovers: List[Optional[Sample]] = [None] * n
-        child_design = DesignGenetic(inclusions=None, rng=parents[0].rng)
-        child_design2 = DesignGenetic(inclusions=None, rng=parents[1].rng)
-
-        # Continue while each parent has either a leftover or available heap entries
-        while all(leftovers[i] is not None or parents[i].heap for i in range(n)):
-            pulled: List[Sample] = []
-            for i, par in enumerate(parents):
-                if leftovers[i] is not None:
-                    r = leftovers[i]
-                    leftovers[i] = None
-                else:
-                    r = par.pull(random_pull)
-                pulled.append(r)
-
-            length = min(r.probability for r in pulled)
-
-            all_chunks = [self._chunk_ids(r.ids, n) for r in pulled]
-            child_ids: set[int] = set()
-            child_ids2: set[int] = set()
-            for i in range(n):
-                child_ids.update(all_chunks[i][i])
-                child_ids2.update(all_chunks[i][(i + 1) % n])
-            child = Sample(length, frozenset(child_ids), index=[child_design.step, []])
-            child2 = Sample(
-                length, frozenset(child_ids2), index=[child_design2.step, []]
-            )
-
-            child_design.push(child)
-            child_design2.push(child2)
-
-            for i, r in enumerate(pulled):
-                rem = r.probability - length
-                if rem > 1e-12:
-                    leftovers[i] = Sample(rem, r.ids, index=[-1, []])
-                else:
-                    leftovers[i] = None
-
-            child_design.step += 1
-            child_design.changes += 1
-            child_design2.step += 1
-            child_design2.changes += 1
-
-        return child_design, child_design2
-
     def combine_fragments_n(
-        self, fragments: List[DesignGenetic], random_pull: bool = False
+            self, fragments: List[DesignGenetic], random_pull: bool = False
     ) -> DesignGenetic:
         n = len(fragments)
         leftovers: List[Optional[Sample]] = [None] * n
@@ -159,8 +190,6 @@ class GeneticOptimizer:
             combined_ids: set[int] = set()
             for r in pulled:
                 combined_ids |= r.ids
-
-            # idx = pulled[0].index
 
             child_sample = Sample(
                 length, frozenset(combined_ids), index=[child.step, []]
