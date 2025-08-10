@@ -271,8 +271,9 @@ class GAMonitor:
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
             print(f"Final report saved to: {save_path}")
-
-        plt.show()
+            plt.close(fig)  # Close the figure to prevent it from being shown
+        else:
+            plt.show()
 
         return {'best_fitness': self.best_design_details.get('fitness', float('inf'))}
 
