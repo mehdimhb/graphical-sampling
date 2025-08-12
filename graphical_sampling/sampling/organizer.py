@@ -9,7 +9,7 @@ from matplotlib.patches import Polygon
 from scipy.spatial import ConvexHull, QhullError
 
 from .border import Borders
-from ..clustering import AuxiliaryBalancedKMeans
+from ..clustering import UPBalancedKMeans
 
 @dataclass
 class Zone:

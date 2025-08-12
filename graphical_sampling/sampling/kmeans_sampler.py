@@ -8,10 +8,10 @@ from typing import List, Tuple, Union, Optional
 # Import the new builder classes and entities from their expected relative paths
 from ..structs import Sample
 from ..population import Population
-from ..clustering import AuxiliaryBalancedKMeans
+from ..clustering import UPBalancedKMeans
 from .entity import Zone, Cluster  # Assuming these are in .entity
 from .builder import ClusteringZoneBuilder, SweepingZoneBuilder, ClusterBuilder, \
-    BaseZoneBuilder, ClusterInClusterBuilder # Assuming these are in .builder
+    BaseZoneBuilder, NestedClusterBuilder # Assuming these are in .builder
 from .order import Order, LexicoXY, LexicoYX, Random, Angle, DistFromOrigin, Projection, DistFromCentroid, \
     Spiral, MaxCoord, Snake, HilbertCurve, Change  # All OrderStrategy implementations
 from ..design import Design
@@ -23,11 +23,9 @@ class KMeansSampler:
             self,
             population: Population,  # Now takes a Population object directly
             *,
-            n: int | tuple[int],  # This n is likely n_clusters for Sampler
-            n_clusters: int,
+            n: int,  # This n is likely n_clusters for Sampler
             n_zones: int | Tuple[int, int],  # Can be int for clustering, tuple for sweep
             split_size: float,
-            cluster_in_cluster: bool = False,
             zone_builder: str = "sweep",
             units_order: str = "lexico-xy",  # Default for units within zones
             zones_order: str = "lexico-xy",  # Default for zones within clusters
@@ -38,19 +36,12 @@ class KMeansSampler:
         if not isinstance(population, Population):
             raise TypeError("Input 'population' must be an instance of the Population class.")
 
-        if n_clusters > n:
-            raise ValueError(f"Number of clusters ({n_clusters}) cannot exceed n ({n}).")
-        if n % n_clusters != 0:
-            raise ValueError(f"n/num_clusters must be an integer, got n={n}, clusters={n_clusters}.")
-
         # Store the Population object
         self.population = population
         self.coords = self.population.coords
         self.probs = self.population.probs
 
-        self.n = np.prod(n) if cluster_in_cluster else n  # Number of clusters
-        self.n_clusters = n_clusters
-        self.cluster_in_cluster = cluster_in_cluster
+        self.n = n
         self.split_size = split_size
         self.zone_builder_str = zone_builder
 
@@ -86,19 +77,11 @@ class KMeansSampler:
             raise ValueError(f"Invalid zone_mode: {self.zone_builder_str}. Must be 'cluster' or 'sweep'.")
 
         # 3. Initialize ClusterBuilder
-        if cluster_in_cluster:
-            self.cluster_builder = ClusterInClusterBuilder(
-                n_clusters=n,
-                zone_builder=zone_builder_obj,
-                split_size=self.split_size
-            )
-        else:
-            self.cluster_builder = ClusterBuilder(
-                # n_clusters=self.n,
-                n_clusters=self.n_clusters,
-                zone_builder=zone_builder_obj,
-                split_size=self.split_size
-            )
+        self.cluster_builder = ClusterBuilder(
+            n_clusters=self.n,
+            zone_builder=zone_builder_obj,
+            split_size=self.split_size
+        )
 
         # 4. Build clusters (which internally build zones)
         if clusters is None:
@@ -209,49 +192,64 @@ class KMeansSampler:
         units_order_to_apply = Change(num_changes=n_changes_in_order_of_units)
         zones_order_to_apply = Change(num_changes=n_changes_in_order_of_zones)
 
+        # --- Change order of zones in clusters ---
         if n_clusters_to_change_order_zone == 'all':
             for cluster in self.clusters:
+                if len(cluster) == 0:
+                    continue  # skip empty clusters
                 cluster.apply_order(zones_order_to_apply)
         else:
-            # print('REORDERING ZONES')
-            clusters_to_change = np.random.choice(np.arange(len(self.clusters)), size=n_clusters_to_change_order_zone, replace=False)
-            # print(clusters_to_change)
+            clusters_to_change = np.random.choice(
+                np.arange(len(self.clusters)),
+                size=n_clusters_to_change_order_zone,
+                replace=False
+            )
             for i in clusters_to_change:
-                # print('BEFORE', self.clusters[i])
-                self.clusters[i].apply_order(zones_order_to_apply)
-                # print('AFTER', self.clusters[i])
+                cluster = self.clusters[i]
+                if len(cluster) == 0:
+                    continue
+                cluster.apply_order(zones_order_to_apply)
 
-
+        # --- Change order of units in zones ---
         if n_clusters_to_change_order_units == 'all':
             for cluster in self.clusters:
+                if len(cluster) == 0:
+                    continue
                 if n_zones_to_change_order_units == 'all':
                     for zone in cluster.zones:
                         zone.apply_order(units_order_to_apply)
                 else:
-                    zones_to_change = np.random.choice(np.arange(len(cluster)), size=n_zones_to_change_order_units, replace=False)
+                    if len(cluster) == 0:
+                        continue
+                    zones_to_change = np.random.choice(
+                        np.arange(len(cluster)),
+                        size=n_zones_to_change_order_units,
+                        replace=False
+                    )
                     for i in zones_to_change:
                         cluster.zones[i].apply_order(units_order_to_apply)
         else:
-            # print('REORDERING UNITS')
-            clusters_to_change = np.random.choice(np.arange(len(self.clusters)), size=n_clusters_to_change_order_units, replace=False)
-            # print(clusters_to_change)
+            clusters_to_change = np.random.choice(
+                np.arange(len(self.clusters)),
+                size=n_clusters_to_change_order_units,
+                replace=False
+            )
             for i in clusters_to_change:
                 cluster = self.clusters[i]
+                if len(cluster) == 0:
+                    continue
                 if n_zones_to_change_order_units == 'all':
                     for zone in cluster.zones:
                         zone.apply_order(units_order_to_apply)
                 else:
-                    zones_to_change = np.random.choice(np.arange(len(cluster)), size=n_zones_to_change_order_units, replace=False)
-                    # print(zones_to_change)
+                    zones_to_change = np.random.choice(
+                        np.arange(len(cluster)),
+                        size=n_zones_to_change_order_units,
+                        replace=False
+                    )
                     for j in zones_to_change:
-                        # print('BEFORE', cluster.zones[j])
-                        # print('BEFORE', cluster.zones[0])
                         cluster.zones[j].apply_order(units_order_to_apply)
-                        # print('AFTER', cluster.zones[j])
-                        # print('AFTER', cluster.zones[0])
 
-
-        # 3. Invalidate cached properties to force re-computation
         if 'design' in self.__dict__: del self.design
         if 'all_samples' in self.__dict__: del self.all_samples
         if 'all_samples_probs' in self.__dict__: del self.all_samples_probs
@@ -269,128 +267,50 @@ class KMeansSampler:
         _ = self.local_balance_scores
 
     def sample(self, n_samples: int):
-        if not self.clusters:
-            return np.zeros((n_samples, self.n), dtype=int)
-
-        m = self.n // self.n_clusters  # picks per cluster
-
-        # Determine conceptual zones as before (used for clamping)
-        if self.zone_builder_str == "cluster":
-            total_conceptual_zones = self.n_zones_value
-        elif self.zone_builder_str == "sweep":
-            total_conceptual_zones = self.n_zones_value[0] * self.n_zones_value[1]
-        else:
-            total_conceptual_zones = 0
-
-        if total_conceptual_zones == 0:
-            total_conceptual_zones = max(
-                1,
-                len(self.clusters[0].zones) if self.clusters and self.clusters[0].zones else 1
-            )
-
-        # We now return n picks per sample (m per cluster)
         samples = np.zeros((n_samples, self.n), dtype=int)
 
+        if not self.clusters:
+            return samples
+
         for i in range(n_samples):
-            r = self.rng.random()  # base in [0,1)
+            random_number = self.rng.random()  # base in [0,1)
 
-            # Use only the first self.n_clusters clusters
-            for j in range(self.n_clusters):
+            for j in range(self.n):
                 cluster = self.clusters[j]
-                col_start = j * m
-                col_end = col_start + m
 
-                if not cluster.zones or getattr(cluster, "zones_edges", None) is None or len(cluster.zones_edges) == 0:
-                    samples[i, col_start:col_end] = -1
+                cluster_index_share = cluster.get_index_share(reduce=False)
+                cluster_index = cluster_index_share[:, 0].astype(int)
+                cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.probs[cluster_index])
+
+                if cluster_probs.size == 0:
+                    samples[i, j] = -1
                     continue
 
-                for k in range(m):
-                    rk = r + k  # r, r+1, ..., r+(m-1)  (edges already in [0, m))
+                unit_index = np.searchsorted(cluster_probs, random_number, side="left")
+                unit_index = min(unit_index, cluster_probs.size - 1)
+                unit_index = max(0, unit_index)
 
-                    # ---- Zone selection on existing edges (already [0, m)) ----
-                    zone_index = np.searchsorted(cluster.zones_edges, rk, side="right") - 1
-                    zone_index = min(zone_index, total_conceptual_zones - 1)
-                    zone_index = max(0, zone_index)
-
-                    current_zone = cluster.zones[zone_index]
-                    unit_probs = np.asarray(current_zone.prob, dtype=float)
-
-                    if unit_probs.size == 0 or np.sum(unit_probs) < 1e-9:
-                        samples[i, col_start + k] = -1
-                        continue
-
-                    zone_start_global_prob = cluster.zones_edges[zone_index]
-
-                    # Per-zone cumulative already aligned to global [0, m)
-                    global_cumulative_unit_probs = np.cumsum(unit_probs) + zone_start_global_prob
-
-                    # ---- Unit selection ----
-                    unit_selection_idx = np.searchsorted(global_cumulative_unit_probs, rk, side="right")
-                    unit_selection_idx = min(unit_selection_idx, len(current_zone) - 1)
-                    unit_selection_idx = max(0, unit_selection_idx)
-
-                    if len(current_zone) > 0:
-                        sel_idx0 = current_zone.index[unit_selection_idx]
-                        # samples[i, col_start + k] = self.population.ids[sel_idx0]
-                        samples[i, col_start + k] = sel_idx0
-                    else:
-                        samples[i, col_start + k] = -1
+                samples[i, j] = cluster_index[unit_index]
 
         return samples
 
     @cached_property
     # @property
     def design(self) -> Design:
-        # --- Conceptual zones (for clamping) ---
-        if self.zone_builder_str == "cluster":
-            total_conceptual_zones = self.n_zones_value
-        elif self.zone_builder_str == "sweep":
-            total_conceptual_zones = self.n_zones_value[0] * self.n_zones_value[1]
-        else:
-            raise ValueError("Invalid zone_mode for _build_design.")
-
-        if total_conceptual_zones == 0:
-            return Design(inclusions=None)
-
-        # --- Validate n and number of clusters ---
-        if not getattr(self, "n_clusters", 0):
-            return Design(inclusions=None)
-
-        num_clusters = int(self.n_clusters)
-        n = int(self.n)
-
-        m = n // num_clusters  # number of offsets per cluster
-
-        # --- Collect fractional cut points on [0,1) ---
-        # We take all global boundaries in [0, m), reduce modulo 1, and deduplicate with rounding.
-        cuts_frac = set()
+        cuts = set()
 
         for cluster in self.clusters:
-            if getattr(cluster, "zones_edges", None) is None or not cluster.zones:
+            cluster_index_share = cluster.get_index_share(reduce=False)
+            cluster_index = cluster_index_share[:, 0].astype(int)
+            cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.probs[cluster_index])
+
+            if cluster_probs.size == 0:
                 continue
 
-            # zone boundary cuts (mod 1)
-            for edge in cluster.zones_edges:
-                frac = edge - np.floor(edge)
-                cuts_frac.add(round(float(frac), 12))
+            for cut in cluster_probs:
+                cuts.add(cut)
 
-            # within-zone unit boundary cuts (mod 1)
-            for zone_idx, zone in enumerate(cluster.zones):
-                if len(zone) == 0:
-                    continue
-                unit_probs = np.asarray(zone.prob, dtype=float)
-                if unit_probs.size == 0:
-                    continue
-
-                base = float(cluster.zones_edges[zone_idx])  # zone start (global, [0,m))
-                cum = np.cumsum(unit_probs)  # within-zone cumulative
-                globals_ = base + cum  # global boundaries in [0,m)
-                for b in globals_:
-                    frac = b - np.floor(b)
-                    cuts_frac.add(round(float(frac), 12))
-
-        # Build sorted partition on [0,1]
-        pts = sorted(c for c in cuts_frac if 0.0 <= c <= 1.0)
+        pts = sorted(c for c in cuts if 0.0 <= c <= 1.0)
         if not pts:
             return Design(inclusions=None)
         if pts[0] != 0.0:
@@ -400,7 +320,6 @@ class KMeansSampler:
 
         design = Design(inclusions=None)
 
-        # --- For each interval, compute the full n-sized sample via r, r+1, ..., r+(m-1) ---
         last = pts[0]
         for p in pts[1:]:
             length = round(p - last, 12)  # probability weight for r in this interval
@@ -412,33 +331,18 @@ class KMeansSampler:
 
             ids_in_sample = []
             for cluster in self.clusters:
-                if getattr(cluster, "zones_edges", None) is None or not cluster.zones:
+                cluster_index_share = cluster.get_index_share(reduce=False)
+                cluster_index = cluster_index_share[:, 0].astype(int)
+                cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.probs[cluster_index])
+
+                if cluster_probs.size == 0:
                     continue
 
-                # For each offset k, select a unit for (mid + k)
-                for k in range(m):
-                    rk = mid + k  # lives in [k, k+1)
+                unit_index = np.searchsorted(cluster_probs, mid, side="left")
+                unit_index = min(unit_index, cluster_probs.size - 1)
+                unit_index = max(0, unit_index)
 
-                    # --- Zone selection on [0, m) ---
-                    zone_index = np.searchsorted(cluster.zones_edges, rk, side="right") - 1
-                    # clamp by conceptual zone count and the actual cluster's zone count
-                    zone_index = max(0, min(zone_index, total_conceptual_zones - 1,
-                                            len(cluster.zones) - 1))
-
-                    current_zone = cluster.zones[zone_index]
-                    unit_probs = np.asarray(current_zone.prob, dtype=float)
-                    if unit_probs.size == 0:
-                        continue
-
-                    zone_start = float(cluster.zones_edges[zone_index])
-                    global_cum = np.cumsum(unit_probs) + zone_start  # global in [0,m)
-
-                    unit_selection_idx = np.searchsorted(global_cum, rk, side="right")
-                    unit_selection_idx = max(0, min(unit_selection_idx, len(current_zone) - 1))
-
-                    if current_zone.index.size > 0:
-                        sel0 = int(current_zone.index[unit_selection_idx])  # 0-based pop index
-                        ids_in_sample.append(sel0)
+                ids_in_sample.append(cluster_index[unit_index])
 
             if ids_in_sample:
                 design.push(Sample(length, frozenset(ids_in_sample)))

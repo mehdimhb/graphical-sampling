@@ -1,7 +1,7 @@
 from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Optional
 
 from ..population import Population
 from .order import Order
@@ -182,7 +182,10 @@ class Cluster:
         _zones (List[Zone]): Internal list of Zone objects that constitute this cluster.
     """
     id: int
+    _pop: Population
     _zones: List[Zone] = field(default_factory=list) # Internal storage for zones
+    _floor: Optional[IndexShareArray] = None
+    _ceil: Optional[IndexShareArray] = None
 
     def __post_init__(self):
         """
@@ -190,13 +193,11 @@ class Cluster:
         Checks that all zones within the cluster refer to the same Population instance.
         """
         if self._zones: # Only perform check if there are zones
-            first_zone_pop_ref = self._zones[0].pop # Get the Population reference from the first zone
-
             for i, zone in enumerate(self._zones):
                 # Ensure all zones refer to the exact same Population object (identity check)
-                if zone.pop is not first_zone_pop_ref:
+                if zone.pop is not self._pop:
                     raise ValueError(
-                        "All zones within a cluster must refer to the same Population instance. "
+                        "Cluster and all zones within a cluster must refer to the same Population instance. "
                         f"Zone at index {i} has a different population reference."
                     )
 
@@ -220,7 +221,15 @@ class Cluster:
         """
         if not isinstance(other, Cluster):
             return NotImplemented
-        return self._zones == other._zones
+        return self._zones == other._zones and np.array_equal(self._floor, other._floor) and np.array_equal(self._ceil, other._ceil)
+
+    @property
+    def pop(self) -> Population:
+        """
+        Returns the Population object associated with this cluster.
+        This property is read-only.
+        """
+        return self._pop
 
     # Public property for controlled access
     @property
@@ -231,6 +240,34 @@ class Cluster:
         To modify the internal list, use `apply_order_strategy`.
         """
         return list(self._zones) # Return a shallow copy to prevent external modification
+
+    @property
+    def _has_floor(self) -> bool:
+        if self._floor is None:
+            return False
+        return self._floor.size > 0
+
+    @property
+    def _has_ceil(self) -> bool:
+        if self._ceil is None:
+            return False
+        return self._ceil.size > 0
+
+    @property
+    def floor(self) -> Optional[IndexShareArray]:
+        if self._has_floor:
+            return None
+        view = self._floor.view()
+        view.flags.writeable = False
+        return view
+
+    @property
+    def ceil(self) -> Optional[IndexShareArray]:
+        if self._has_ceil:
+            return None
+        view = self._ceil.view()
+        view.flags.writeable = False
+        return view
 
     def get_index_share(self, reduce: bool = True) -> IndexShareArray:
         """
@@ -255,10 +292,19 @@ class Cluster:
                              appears exactly once.
         """
         if not self._zones:
-            return np.empty((0, 2), dtype=np.float64) # Return empty array if no zones
+            combined = np.empty((0, 2), dtype=np.float64)
+            if self._has_floor:
+                combined = np.vstack([self._floor, combined])
+            if self._has_ceil:
+                combined = np.vstack([combined, self._ceil])
+            return combined
 
         # Vertically stack all index_share from the zones in this cluster using _zones
         combined = np.vstack([zone.index_share for zone in self._zones])
+        if self._has_floor:
+            combined = np.vstack([self._floor, combined])
+        if self._has_ceil:
+            combined = np.vstack([combined, self._ceil])
         if not reduce:
             return combined
 
@@ -267,6 +313,17 @@ class Cluster:
         s = np.zeros_like(u, dtype=np.float64)
         np.add.at(s, inv, combined[:, 1])
         return np.column_stack((u, s))
+
+    def get_total_prob_stats(self, zones_stats: bool = False) -> str:
+        cluster_index_share = self.get_index_share(reduce=True)
+        cluster_index = cluster_index_share[:, 0].astype(np.int64)
+        cluster_share = cluster_index_share[:, 1]
+        total_prob_for_cluster = float(np.sum(self._pop.probs[cluster_index] * cluster_share))
+        stats = f"Total Prob in Cluster: {round(total_prob_for_cluster, 4)}"
+        if zones_stats:
+            for zone in self._zones:
+                stats += f"\nTotal Prob in Zone {zone.id}: {round(np.sum(zone.prob), 4)}"
+        return stats
 
     @property
     def zones_edges(self) -> np.ndarray:
@@ -307,11 +364,6 @@ class Cluster:
             # If no zones, return NaNs
             return np.array([np.nan, np.nan], dtype=np.float64)
 
-        # Retrieve a Population object from the first zone to access global coordinates.
-        # This is safe due to the __post_init__ check ensuring all zones share the same Population.
-        # Using the public 'pop' property here for clarity.
-        pop_ref = self._zones[0].pop
-
         # Get aggregated shares. 'reduce=True' ensures unique unit indices.
         aggregated_shares = self.get_index_share(reduce=True)
 
@@ -322,7 +374,7 @@ class Cluster:
         # Get the unique unit population indices from the first column
         unique_unit_pop_indices = aggregated_shares[:, 0].astype(np.int64)
         # Retrieve coordinates of these unique units using the Population object
-        pts = pop_ref.coords[unique_unit_pop_indices]
+        pts = self._pop.coords[unique_unit_pop_indices]
         # Calculate the mean along axis 0 (i.e., mean of x and mean of y)
         return np.mean(pts, axis=0)
 
@@ -344,7 +396,7 @@ class Cluster:
                             otherwise returns None (as the operation is performed in-place).
         """
         if not self._zones:
-            return None if inplace else Cluster(id=self.id, _zones=[])
+            return None if inplace else Cluster(id=self.id, _zones=[], _pop=self._pop, _floor=self._floor, _ceil=self._ceil)
 
         # Calculate centroids for all zones within this cluster.
         zone_centroids = np.array([zone.centroid for zone in self._zones])
@@ -360,7 +412,9 @@ class Cluster:
             # Create a new list of zones with the applied sorting
             new_zones = [self._zones[i] for i in sort_indices]
             # Return a new Cluster object with the sorted zones
-            return Cluster(id=self.id, _zones=new_zones)
+            return Cluster(id=self.id, _pop=self._pop, _zones=new_zones, _floor=self._floor, _ceil=self._ceil)
 
     def __hash__(self) -> int:
-        return hash(tuple(self._zones))
+        floor = self._floor.tobytes() if self._has_floor else None
+        ceil = self._ceil.tobytes() if self._has_ceil else None
+        return hash((tuple(self._zones), floor, ceil))

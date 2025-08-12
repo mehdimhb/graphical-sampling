@@ -1,4 +1,4 @@
-from ..clustering import AuxiliaryBalancedKMeans
+from ..clustering import UPBalancedKMeans
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
@@ -16,6 +16,7 @@ class Density:
         centroids: np.ndarray = None,
         n_jobs: int = -1
     ):
+        self.population = population
         self.coords = population.coords
         self.probs = population.probs
         self.original_density = self._density(self.coords)
@@ -32,13 +33,9 @@ class Density:
         return np.exp(kde.score_samples(coords))
 
     def _generate_labels_centroids(self, k, split_size):
-        doubly = AuxiliaryBalancedKMeans(k=k, split_size=split_size)
-        doubly.fit(self.coords, self.probs)
-        labels = np.argmax(doubly.membership, axis=1)
-        centroids = np.vstack([
-            self.coords[labels == i].mean(axis=0) for i in range(k)
-        ])
-        return labels, centroids
+        upb_kmeans = UPBalancedKMeans(k=k, split_size=split_size)
+        upb_kmeans.fit(self.population)
+        return upb_kmeans.labels, upb_kmeans.centroids
 
     def _assign_samples_to_centroids(self, samples, centroids):
         cost = np.linalg.norm(

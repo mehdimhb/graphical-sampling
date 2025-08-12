@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from copy import copy
 
 # Assuming these are correctly imported from their respective modules
-from ..clustering import AuxiliaryBalancedKMeans
+from ..clustering import UPBalancedKMeans, NestedUPBalancedKMeans
 from .entity import Population, Zone, Cluster
 
 
@@ -95,6 +95,7 @@ class ClusteringZoneBuilder(BaseZoneBuilder):
             split_size (float): Parameter for AuxiliaryBalancedKMeans, controlling the
                                  size of auxiliary splits.
         """
+        super().__init__()
         if not isinstance(n_zones, int) or n_zones <= 0:
             raise ValueError("num_zones_to_create must be a positive integer for ClusteringZoneBuilder.")
         self._n_zones = n_zones
@@ -121,7 +122,7 @@ class ClusteringZoneBuilder(BaseZoneBuilder):
         if index_share.size == 0:
             return []
 
-        # If only one zone is requested or there are no units to cluster, return a single zone
+        # If only one zone is requested or there are no units to zone_cluster, return a single zone
         if self._n_zones == 1:
             # stabilized_zis = self._numerical_stabilizer(population, index_share)
             zone_id = self._get_next_zone_id()
@@ -131,26 +132,35 @@ class ClusteringZoneBuilder(BaseZoneBuilder):
         indices = index_share[:, 0].astype(np.int64)
         shares = index_share[:, 1]
 
-        ab_kmeans = AuxiliaryBalancedKMeans(k=self._n_zones, split_size=self._split_size)
-        ab_kmeans.fit(population.subset(indices, shares))
+        upb_kmeans = UPBalancedKMeans(k=self._n_zones, split_size=self._split_size)
+        upb_kmeans.fit(population.subset(indices, shares))
 
         # Prepare the data structure required for building zones,
         # which includes the indices of population units and their membership shares.
-        zones_index_share = generate_index_shares(self._n_zones, ab_kmeans.membership, indices)
+        # zones_index_share = generate_index_shares(self._n_zones, upb_kmeans.membership, indices)
 
         zones: List[Zone] = []
 
-        for zis in zones_index_share:
-            # The shares for the zone are already provided in the second column of index_share
-            shares_for_zone = zis[:, 1]
-            # The indices for the zone are in the first column
-            pop_indices_for_zone = zis[:, 0].astype(np.int64)
+        for zone_cluster in upb_kmeans.clusters:
+            free_indices = zone_cluster['free']
+            # Skip empty clusters that might result from the clustering process
 
-            # stabilized_zis = self._numerical_stabilizer(population, zis)
+            floor_index = zone_cluster['border']['floor_index']
+            floor_pct = zone_cluster['border']['floor_percentage']
+            ceil_index = zone_cluster['border']['ceil_index']
+            ceil_pct = zone_cluster['border']['ceil_percentage']
+            floor = np.array([floor_index, floor_pct], dtype=float) if floor_index != -1 else None
+            ceil = np.array([ceil_index, ceil_pct], dtype=float) if ceil_index != -1 else None
+
+            index_share = np.column_stack((free_indices, np.ones(free_indices.size)))
+            if floor_index != -1:
+                index_share = np.vstack([floor, index_share])
+            if ceil_index != -1:
+                index_share = np.vstack([index_share, ceil])
 
             zone_id = self._get_next_zone_id()
 
-            new_zone = Zone(id=zone_id, _pop=population, _index_share=zis)
+            new_zone = Zone(id=zone_id, _pop=population, _index_share=index_share)
 
             zones.append(new_zone)
 
@@ -173,6 +183,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
                                                grid dimensions for the sweep algorithm.
                                                Each must be a positive integer.
         """
+        super().__init__()
         if not isinstance(n_zones, tuple) or len(n_zones) != 2 or \
            not all(isinstance(n, int) and n > 0 for n in n_zones):
             raise ValueError(
@@ -405,18 +416,14 @@ class ClusterBuilder:
 
         # Initialize and fit the AuxiliaryBalancedKMeans model to the population
         # This step performs the initial division of the population into self._num_clusters
-        ab_kmeans = AuxiliaryBalancedKMeans(k=self._n_clusters, split_size=self._split_size)
-        ab_kmeans.fit(population)
-
-        # Prepare the data structure required for building zones within each cluster,
-        # which includes the indices of population units and their membership shares.
-        clusters_index_share = generate_index_shares(self._n_clusters, ab_kmeans.membership)
+        upb_kmeans = UPBalancedKMeans(k=self._n_clusters, split_size=self._split_size)
+        upb_kmeans.fit(population)
 
         clusters: List[Cluster] = []
-        for index_share in clusters_index_share:
-            # Skip empty clusters that might result from the clustering process
-            if index_share.size == 0:
-                continue
+        for cluster in upb_kmeans.clusters:
+            free_indices = cluster['free']
+
+            index_share = np.column_stack((free_indices, np.ones(free_indices.size)))
 
             # Use the provided ZoneBuilder instance to build zones for the units
             # belonging to the current cluster. The `index_share` array contains
@@ -426,16 +433,30 @@ class ClusterBuilder:
             # Generate a unique ID for the new cluster
             new_cluster_id = self._get_next_cluster_id()
 
+            floor_index = cluster['border']['floor_index']
+            floor_pct = cluster['border']['floor_percentage']
+            ceil_index = cluster['border']['ceil_index']
+            ceil_pct = cluster['border']['ceil_percentage']
+
+            floor = np.array([floor_index, floor_pct], dtype=float) if floor_index != -1 else None
+            ceil = np.array([ceil_index, ceil_pct], dtype=float) if ceil_index != -1 else None
+
             # Create a new Cluster object with its unique ID and the zones built for it
-            new_cluster = Cluster(id=new_cluster_id, _zones=zones_for_cluster)
+            new_cluster = Cluster(
+                id=new_cluster_id,
+                _pop=population,
+                _zones=zones_for_cluster,
+                _floor=floor,
+                _ceil=ceil,
+            )
 
             # Add the newly created cluster to the list of constructed clusters
             clusters.append(new_cluster)
 
-        return clusters, ab_kmeans.labels, ab_kmeans.centroids
+        return clusters, upb_kmeans.labels, upb_kmeans.centroids
 
 
-class ClusterInClusterBuilder:
+class NestedClusterBuilder:
 
     def __init__(self,
                  n_clusters: tuple[int],
@@ -459,12 +480,24 @@ class ClusterInClusterBuilder:
         self._next_cluster_id += 1
         return cluster_id
 
-    def inside_clustering(self, k: int, population: Population, index_share: np.ndarray) -> List[np.ndarray]:
-        indices = index_share[:, 0].astype(np.int64)
-        shares = index_share[:, 1]
-        ab_kmeans = AuxiliaryBalancedKMeans(k=k, split_size=self._split_size)
-        ab_kmeans.fit(population.subset(indices, shares))
-        return generate_index_shares(k, ab_kmeans.membership, indices)
+    def _generate_nested_clusters(self, k: int, population: Population, cluster: dict):
+        free_indices = cluster['free']
+        floor_index = cluster['border']['floor_index']
+        floor_pct = cluster['border']['floor_percentage']
+        ceil_index = cluster['border']['ceil_index']
+        ceil_pct = cluster['border']['ceil_percentage']
+        floor = np.array([floor_index, floor_pct], dtype=float) if floor_index != -1 else None
+        ceil = np.array([ceil_index, ceil_pct], dtype=float) if ceil_index != -1 else None
+
+        index_share = np.column_stack((free_indices, np.ones(free_indices.size)))
+        if floor_index != -1:
+            index_share = np.vstack([floor, index_share])
+        if ceil_index != -1:
+            index_share = np.vstack([index_share, ceil])
+
+        upb_kmeans = NestedUPBalancedKMeans(k=k, split_size=self._split_size)
+        upb_kmeans.fit(population.subset(index_share[:, 0], index_share[:, 1]), index_share_floor=floor, index_share_ceil=ceil)
+        return upb_kmeans.clusters
 
     def build_clusters(self, population: Population) -> Tuple[List[Cluster], np.ndarray, np.ndarray]:
         """
@@ -481,33 +514,61 @@ class ClusterInClusterBuilder:
                            its assigned zones.
         """
         self._next_cluster_id = 0  # Reset the cluster ID counter for a new build operation
-
-        clusters_index_share = [np.column_stack((np.arange(population.N), np.ones(population.N)))]
+        np.column_stack((np.arange(population.N), np.ones(population.N)))
+        clusters_raw = [
+            {
+                'free': np.arange(population.N),
+                'border': {
+                    'floor_index': -1,
+                    'ceil_index': -1,
+                    'floor_percentage': 1.0,
+                    'ceil_percentage': 1.0,
+                }
+            }
+        ]
         i = 0
-        while len(clusters_index_share) < np.prod(self._n_clusters):
-            new_clusters_index_share = []
-            for index_share in clusters_index_share:
-                new_clusters_index_share.extend(self.inside_clustering(self._n_clusters[i], population, index_share))
-            clusters_index_share = new_clusters_index_share[:]
+        while len(clusters_raw) < np.prod(self._n_clusters):
+            new_cluster_raw = []
+            for cluster in clusters_raw:
+                new_cluster_raw.extend(self._generate_nested_clusters(self._n_clusters[i], population, cluster))
+            clusters_raw = new_cluster_raw[:]
             i += 1
 
         clusters: List[Cluster] = []
         membership = np.zeros((population.N, np.prod(self._n_clusters)))
-        for i, index_share in enumerate(clusters_index_share):
-            if index_share.size == 0:
-                continue
+        for i, cluster in enumerate(clusters_raw):
+            free_indices = cluster['free']
+
+            index_share = np.column_stack((free_indices, np.ones(free_indices.size)))
 
             zones_for_cluster = self._zone_builder.build_zones(population, index_share)
 
             new_cluster_id = self._get_next_cluster_id()
 
-            new_cluster = Cluster(id=new_cluster_id, _zones=zones_for_cluster)
+            floor_index = cluster['border']['floor_index']
+            floor_pct = cluster['border']['floor_percentage']
+            ceil_index = cluster['border']['ceil_index']
+            ceil_pct = cluster['border']['ceil_percentage']
+
+            floor = np.array([floor_index, floor_pct], dtype=float) if floor_index != -1 else None
+            ceil = np.array([ceil_index, ceil_pct], dtype=float) if ceil_index != -1 else None
+
+            new_cluster = Cluster(
+                id=new_cluster_id,
+                _pop=population,
+                _zones=zones_for_cluster,
+                _floor=floor,
+                _ceil=ceil,
+            )
 
             clusters.append(new_cluster)
 
             for row in index_share:
                 index, share = int(row[0]), row[1]
                 membership[index, i] = share
+
+            membership[floor_index, i] = floor_pct
+            membership[ceil_index, i] = ceil_pct
 
         labels: np.ndarray = np.argmax(membership, axis=1)
         centroids: np.ndarray = np.array([population.coords[labels == i].mean(axis=0) for i in range(np.prod(self._n_clusters))])
