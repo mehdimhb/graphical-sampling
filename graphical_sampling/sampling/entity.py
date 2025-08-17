@@ -255,7 +255,7 @@ class Cluster:
 
     @property
     def floor(self) -> Optional[IndexShareArray]:
-        if self._has_floor:
+        if not self._has_floor:
             return None
         view = self._floor.view()
         view.flags.writeable = False
@@ -263,7 +263,7 @@ class Cluster:
 
     @property
     def ceil(self) -> Optional[IndexShareArray]:
-        if self._has_ceil:
+        if not self._has_ceil:
             return None
         view = self._ceil.view()
         view.flags.writeable = False

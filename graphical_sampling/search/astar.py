@@ -146,7 +146,7 @@ class AStar:
                     self.best_design = new_design
                     self.best_criteria_value = new_criteria_value
                     print('\n==============================================')
-                    print(f'New best criteria value: {self.best_criteria_value}')
+                    print(f'New best criteria value: {self.best_criteria_value}\n')
                     if self.best_criteria_value < self.threshold:
                         return it
 

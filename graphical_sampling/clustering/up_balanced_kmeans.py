@@ -1,270 +1,298 @@
 import numpy as np
+from typing import Optional, Tuple, Dict
+from sklearn.neighbors import NearestNeighbors
 from k_means_constrained import KMeansConstrained
-from typing import Optional, List, Tuple
+
+# project-local imports (adjust paths to your project layout)
 from ..population import Population
 from .shortest_path import shortest_through_all_points
 
 
 class UPBalancedKMeans:
     """
-    Implements an UP-Balanced K-Means algorithm designed to cluster data points
-    while considering associated probabilities and ensuring balanced cluster sizes.
+    UP-Balanced K-Means with natural inter-cluster connections.
 
-    This algorithm first expands the input data points based on their probabilities,
-    then applies a constrained K-Means algorithm to the expanded dataset. Finally,
-    it maps the cluster assignments back to the original data points, determining
-    their membership probabilities for each cluster.
+    Pipeline
+    --------
+    1) Expand each point proportional to its probability.
+    2) Constrained K-Means on the expanded set.
+    3) Map assignments back → soft membership of original points.
+    4) Order clusters along a path (shortest_through_all_points).
+    5) Within each cluster block, sort by 1-NN distance to previous/next clusters,
+       and *pin endpoints* so joins are natural.
+    6) Split along cumulative-probability thresholds to balance mass.
+       - Fractions are snapped to {0,1}.
+       - If a border's share equals 1, the point is promoted to FREE (no border).
+    7) Emit hard labels and final centroids.
 
-    Args:
-        k (int): The desired number of clusters.
-        split_size (float, optional): A scaling factor used to expand the data points
-                                      based on their probabilities. Smaller values lead
-                                      to more expanded points. Defaults to 0.001.
+    Parameters
+    ----------
+    k : int
+        Number of clusters.
+    split_size : float
+        Smaller → more expansion weight.
+    nn_algo : {"auto","kd_tree","ball_tree"}
+        Algorithm for NearestNeighbors (1-NN) lookups.
+    nn_leaf_size : int
+        Leaf size for the neighbor tree.
+    snap_atol, snap_rtol : float
+        Tolerances for snapping border fractions to {0, 1}.
     """
 
-    def __init__(self, k: int, split_size: float = 0.001):
+    def __init__(self, k: int, split_size: float = 0.001,
+                 nn_algo: str = "auto", nn_leaf_size: int = 40,
+                 snap_atol: float = 1e-12, snap_rtol: float = 1e-9):
+        assert k >= 1, "k must be >= 1"
         self.k: int = k
         self.split_size: float = split_size
-        self.N: Optional[int] = None  # Number of original data points
-        self.membership: Optional[np.ndarray] = None  # Membership probabilities for each point to each cluster
-        self.clusters: Optional[dict] = None 
-        self.labels: Optional[np.ndarray] = None  # Final cluster labels for original points
-        self.centroids: Optional[np.ndarray] = None  # Centroids for each cluster
 
-    def _generate_expanded_coords(self, coords: np.ndarray, probs: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Generates expanded coordinates and their original indices based on probabilities.
+        # results
+        self.N: Optional[int] = None
+        self.membership: Optional[np.ndarray] = None   # (N, k)
+        self.labels: Optional[np.ndarray] = None       # (N,)
+        self.centroids: Optional[np.ndarray] = None    # (k, d)
+        self.clusters: Optional[Dict[int, dict]] = None
 
-        Each original data point is repeated a number of times proportional to its
-        probability, scaled by `self.split_size`. This effectively gives more weight
-        to points with higher probabilities during the constrained K-Means step.
+        # NN + snapping controls
+        self.nn_algo = nn_algo
+        self.nn_leaf_size = nn_leaf_size
+        self.snap_atol = snap_atol
+        self.snap_rtol = snap_rtol
 
-        Args:
-            coords (np.ndarray): A 2D NumPy array where each row is a coordinate of a data point.
-            probs (np.ndarray): A 1D NumPy array of probabilities corresponding to each data point.
+    # ---------- helpers -----------------------------------------------------
 
-        Returns:
-            Tuple[np.ndarray, np.ndarray, np.ndarray]:
-                - expanded_coords (np.ndarray): The new array of expanded coordinates.
-                - expanded_idx (np.ndarray): An array mapping each expanded coordinate back
-                                            to its original index in `coords`.
-                - original_point_expansion_counts (np.ndarray): The number of times each original
-                                                                point was expanded.
-        """
-        # Calculate how many times each point should be repeated
-        # Round to nearest integer and ensure at least one repeat
-        original_point_expansion_counts: np.ndarray = (probs / self.split_size).round().astype(int)
-        original_point_expansion_counts[original_point_expansion_counts == 0] = 1
+    def _generate_expanded_coords(
+        self, coords: np.ndarray, probs: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Repeat each point proportional to its probability."""
+        counts: np.ndarray = (probs / self.split_size).round().astype(int)
+        counts[counts == 0] = 1
+        expanded_coords: np.ndarray = np.repeat(coords, counts, axis=0)
+        expanded_idx: np.ndarray = np.repeat(np.arange(self.N), counts)
+        return expanded_coords, expanded_idx, counts
 
-        # Repeat the coordinates and their original indices based on calculated counts
-        expanded_coords: np.ndarray = np.repeat(coords, original_point_expansion_counts, axis=0)
-        expanded_idx: np.ndarray = np.repeat(np.arange(self.N), original_point_expansion_counts)
-
-        return expanded_coords, expanded_idx, original_point_expansion_counts
-
-    def _generate_membership(self, extended_labels: np.ndarray, expanded_idx: np.ndarray,
-                             original_point_expansion_counts: np.ndarray) -> np.ndarray:
-        """
-        Calculates the membership probabilities for each original data point to each cluster.
-
-        This is done by counting how many times each expanded representation of an original
-        point was assigned to a particular cluster, and then normalizing these counts
-        by the total number of expanded representations for that original point.
-
-        Args:
-            extended_labels (np.ndarray): Labels assigned to the expanded coordinates by KMeansConstrained.
-            expanded_idx (np.ndarray): An array mapping each expanded coordinate back
-                                       to its original index in the original dataset.
-            original_point_expansion_counts (np.ndarray): The number of times each original
-                                                          point was expanded.
-
-        Returns:
-            np.ndarray: A 2D NumPy array (N, k) where N is the number of original points
-                        and k is the number of clusters. Each element (i, j) represents
-                        the probability that original point 'i' belongs to cluster 'j'.
-        """
-        # Create a matrix to count how many times each expanded point (from original_idx)
-        # was assigned to each cluster (extended_label)
-        membership_counts_matrix: np.ndarray = np.zeros((self.N, self.k), dtype=int)
-        np.add.at(membership_counts_matrix, (expanded_idx, extended_labels), 1)
-
-        # Divide the counts by the total number of expanded points for each original point
-        # This gives the proportion (membership probability)
-        # Using np.newaxis to enable broadcasting for division
-        membership: np.ndarray = membership_counts_matrix / original_point_expansion_counts[:, np.newaxis]
+    def _generate_membership(
+        self, extended_labels: np.ndarray, expanded_idx: np.ndarray,
+        counts: np.ndarray
+    ) -> np.ndarray:
+        """Soft membership of original points to clusters."""
+        membership_counts = np.zeros((self.N, self.k), dtype=int)
+        np.add.at(membership_counts, (expanded_idx, extended_labels), 1)
+        membership = membership_counts / counts[:, None]
         return membership
 
+    def _nearest_dists_to_set(
+        self, coords: np.ndarray, query_idx: np.ndarray, ref_idx: np.ndarray
+    ) -> np.ndarray:
+        """Return 1-NN Euclidean distance from each query point to ref set."""
+        if query_idx.size == 0:
+            return np.zeros(0, dtype=float)
+        if ref_idx.size == 0:
+            return np.zeros(query_idx.shape[0], dtype=float)
+
+        X = coords[query_idx]
+        Y = coords[ref_idx]
+
+        algo = self.nn_algo
+        if algo == "auto":
+            # KD-tree works well in low/moderate dims; else Ball-tree
+            algo = "kd_tree" if coords.shape[1] <= 10 else "ball_tree"
+
+        nbrs = NearestNeighbors(
+            n_neighbors=1,
+            algorithm=algo,
+            leaf_size=self.nn_leaf_size,
+            metric="minkowski", p=2
+        ).fit(Y)
+        dists, _ = nbrs.kneighbors(X, return_distance=True)
+        return dists.ravel()
+
+    def _snap01(self, x: np.ndarray) -> np.ndarray:
+        """Clamp to [0,1] and snap values very close to 0 or 1 exactly."""
+        if x.size == 0:
+            return x
+        y = np.clip(x, 0.0, 1.0).astype(float, copy=True)
+        near0 = np.isclose(y, 0.0, atol=self.snap_atol, rtol=self.snap_rtol)
+        near1 = np.isclose(y, 1.0, atol=self.snap_atol, rtol=self.snap_rtol)
+        y[near0] = 0.0
+        y[near1] = 1.0
+        return y
+
     def _generate_clusters(
-            self,
-            order: np.ndarray,
-            labels: np.ndarray,
-            centroids: np.ndarray,
-            coords: np.ndarray,
-            probs: np.ndarray,
-    ) -> dict:
+        self,
+        order: np.ndarray,
+        labels: np.ndarray,
+        coords: np.ndarray,
+        probs: np.ndarray,
+        pop_indices: Optional[np.ndarray] = None,
+    ) -> Dict[int, dict]:
         """
-        Simple 'mega-order' implementation:
+        Build a 'mega order' by sorting each cluster's points using
+        nearest-neighbor distances to adjacent clusters. Pin endpoints
+        to guarantee natural joins. Then apply the cumsum-based quota
+        split and return per-cluster assignments + border splits.
 
-        1) For each label in `order`, sort its indices by:
-           - interior labels: ascending by (d_prev - d_next)  → prev-closest first, next-closest last
-           - first label:     ascending by (-d_next)          → far-from-next first, closest-to-next last
-           - last label:      ascending by (d_prev)           → closest-to-prev first
-           Then concatenate all these blocks to form a single 'mega' index order of length N.
-
-        2) Compute cumsum of probs over this mega order, and find border positions at
-           thresholds 1, 2, ..., k (leftmost indices where cumsum ≥ threshold).
-
-        3) At border i (between clusters i-1 and i), split the border index so that:
-           - `ceil` goes to cluster i-1 to make its sum exactly i,
-           - `floor` (remainder) goes to cluster i.
-           First cluster has no incoming floor; last cluster has no outgoing ceil.
-
-        4) Save clusters:
-           label: {
-             'free': indices strictly between its incoming and outgoing borders,
-             'border': {
-               'floor_index', 'floor_percentage',  # incoming (none for first)
-               'ceil_index',  'ceil_percentage'    # outgoing (none for last)
-             }
-           }
+        Promotion rule:
+          - If a border share equals 1.0, that index is promoted to FREE
+            for the cluster and the border entry is removed.
+          - If a border share equals 0.0, the border entry is removed.
         """
         N = len(probs)
         eps = 1e-12
 
-        # -- Step 1: build mega order ------------------------------------------------
-        # Pre-gather indices per label
-        label_to_indices = {lab: np.flatnonzero(labels == lab) for lab in order}
+        # indices per label along the path
+        label_to_indices = {int(lab): np.flatnonzero(labels == lab) for lab in order}
 
         mega_blocks = []
         for i, lab in enumerate(order):
+            lab = int(lab)
             idx = label_to_indices.get(lab, np.array([], dtype=int))
             if idx.size == 0:
                 mega_blocks.append(idx)
                 continue
 
-            # prev/next labels
-            has_prev = (i > 0)
-            has_next = (i < self.k - 1)
+            has_prev = (i > 0) and (label_to_indices.get(int(order[i-1]), np.array([], int)).size > 0)
+            has_next = (i < self.k - 1) and (label_to_indices.get(int(order[i+1]), np.array([], int)).size > 0)
+
+            # 1-NN distances to adjacent clusters
             if has_prev:
                 prev_lab = int(order[i - 1])
-                d_prev = np.linalg.norm(coords[idx] - centroids[prev_lab], axis=1)
+                d_prev_min = self._nearest_dists_to_set(coords, idx, label_to_indices[prev_lab])
             else:
-                d_prev = None
+                d_prev_min = None
+
             if has_next:
                 next_lab = int(order[i + 1])
-                d_next = np.linalg.norm(coords[idx] - centroids[next_lab], axis=1)
+                d_next_min = self._nearest_dists_to_set(coords, idx, label_to_indices[next_lab])
             else:
-                d_next = None
+                d_next_min = None
 
+            # sorting key within the cluster block
             if has_prev and has_next:
-                # ascending by (d_prev - d_next): prev-closest first, next-closest last
-                key = d_prev - d_next
-            elif not has_prev and has_next:
-                # first cluster: far-from-next first (closest to next at the end)
-                key = -d_next
-            elif has_prev and not has_next:
-                # last cluster: closest-to-prev first
-                key = d_prev
+                key = d_prev_min - d_next_min
+            elif has_next:
+                key = -d_next_min
+            elif has_prev:
+                key = d_prev_min
             else:
-                # k == 1 edge-case: keep as-is
                 key = np.zeros(idx.shape[0])
 
-            order_within = np.argsort(key, kind="stable")
-            mega_blocks.append(idx[order_within])
+            block = idx[np.argsort(key, kind="stable")]
+
+            # pin endpoints to enforce natural joins
+            if has_prev:
+                first_idx = idx[np.argmin(d_prev_min)]
+                block = np.concatenate(([first_idx], block[block != first_idx]))
+            if has_next:
+                last_idx = idx[np.argmin(d_next_min)]
+                mask = (block != last_idx)
+                block = np.concatenate((block[mask], [last_idx]))
+
+            mega_blocks.append(block)
 
         mega_order = np.concatenate(mega_blocks) if mega_blocks else np.array([], dtype=int)
+        mega_actual_indices = pop_indices[mega_order] if pop_indices is not None else mega_order
 
-        # -- Step 2: borders at thresholds 1..k -------------------------------------
+        # ---- cumsum quota split ---------------------------------------------------
         if N == 0:
-            return {int(lab): {'free': [], 'border': {'floor_index': -1, 'floor_percentage': 0.0,
-                                                      'ceil_index': -1, 'ceil_percentage': 0.0}}
+            return {int(lab): {'free': np.array([], dtype=int),
+                               'border': {'floor_index': -1, 'floor_percentage': 0.0,
+                                          'ceil_index': -1, 'ceil_percentage': 0.0}}
                     for lab in order}
 
         p_sorted = probs[mega_order]
         cs = np.cumsum(p_sorted)
 
-        probs_total = round(np.sum(probs))
-        m = round(probs_total / self.k)
+        probs_total = round(float(np.sum(probs)))
+        m = round(probs_total / self.k, 9) if self.k > 0 else 0.0
 
-        thresholds = np.arange(m, probs_total + 1, step=m, dtype=float)  # 1,2,...,k
-        border_pos = np.searchsorted(cs, thresholds, side='left')  # positions in mega_order (len k)
+        thresholds = np.arange(m, probs_total + m, step=m, dtype=float)  # m, 2m, ..., ~probs_total
+        border_pos = np.searchsorted(cs, thresholds, side='left')        # positions in mega_order
 
-        # -- Step 3: split each border (except the last) ----------------------------
-        # For border i (i=1..k-1):
-        #   pos = border_pos[i-1]
-        #   ceil% for cluster i-1 = (i - mass_before) / prob_at_pos
-        #   floor% for cluster i   = 1 - ceil%
-        pos_1_to_km1 = border_pos[:-1]  # positions for i=1..k-1
+        # split each interior border i=1..k-1 into ceil(fills left) / floor(remainder to right)
+        pos_1_to_km1 = border_pos[:-1]
         mass_before = np.where(pos_1_to_km1 > 0, cs[pos_1_to_km1 - 1], 0.0)
         border_idx_at_pos = mega_order[pos_1_to_km1] if pos_1_to_km1.size else np.array([], dtype=int)
         border_prob = probs[border_idx_at_pos] if pos_1_to_km1.size else np.array([], dtype=float)
         need = thresholds[:-1] - mass_before
 
         with np.errstate(divide='ignore', invalid='ignore'):
-            ceil_pct_for_prev = np.clip(need / np.maximum(border_prob, eps), 0.0, 1.0)
-        # floor for current cluster is 1 - ceil of previous
+            ceil_raw = np.clip(need / np.maximum(border_prob, eps), 0.0, 1.0)
+
+        # snap tiny epsilons to exact 0 or 1
+        ceil_pct_for_prev = self._snap01(ceil_raw)
         floor_pct_for_curr = 1.0 - ceil_pct_for_prev
 
-        # -- Step 4: assemble per-cluster outputs -----------------------------------
-        clusters = {}
+        # assemble outputs per cluster
+        clusters: Dict[int, dict] = {}
         for c, lab in enumerate(order):
-            # incoming floor (border at threshold c), except for first cluster
+            lab = int(lab)
+
+            # Defaults
+            floor_index = -1
+            floor_percentage = 0.0
+            ceil_index = -1
+            ceil_percentage = 0.0
+
+            # Determine free slice limits; we may widen them based on promotion rule
             if c == 0:
-                floor_index = -1
-                floor_percentage = 0.0
                 start_pos = 0
             else:
-                pos_in = int(border_pos[c - 1])  # position of border c in mega_order
-                floor_index = int(mega_order[pos_in])
-                floor_percentage = float(floor_pct_for_curr[c - 1])
-                start_pos = pos_in + 1  # free region starts after incoming border
+                pos_in = int(border_pos[c - 1])
+                fp = float(floor_pct_for_curr[c - 1])
 
-            # outgoing ceil (border at threshold c+1), except for last cluster
+                if fp == 0.0:
+                    # nothing comes in from the left at this border
+                    start_pos = pos_in + 1
+                elif fp == 1.0:
+                    # full ownership → promote to FREE by including the border index
+                    start_pos = pos_in      # include border index in free
+                else:
+                    # fractional share → keep as border
+                    floor_index = int(mega_actual_indices[pos_in])
+                    floor_percentage = fp
+                    start_pos = pos_in + 1  # free starts after incoming border
+
             if c == self.k - 1:
-                ceil_index = -1
-                ceil_percentage = 0.0
-                end_pos = N  # free region ends at end
+                end_pos = N
             else:
-                pos_out = int(border_pos[c])  # position of border c+1
-                ceil_index = int(mega_order[pos_out])
-                ceil_percentage = float(ceil_pct_for_prev[c])
-                end_pos = pos_out  # free region ends before outgoing border
+                pos_out = int(border_pos[c])
+                cp = float(ceil_pct_for_prev[c])
 
-            # free = strictly between incoming and outgoing borders in mega order
-            if end_pos > start_pos:
-                free_slice = mega_order[start_pos:end_pos]
-                free_list = free_slice.tolist()
-            else:
-                free_list = []
+                if cp == 0.0:
+                    # nothing goes out to the right at this border
+                    end_pos = pos_out
+                elif cp == 1.0:
+                    # full ownership → promote to FREE by extending free to include border index
+                    end_pos = pos_out + 1
+                else:
+                    # fractional share → keep as border
+                    ceil_index = int(mega_actual_indices[pos_out])
+                    ceil_percentage = cp
+                    end_pos = pos_out
 
-            clusters[int(lab)] = {
+            # indices strictly between (or widened to include promoted borders)
+            free_list = mega_actual_indices[start_pos:end_pos].tolist() if end_pos > start_pos else []
+
+            clusters[lab] = {
                 'free': np.array(free_list, dtype=int),
                 'border': {
                     'floor_index': floor_index,
-                    'floor_percentage': float(floor_percentage),
+                    'floor_percentage': floor_percentage,
                     'ceil_index': ceil_index,
-                    'ceil_percentage': float(ceil_percentage),
+                    'ceil_percentage': ceil_percentage,
                 }
             }
 
         return clusters
 
-    def _generate_labels(self, clusters: dict, probs: np.ndarray) -> np.ndarray:
+    def _generate_labels(self, clusters: Dict[int, dict], probs: np.ndarray) -> np.ndarray:
         """
-        Build hard labels from cluster splits.
-        Each point may contribute to up to two clusters (via a border split).
-        We compute a per-point per-cluster fraction, then take argmax.
-
-        Args:
-            clusters: dict[label] -> {'free': [...], 'border': {...}}
-            probs:    (N,) probabilities for each point
-
-        Returns:
-            labels: (N,) hard label per point (cluster id), or -1 if truly unassigned.
+        Build hard labels from cluster splits by turning each split into
+        fractional memberships and taking argmax.
         """
         N = probs.shape[0]
         k = self.k
-        # Fractional membership matrix (not normalized, but sums to <= 1 per row)
         frac = np.zeros((N, k), dtype=float)
 
         for lab, info in clusters.items():
@@ -282,63 +310,58 @@ class UPBalancedKMeans:
             if ci != -1 and cp > 0.0:
                 frac[ci, lab] += cp
 
-        # Hard labels = argmax over cluster fractions; keep -1 where zero across all
         labels = np.full(N, -1, dtype=int)
         best_lab = np.argmax(frac, axis=1)
         has_any = (frac.max(axis=1) > 0.0)
         labels[has_any] = best_lab[has_any]
         return labels
 
-    def fit(self, population: Population) -> None:
-        """
-        Fits the Auxiliary Balanced K-Means model to the given population data.
+    # ---------- public API --------------------------------------------------
 
-        Args:
-            population (Population): An instance of the Population class containing
-                                     the coordinates, probabilities, and optional IDs
-                                     of the data points.
-        """
-        # Extract data from the Population object
+    def fit(self, population: Population) -> None:
+        """Fit the model to a Population (expects .coords, .probs, and .N)."""
         coords: np.ndarray = population.coords
         probs: np.ndarray = population.probs
-
         self.N = population.N
 
-        # Generate expanded coordinates based on probabilities
-        expanded_coords, expanded_idx, original_point_expansion_counts = self._generate_expanded_coords(coords, probs)
+        # (1) expand by probabilities
+        expanded_coords, expanded_idx, counts = self._generate_expanded_coords(coords, probs)
 
-        # Apply KMeansConstrained to the expanded dataset
-        # Calculate ideal cluster size for the constrained K-Means
-        # Ensure that cluster_size is at least 1 to avoid issues with KMeansConstrained
+        # (2) constrained K-Means on expanded set
         cluster_size: int = max(1, len(expanded_idx) // self.k)
-
-        # Initialize and fit KMeansConstrained
-        # n_jobs=-1 uses all available CPU cores for parallel processing
         kmeans = KMeansConstrained(
             n_clusters=self.k,
             size_min=cluster_size,
-            size_max=cluster_size+1 if self.k > 1 else cluster_size,  # Allows for slight variation in cluster sizes
+            size_max=cluster_size + 1 if self.k > 1 else cluster_size,
             n_jobs=-1,
-            random_state=42 # For reproducibility
+            random_state=42
         )
-        # extended_labels are the cluster assignments for the expanded points
         extended_labels: np.ndarray = kmeans.fit_predict(expanded_coords)
 
-        # Calculate membership probabilities for each original point to each cluster
-        self.membership = self._generate_membership(extended_labels, expanded_idx, original_point_expansion_counts)
+        # (3) soft membership back to original
+        self.membership = self._generate_membership(extended_labels, expanded_idx, counts)
 
-        # Map cluster assignments back to original data points
-        # Determine the final labels for the original data points
+        # (4) raw hard labels + raw centroids
         raw_labels: np.ndarray = np.argmax(self.membership, axis=1)
+        raw_centroids: np.ndarray = np.array([
+            coords[raw_labels == i].mean(axis=0) if np.any(raw_labels == i)
+            else np.nan * coords[:1].mean(axis=0)
+            for i in range(self.k)
+        ])
 
-        # Compute centroids for each cluster based on original coordinates and labels
-        raw_centroids: np.ndarray = np.array([coords[raw_labels == i].mean(axis=0) for i in range(self.k)])
-
+        # (5) order clusters along a path
         ordered_labels = shortest_through_all_points(raw_centroids)
 
-        clusters = self._generate_clusters(ordered_labels, raw_labels, raw_centroids, coords, probs)
+        # (6) build clusters with NN-based joins + quota split (+ promotion rule)
+        clusters = self._generate_clusters(ordered_labels, raw_labels, coords, probs, population.indices)
 
-        self.labels = self._generate_labels(clusters, probs)
-        self.centroids: np.ndarray = np.array([coords[ self.labels == i].mean(axis=0) for i in range(self.k)])
+        # (7) final hard labels and centroids
+        if population.indices is None:
+            self.labels = self._generate_labels(clusters, probs)
+            self.centroids = np.array([
+                coords[self.labels == i].mean(axis=0) if np.any(self.labels == i)
+                else np.nan * coords[:1].mean(axis=0)
+                for i in range(self.k)
+            ])
 
         self.clusters = list(clusters.values())

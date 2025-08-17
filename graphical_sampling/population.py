@@ -18,15 +18,17 @@ class Population:
         _coords (np.ndarray): A 2D array of float coordinates for each sampling unit (shape (N, 2)).
         _probs (np.ndarray): A 1D array of float values representing the
                              first-order inclusion probability for each sampling unit (shape (N,)).
+        _indices (np.ndarray): A 1D array of original population indices (shape (N,)).
     """
 
-    __slots__ = ("_ids", "_coords", "_probs")
+    __slots__ = ("_ids", "_coords", "_probs", "_indices")
 
     def __init__(
         self,
         coords: np.ndarray,         # shape (N, 2)
         probs:  np.ndarray,         # shape (N,)
         ids:    Optional[np.ndarray] = None,  # shape (N,) or None, with a default value
+        indices: Optional[np.ndarray] = None,
     ):
         """
         Initializes a new Population instance.
@@ -39,6 +41,8 @@ class Population:
             ids (Optional[np.ndarray], optional): A 1D array of unique integer identifiers
                                                (shape (N,)). If None (default),
                                                `np.arange(N)` will be used to generate IDs.
+            indices (Optional[np.ndarray], optional): A 1D array of original population indices (shape (N,)).
+                                                      this is used in the case of subset populations.
 
         Raises:
             ValueError: If the shapes of `coords` or `probs` do not match the
@@ -68,6 +72,7 @@ class Population:
         # Normalize coordinates during initialization
         self._coords = self._normalize_coords(coords).astype(np.float64, copy=False)
         self._probs  = probs.astype(np.float64,  copy=False)
+        self._indices = indices.astype(np.int64, copy=False) if indices is not None else None
 
     @staticmethod
     def _normalize_coords(coords: np.ndarray) -> np.ndarray:
@@ -126,6 +131,17 @@ class Population:
             np.ndarray: A 1D array of float probabilities.
         """
         view = self._probs.view()
+        view.flags.writeable = False
+        return view
+
+    @property
+    def indices(self) -> np.ndarray:
+        """
+        Returns a read-only view of the indices.
+        """
+        if self._indices is None:
+            return None
+        view = self._indices.view()
         view.flags.writeable = False
         return view
 
@@ -217,4 +233,4 @@ class Population:
         # Apply the share multiplier
         subset_probs = selected_probs * share
         # When creating a subset, the _ids should now be a concrete array, not None
-        return Population(ids=self._ids[idx], coords=self._coords[idx], probs=subset_probs)
+        return Population(ids=self._ids[idx], coords=self._coords[idx], probs=subset_probs, indices=idx)
