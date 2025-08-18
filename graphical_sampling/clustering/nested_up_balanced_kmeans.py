@@ -339,7 +339,7 @@ class NestedUPBalancedKMeans:
             size_min=cluster_size,
             size_max=cluster_size + 1 if self.k > 1 else cluster_size,
             n_jobs=-1,
-            random_state=42
+            # random_state=42
         )
         extended_labels: np.ndarray = kmeans.fit_predict(expanded_coords)
         self.membership = self._generate_membership(extended_labels, expanded_idx, expansion_counts)
