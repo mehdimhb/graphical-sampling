@@ -63,7 +63,7 @@ class MaxHeap(Generic[T]):
         return self.pop()
 
     def copy(self) -> MaxHeap[T]:
-        new_heap = MaxHeap[T]()
+        new_heap = MaxHeap[T](rng=self.rng)
         new_heap.heap = self.heap[:]
         new_heap.rng = self.rng
         return new_heap

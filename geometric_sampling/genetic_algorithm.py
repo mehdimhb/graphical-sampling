@@ -70,6 +70,10 @@ class GeometricSamplingGA:
         for design in population:
             validate_design = self.validate_design(design)
         for generation in range(max_generations):
+            # for design in population:
+            #     if design.changes >5:
+            #         design.merge_identical()
+
             fitness_scores = [self.evaluate_fitness(design) for design in population]
 
             self._update_best_design(population, fitness_scores)
@@ -83,7 +87,10 @@ class GeometricSamplingGA:
 
             if verbose and generation % 10 == 0:
                 self._log_generation_progress(generation, fitness_scores)
-
+            if generation == 99:
+                for design in population:
+                    # if len(design.heap) < 5:
+                    design.show()
         self._finalize_run(max_generations, verbose, save_report_path)
         return self.best_design
 
@@ -171,7 +178,36 @@ class GeometricSamplingGA:
 
     def _create_offspring(self, parent1: DesignGenetic, parent2: DesignGenetic) -> Tuple[DesignGenetic, DesignGenetic]:
         try:
-            child1, child2 = self.optimizer.combine_n_parents([parent1, parent2], random_pull=self.random_pull)
+            # res = 0
+            # for sample in parent1.heap:
+            #     if 4 in sample.ids:
+            #         res += sample.probability
+            #
+            # print(res)
+            # res = 0
+            # for sample in parent2.heap:
+            #     if 4 in sample.ids:
+            #         res += sample.probability
+            #
+            # print(res)
+            child1, child2 = self.optimizer.combine_n_parents([parent1, parent2], random_pull=self.random_pull,
+                                                              border_units= self.border_units,
+                                                              partitions=self.partitions)
+            # res = 0
+            # for sample in child1.heap:
+            #     if 4 in sample.ids:
+            #         print(sample)
+            #         res += sample.probability
+            #
+            # print(res)
+            # res = 0
+            # for sample in child2.heap:
+            #     if 4 in sample.ids:
+            #         print(sample)
+            #         res += sample.probability
+            #
+            # print(res)
+
         except Exception as e:
             print(f"Crossover failed: {e}. Returning mutated parents instead.")
             return self.mutate_design(parent1), self.mutate_design(parent2)
@@ -181,7 +217,6 @@ class GeometricSamplingGA:
 
         mutated_child1 = self.mutate_design(child1)
         mutated_child2 = self.mutate_design(child2)
-
         return mutated_child1, mutated_child2
 
     def mutate_design(self, design: DesignGenetic) -> DesignGenetic:

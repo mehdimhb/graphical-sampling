@@ -1,11 +1,10 @@
-from functools import lru_cache
 from math import isclose
 from typing import List, Optional, Tuple
 
+import numpy as np
+
 from geometric_sampling.design import DesignGenetic
 from geometric_sampling.structs import Sample
-
-import numpy as np
 
 
 class GeneticOptimizer:
@@ -54,21 +53,6 @@ class GeneticOptimizer:
             idx += size
         return chunks
 
-    def _pull_from_sources(self,
-                           sources: List[DesignGenetic],
-                           leftovers: List[Optional[Sample]],
-                           random_pull: bool) -> List[Sample]:
-        """Pulls the next sample for each parent from either its heap or leftovers."""
-        pulled = []
-        for i, source in enumerate(sources):
-            if leftovers[i] is not None:
-                sample = leftovers[i]
-                leftovers[i] = None
-            else:
-                sample = source.pull(random_pull)
-            pulled.append(sample)
-        return pulled
-
     def _create_child_samples(self,
                               pulled_samples: List[Sample],
                               length: float, n_parents: int) -> Tuple[Sample, Sample]:
@@ -97,35 +81,133 @@ class GeneticOptimizer:
             else:
                 leftovers[i] = None
 
+    def _classify_sample_by_partition(self,
+                                      sample: Sample,
+                                      border_units: set[int],
+                                      partitions: dict[int, list[int]]) -> int:
+        """
+        Classify a sample based on its border units using the new logic.
+        - Returns -1 if the sample contains NO border units.
+        - Returns 1 if the sample's middle ID IS a border unit.
+        - Returns 0 if the sample HAS border units, but its middle ID is NOT one.
+
+        NOTE: This classification logic no longer uses the 'partitions' input.
+        """
+        if not sample.ids & border_units:
+            return -1  # No border unit in sample
+
+        # Determine the middle id in a stable order and check membership in border_units
+        mid_idx = len(sample.ids) // 2
+        mid_id = sorted(sample.ids)[mid_idx]
+        if mid_id in border_units:
+            return 1
+        return 0
+
+    def _sort_samples_by_partition(self,
+                                   samples: List[Sample],
+                                   border_units: set[int],
+                                   partitions: dict[int, list[int]],
+                                   reverse: bool = False) -> List[Sample]:
+        """
+        Sort samples by partition classification.
+
+        Args:
+            samples: List of samples to sort
+            border_units: Set of border unit indices
+            partitions: Dictionary mapping partition index to unit indices (unused
+                        by new classifier but kept for signature)
+            reverse: If False (default), sort 1 -> 0 -> -1
+                     If True, sort -1 -> 0 -> 1
+        """
+        classified = []
+        for sample in samples:
+            part_idx = self._classify_sample_by_partition(sample, border_units, partitions)
+            classified.append((part_idx, sample))
+
+        # Sort based on classification (1, 0, or -1)
+        if reverse:
+            # Sort 0 -> -1 -> 1
+            # We map 0 -> 1, -1 -> 0, 1 -> -1
+            # Then sort reverse=True (1, 0, -1) which corresponds to (0, -1, 1)
+            key_map = {0: 1, -1: 0, 1: -1}
+            sort_key = lambda x: key_map.get(x[0])
+            classified.sort(key=sort_key, reverse=True)
+        else:
+            # Sort 1 -> -1 -> 0
+            # We map 1 -> 1, -1 -> 0, 0 -> -1
+            # Then sort reverse=True (1, 0, -1) which corresponds to (1, -1, 0)
+            key_map = {1: 1, -1: 0, 0: -1}
+            sort_key = lambda x: key_map.get(x[0])
+            classified.sort(key=sort_key, reverse=True)
+
+        return [sample for _, sample in classified]
+
     def combine_n_parents(
             self,
             parents: List[DesignGenetic],
-            random_pull: bool = False,
+            random_pull: bool = False,  # 'random_pull' is no longer used here
+            partitions: Optional[dict[int, list[int]]] = None,
+            border_units: Optional[set[int]] = None,
     ) -> tuple[DesignGenetic, DesignGenetic]:
         """
         Performs a crossover operation between N parents to produce two children.
-        This method is now a high-level coordinator for the crossover process.
+
+        This method always converts parent heaps to lists and processes them
+        sequentially.
+
+        If partitions and border_units are provided, samples are sorted by partition
+        before combining to reduce intersection conflicts with border units.
         """
         parents = [par.copy() for par in parents]
         n = len(parents)
 
         child1 = DesignGenetic(inclusions=None, rng=parents[0].rng)
         child2 = DesignGenetic(inclusions=None, rng=parents[1].rng)
+
+        samples_list: List[List[Sample]] = []
+
+        # --- UNIFIED LOGIC ---
+        # 1. Convert heaps to lists, sorting *only* if partition info is given
+        if partitions is not None and border_units is not None:
+            # Sort lists based on partition logic
+            for i, parent in enumerate(parents):
+                samples = list(parent.heap)
+                sorted_samples = self._sort_samples_by_partition(
+                    samples, border_units, partitions
+                )
+                samples_list.append(sorted_samples)
+        else:
+            for parent in parents:
+                samples_list.append(list(parent.heap))
+
+        indices = [0] * n
         leftovers: List[Optional[Sample]] = [None] * n
 
-        while any(leftovers) or all(p.heap for p in parents):
-            # Step 1: Get the next sample from each parent source
-            pulled_samples = self._pull_from_sources(parents, leftovers, random_pull)
+        while any(i < len(samples_list[j]) for j, i in enumerate(indices)) or any(leftovers):
+            # Step 1: Pull from lists or leftovers
+            pulled_samples = []
+            for i in range(n):
+                if leftovers[i] is not None:
+                    pulled_samples.append(leftovers[i])
+                    leftovers[i] = None
+                elif indices[i] < len(samples_list[i]):
+                    pulled_samples.append(samples_list[i][indices[i]])
+                    indices[i] += 1
+                else:
+                    pulled_samples = []
+                    break
+
+            if len(pulled_samples) != n:
+                break
 
             # Step 2: Determine the common probability length
             length = min(r.probability for r in pulled_samples)
             if length <= 1e-12:
                 continue
 
-            # Step 3: Create the new child samples by chunking and recombining
+            # Step 3: Create the new child samples
             new_sample1, new_sample2 = self._create_child_samples(pulled_samples, length, n)
 
-            # Assign indices and push to children
             new_sample1.index = [child1.step, []]
             new_sample2.index = [child2.step, []]
             child1.push(new_sample1)
