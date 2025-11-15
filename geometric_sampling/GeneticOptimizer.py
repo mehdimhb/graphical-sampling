@@ -6,6 +6,8 @@ import numpy as np
 from geometric_sampling.design import DesignGenetic
 from geometric_sampling.structs import Sample
 
+EPSILON = 1e-12
+
 
 class GeneticOptimizer:
     def __init__(self) -> None:
@@ -77,7 +79,7 @@ class GeneticOptimizer:
         """Calculates the remaining probability for each sample and updates leftovers."""
         for i, r in enumerate(pulled_samples):
             rem = r.probability - length
-            if rem > 1e-12:
+            if rem > EPSILON:
                 leftovers[i] = Sample(rem, r.ids, index=[-1, []])
             else:
                 leftovers[i] = None
@@ -191,7 +193,7 @@ class GeneticOptimizer:
 
             # Step 2: Determine the common probability length
             length = min(r.probability for r in pulled_samples)
-            if length <= 1e-12:
+            if length <= EPSILON:
                 continue
 
             # Step 3: Create the new child samples
@@ -255,8 +257,8 @@ class GeneticOptimizer:
                 pulled.append(r)
 
             length = min(r.probability for r in pulled)
-            if length <= 0:
-                break
+            if length <= EPSILON:
+                continue
 
             combined_ids: set[int] = set()
             for r in pulled:
@@ -269,7 +271,7 @@ class GeneticOptimizer:
 
             for i, r in enumerate(pulled):
                 rem = r.probability - length
-                if rem > 0:
+                if rem > EPSILON:
                     leftovers[i] = Sample(rem, r.ids, index=[-1, []])
                 else:
                     leftovers[i] = None
