@@ -39,12 +39,13 @@ class UPBalancedKMeans:
         Tolerances for snapping border fractions to {0, 1}.
     """
 
-    def __init__(self, k: int, split_size: float = 0.001,
+    def __init__(self, k: int, split_size: float = 0.001, init: str|np.ndarray = "k-means++",
                  nn_algo: str = "auto", nn_leaf_size: int = 40,
                  snap_atol: float = 1e-12, snap_rtol: float = 1e-9):
         assert k >= 1, "k must be >= 1"
         self.k: int = k
         self.split_size: float = split_size
+        self.init = init
 
         # results
         self.N: Optional[int] = None
@@ -331,6 +332,7 @@ class UPBalancedKMeans:
         cluster_size: int = max(1, len(expanded_idx) // self.k)
         kmeans = KMeansConstrained(
             n_clusters=self.k,
+            init=self.init,
             size_min=cluster_size,
             size_max=cluster_size + 1 if self.k > 1 else cluster_size,
             n_jobs=-1,
