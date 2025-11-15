@@ -142,7 +142,8 @@ class GAMonitor:
 
     def update_live_plots(self):
         """Update the live plotting interface with the latest data."""
-        if not self.metrics_history: return
+        if not self.metrics_history:
+            return
         generations = [m.generation for m in self.metrics_history]
 
         # Plot 1: Fitness

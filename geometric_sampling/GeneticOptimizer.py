@@ -29,8 +29,9 @@ class GeneticOptimizer:
                 if not isclose(cumulative_sum, target, abs_tol=1e-9):
                     border_units.add(index)
                     cumulative_sum = fip - (target - cumulative_sum)
+                    partitions[current_partition].append(index)
                     current_partition += 1
-                    partitions[current_partition] = []
+                    partitions[current_partition] = [index]
                     continue
 
                 current_partition += 1
@@ -83,15 +84,13 @@ class GeneticOptimizer:
 
     def _classify_sample_by_partition(self,
                                       sample: Sample,
-                                      border_units: set[int],
-                                      partitions: dict[int, list[int]]) -> int:
+                                      border_units: set[int]) -> int:
         """
         Classify a sample based on its border units using the new logic.
         - Returns -1 if the sample contains NO border units.
         - Returns 1 if the sample's middle ID IS a border unit.
         - Returns 0 if the sample HAS border units, but its middle ID is NOT one.
 
-        NOTE: This classification logic no longer uses the 'partitions' input.
         """
         if not sample.ids & border_units:
             return -1  # No border unit in sample
@@ -106,7 +105,6 @@ class GeneticOptimizer:
     def _sort_samples_by_partition(self,
                                    samples: List[Sample],
                                    border_units: set[int],
-                                   partitions: dict[int, list[int]],
                                    reverse: bool = False) -> List[Sample]:
         """
         Sort samples by partition classification.
@@ -121,32 +119,23 @@ class GeneticOptimizer:
         """
         classified = []
         for sample in samples:
-            part_idx = self._classify_sample_by_partition(sample, border_units, partitions)
+            part_idx = self._classify_sample_by_partition(sample, border_units)
             classified.append((part_idx, sample))
 
-        # Sort based on classification (1, 0, or -1)
         if reverse:
             # Sort 0 -> -1 -> 1
-            # We map 0 -> 1, -1 -> 0, 1 -> -1
-            # Then sort reverse=True (1, 0, -1) which corresponds to (0, -1, 1)
             key_map = {0: 1, -1: 0, 1: -1}
-            sort_key = lambda x: key_map.get(x[0])
-            classified.sort(key=sort_key, reverse=True)
+            classified.sort(key=lambda x: key_map.get(x[0]), reverse=True)
         else:
             # Sort 1 -> -1 -> 0
-            # We map 1 -> 1, -1 -> 0, 0 -> -1
-            # Then sort reverse=True (1, 0, -1) which corresponds to (1, -1, 0)
             key_map = {1: 1, -1: 0, 0: -1}
-            sort_key = lambda x: key_map.get(x[0])
-            classified.sort(key=sort_key, reverse=True)
+            classified.sort(key=lambda x: key_map.get(x[0]), reverse=True)
 
         return [sample for _, sample in classified]
 
     def combine_n_parents(
             self,
             parents: List[DesignGenetic],
-            random_pull: bool = False,  # 'random_pull' is no longer used here
-            partitions: Optional[dict[int, list[int]]] = None,
             border_units: Optional[set[int]] = None,
     ) -> tuple[DesignGenetic, DesignGenetic]:
         """
@@ -168,12 +157,12 @@ class GeneticOptimizer:
 
         # --- UNIFIED LOGIC ---
         # 1. Convert heaps to lists, sorting *only* if partition info is given
-        if partitions is not None and border_units is not None:
+        if  border_units is not None:
             # Sort lists based on partition logic
             for i, parent in enumerate(parents):
                 samples = list(parent.heap)
                 sorted_samples = self._sort_samples_by_partition(
-                    samples, border_units, partitions
+                    samples, border_units
                 )
                 samples_list.append(sorted_samples)
         else:
