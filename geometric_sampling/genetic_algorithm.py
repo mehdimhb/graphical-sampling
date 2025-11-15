@@ -68,7 +68,7 @@ class GeometricSamplingGA:
         self._initialize_run(verbose)
         population = self.create_initial_population()
         for design in population:
-            validate_design = self.validate_design(design)
+            self.validate_design(design)
         for generation in range(max_generations):
             # for design in population:
             #     if design.changes >5:
@@ -130,7 +130,8 @@ class GeometricSamplingGA:
                 print("❌ Best design failed validation!")
 
         if self.monitor:
-            if verbose: print("\n📊 Generating final monitoring report...")
+            if verbose:
+                print("\n📊 Generating final monitoring report...")
             self.monitor.generate_final_report(save_path=save_report_path)
 
     # --- Population Creation and Evolution ---
@@ -178,35 +179,10 @@ class GeometricSamplingGA:
 
     def _create_offspring(self, parent1: DesignGenetic, parent2: DesignGenetic) -> Tuple[DesignGenetic, DesignGenetic]:
         try:
-            # res = 0
-            # for sample in parent1.heap:
-            #     if 4 in sample.ids:
-            #         res += sample.probability
-            #
-            # print(res)
-            # res = 0
-            # for sample in parent2.heap:
-            #     if 4 in sample.ids:
-            #         res += sample.probability
-            #
-            # print(res)
-            child1, child2 = self.optimizer.combine_n_parents([parent1, parent2], random_pull=self.random_pull,
-                                                              border_units= self.border_units,
-                                                              partitions=self.partitions)
-            # res = 0
-            # for sample in child1.heap:
-            #     if 4 in sample.ids:
-            #         print(sample)
-            #         res += sample.probability
-            #
-            # print(res)
-            # res = 0
-            # for sample in child2.heap:
-            #     if 4 in sample.ids:
-            #         print(sample)
-            #         res += sample.probability
-            #
-            # print(res)
+
+            child1, child2 = self.optimizer.combine_n_parents([parent1, parent2],
+                                                              border_units= self.border_units)
+
 
         except Exception as e:
             print(f"Crossover failed: {e}. Returning mutated parents instead.")
