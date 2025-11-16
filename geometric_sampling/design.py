@@ -193,7 +193,8 @@ class DesignGenetic(Design):
                 events.append((level, "start", original_index))
                 events.append((1, "end", original_index))
                 events.append((0, "start", original_index))
-                events.append((round(next_level - 1, 9), "end", original_index))
+                # remove rounding of event point to avoid truncation
+                events.append((next_level - 1, "end", original_index))
                 level = next_level - 1
             else:
                 events.append((level, "start", original_index))
