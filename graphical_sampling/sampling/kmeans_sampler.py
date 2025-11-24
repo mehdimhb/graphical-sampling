@@ -11,7 +11,7 @@ from ..population import Population
 from ..clustering import UPBalancedKMeans
 from .entity import Zone, Cluster  # Assuming these are in .entity
 from .builder import ClusteringZoneBuilder, SweepingZoneBuilder, ClusterBuilder, \
-    BaseZoneBuilder, NestedClusterBuilder # Assuming these are in .builder
+    BaseZoneBuilder # Assuming these are in .builder
 from .order import Order, LexicoXY, LexicoYX, Random, Angle, DistFromOrigin, Projection, DistFromCentroid, \
     Spiral, MaxCoord, Snake, HilbertCurve, Change  # All OrderStrategy implementations
 from ..design import Design
