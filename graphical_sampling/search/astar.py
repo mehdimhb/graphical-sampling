@@ -131,7 +131,7 @@ class AStar:
 
                 new_criteria_value = self.criteria(new_design)
                 new_node = Node(new_criteria_value, new_design)
-                print(f"child node: {new_criteria_value}")
+                print(f"iteration: {it}, child node: {new_criteria_value}")
 
                 if len(open_set_list) < max_open_set_size:
                     bisect.insort_left(open_set_list, new_node)
@@ -146,7 +146,7 @@ class AStar:
                     self.best_design = new_design
                     self.best_criteria_value = new_criteria_value
                     print('\n==============================================')
-                    print(f'New best criteria value: {self.best_criteria_value}\n')
+                    print(f'iteration: {it}, New best criteria value: {self.best_criteria_value}\n')
                     if self.best_criteria_value < self.threshold:
                         return it
 

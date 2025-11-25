@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
-import bisect
 import numpy as np
 from joblib import Parallel, delayed
-from ..criteria import MoranCriteria
+from ..criteria.criteria import Criteria
 from ..new_design import NewDesign
 
 
@@ -28,7 +27,7 @@ class Bees:
     def __init__(
         self,
         initial_designs: list[NewDesign],
-        criteria: MoranCriteria,
+        criteria: Criteria,
         *,
         colony_size: int = 20,
         limit: int = 50,
@@ -41,7 +40,6 @@ class Bees:
         self.threshold = threshold
         self.rng = np.random.default_rng()
 
-        # Evaluate initial designs
         print('Evaluating initial designs...')
         self.initial_criteria_value = np.array([
             self.criteria(design) for design in self.initial_designs
@@ -89,6 +87,25 @@ class Bees:
 
         return fitness_values / total_fitness
 
+    def _generate_new_food_source(
+        self,
+        old_fs: FoodSource,
+        new_design: NewDesign
+    ) -> FoodSource:
+        new_criteria_value = self.criteria(new_design)
+        if new_criteria_value < old_fs.criteria_value:
+            return FoodSource(
+                design=new_design,
+                criteria_value=new_criteria_value,
+                trial_counter=0,
+            )
+        else:
+            return FoodSource(
+                design=old_fs.design,
+                criteria_value=old_fs.criteria_value,
+                trial_counter=old_fs.trial_counter + 1,
+            )
+
     def employed_bee_phase(
         self,
         food_sources: list[FoodSource],
@@ -99,7 +116,6 @@ class Bees:
         n_changes_in_order_of_zones: int,
         n_jobs: int,
     ) -> list[FoodSource]:
-        # Generate neighbors
         new_designs = Parallel(n_jobs=n_jobs)(
             delayed(self.iterate_design)(
                 fs.design,
@@ -113,22 +129,7 @@ class Bees:
 
         new_food_sources = []
         for i, (food_source, new_design) in enumerate(zip(food_sources, new_designs)):
-            new_criteria_value = self.criteria(new_design)
-
-            # Greedy selection
-            if new_criteria_value < food_source.criteria_value:
-                new_food_sources.append(FoodSource(
-                    design=new_design,
-                    criteria_value=new_criteria_value,
-                    trial_counter=0
-                ))
-            else:
-                new_food_sources.append(FoodSource(
-                    design=food_source.design,
-                    criteria_value=food_source.criteria_value,
-                    trial_counter=food_source.trial_counter + 1
-                ))
-
+            new_food_sources.append(self._generate_new_food_source(food_source, new_design))
         return new_food_sources
 
     def onlooker_bee_phase(
@@ -143,45 +144,24 @@ class Bees:
     ) -> list[FoodSource]:
         probabilities = self.calculate_selection_probabilities(food_sources)
 
-        # Select food sources to explore
-        selected_indices = []
-        for i, prob in enumerate(probabilities):
-            if self.rng.random() < prob:
-                selected_indices.append(i)
+        selected_indices = self.rng.choice(
+            len(food_sources), size=self.colony_size, replace=True, p=probabilities
+        ).tolist()
 
-        if not selected_indices:
-            return food_sources
-
-        # Generate neighbors for selected food sources
-        selected_sources = [food_sources[i] for i in selected_indices]
         new_designs = Parallel(n_jobs=n_jobs)(
             delayed(self.iterate_design)(
-                fs.design,
+                food_sources[i].design,
                 n_clusters_to_change_order_zone,
                 n_clusters_to_change_order_units,
                 n_zones_to_change_order_units,
                 n_changes_in_order_of_units,
                 n_changes_in_order_of_zones,
-            ) for fs in selected_sources
+            ) for i in selected_indices
         )
 
         new_food_sources = food_sources.copy()
         for idx, new_design in zip(selected_indices, new_designs):
-            new_criteria_value = self.criteria(new_design)
-
-            if new_criteria_value < food_sources[idx].criteria_value:
-                new_food_sources[idx] = FoodSource(
-                    design=new_design,
-                    criteria_value=new_criteria_value,
-                    trial_counter=0
-                )
-            else:
-                new_food_sources[idx] = FoodSource(
-                    design=food_sources[idx].design,
-                    criteria_value=food_sources[idx].criteria_value,
-                    trial_counter=food_sources[idx].trial_counter + 1
-                )
-
+            new_food_sources[idx] = self._generate_new_food_source(new_food_sources[idx], new_design)
         return new_food_sources
 
     def scout_bee_phase(
@@ -197,21 +177,24 @@ class Bees:
 
         for food_source in food_sources:
             if food_source.trial_counter >= self.limit:
-                # Scout: Generate a new random solution
-                random_initial = self.rng.choice(self.initial_designs)
-                new_design = self.iterate_design(
-                    random_initial,
-                    n_clusters_to_change_order_zone,
-                    n_clusters_to_change_order_units,
-                    n_zones_to_change_order_units,
-                    n_changes_in_order_of_units * 2,  # More exploration
-                    n_changes_in_order_of_zones * 2,
-                )
+                # Scout: generate a new design
+                if hasattr(NewDesign, 'random'):
+                    new_design = NewDesign.random()
+                else:
+                    random_initial = self.rng.choice(self.initial_designs)
+                    new_design = self.iterate_design(
+                        random_initial,
+                        n_clusters_to_change_order_zone,
+                        n_clusters_to_change_order_units,
+                        n_zones_to_change_order_units,
+                        n_changes_in_order_of_units * 10,
+                        n_changes_in_order_of_zones * 10,
+                    )
                 new_criteria_value = self.criteria(new_design)
                 new_food_sources.append(FoodSource(
                     design=new_design,
                     criteria_value=new_criteria_value,
-                    trial_counter=0
+                    trial_counter=0,
                 ))
                 print(f'  Scout: Abandoned and found new source with criteria {new_criteria_value:.6f}')
             else:
@@ -230,7 +213,6 @@ class Bees:
         n_jobs: int = -1,
         verbose: bool = True,
     ) -> int:
-        # Initialize food sources (colony)
         food_sources = []
         for i in range(min(self.colony_size, len(self.initial_designs))):
             food_sources.append(FoodSource(
@@ -239,7 +221,6 @@ class Bees:
                 trial_counter=0
             ))
 
-        # Fill remaining colony with new designs
         while len(food_sources) < self.colony_size:
             random_design = self.rng.choice(self.initial_designs)
             new_design = self.iterate_design(
@@ -263,7 +244,6 @@ class Bees:
 
         iteration_best_found = 0
 
-        # Main ABC loop
         for it in range(max_iterations):
             if verbose:
                 print(f'\nIteration {it + 1}/{max_iterations}')
@@ -300,7 +280,6 @@ class Bees:
                 n_changes_in_order_of_zones,
             )
 
-            # Update global best
             current_best = min(food_sources, key=lambda fs: fs.criteria_value)
             if current_best.criteria_value < self.best_criteria_value:
                 self.best_design = current_best.design
