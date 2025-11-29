@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 import numpy as np
+import time
 from joblib import Parallel, delayed
 from ..criteria.criteria import Criteria
 from ..new_design import NewDesign
@@ -212,6 +213,7 @@ class Bees:
         n_changes_in_order_of_zones: int = 1,
         n_jobs: int = -1,
         verbose: bool = True,
+        max_time_seconds: float | None = None,
     ) -> int:
         food_sources = []
         for i in range(min(self.colony_size, len(self.initial_designs))):
@@ -220,7 +222,7 @@ class Bees:
                 criteria_value=self.initial_criteria_value[i],
                 trial_counter=0
             ))
-
+        start_time = time.perf_counter()
         while len(food_sources) < self.colony_size:
             random_design = self.rng.choice(self.initial_designs)
             new_design = self.iterate_design(
@@ -245,6 +247,9 @@ class Bees:
         iteration_best_found = 0
 
         for it in range(max_iterations):
+            if max_time_seconds is not None:
+                if time.perf_counter() - start_time >= max_time_seconds:
+                    break
             if verbose:
                 print(f'\nIteration {it + 1}/{max_iterations}')
 
