@@ -59,15 +59,47 @@ class GeneticOptimizer:
     def _create_child_samples(self,
                               pulled_samples: List[Sample],
                               length: float, n_parents: int) -> Tuple[Sample, Sample]:
-        """Creates two new child samples from a list of parent samples."""
-        all_chunks = [self._chunk_ids(r.ids, n_parents) for r in pulled_samples]
+        """
+        Creates two new child samples from a list of parent samples.
 
-        child1_ids: set[int] = set()
-        child2_ids: set[int] = set()
+        For geometric sampling crossover, we need to preserve inclusion probabilities.
 
-        for i in range(n_parents):
-            child1_ids.update(all_chunks[i][i])
-            child2_ids.update(all_chunks[i][(i + 1) % n_parents])
+        Key mathematical constraints:
+        - Each unit's inclusion probability must be preserved exactly
+        - For unit u in parent1 only: u contributes `length` to its inclusion prob from parent1
+        - For unit u in parent2 only: u contributes `length` to its inclusion prob from parent2
+        - For unit u in both parents: u contributes `2*length` to its inclusion prob
+
+        To preserve inclusion probabilities:
+        - Overlap units must appear in BOTH children (each contributes `length`)
+        - Unique_to_1 units must go to exactly ONE child (contributes `length`)
+        - Unique_to_2 units must go to exactly ONE child (contributes `length`)
+
+        For genetic diversity while preserving probabilities:
+        - Child1 gets: overlap + unique_to_1 (from parent1) + nothing from parent2's unique
+        - Child2 gets: overlap + unique_to_2 (from parent2) + nothing from parent1's unique
+
+        This way:
+        - Overlap units: appear in both children, each with prob `length`, total = 2*length ✓
+        - Unique_to_1: appear only in child1 with prob `length` ✓
+        - Unique_to_2: appear only in child2 with prob `length` ✓
+        """
+        ids1 = pulled_samples[0].ids
+        ids2 = pulled_samples[1].ids
+
+        # Simple case: samples are identical
+        if ids1 == ids2:
+            return Sample(length, ids1), Sample(length, ids2)
+
+        # Find overlap and unique units
+        overlap = ids1 & ids2
+        unique_to_1 = ids1 - ids2
+        unique_to_2 = ids2 - ids1
+
+        # Child 1: overlap + all unique_to_1 (preserves parent1's contribution)
+        # Child 2: overlap + all unique_to_2 (preserves parent2's contribution)
+        child1_ids = overlap | unique_to_1
+        child2_ids = overlap | unique_to_2
 
         child1 = Sample(length, frozenset(child1_ids))
         child2 = Sample(length, frozenset(child2_ids))
