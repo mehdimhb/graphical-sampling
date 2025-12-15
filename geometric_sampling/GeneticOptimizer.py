@@ -5,7 +5,6 @@ import numpy as np
 
 from geometric_sampling.design import DesignGenetic
 from geometric_sampling.structs import Sample
-
 EPSILON = 1e-12
 
 
@@ -58,52 +57,40 @@ class GeneticOptimizer:
 
     def _create_child_samples(self,
                               pulled_samples: List[Sample],
-                              length: float, n_parents: int) -> Tuple[Sample, Sample]:
+                              length: float, n_parents: int) -> List[Optional[Sample]]:
         """
-        Creates two new child samples from a list of parent samples.
+        Creates new child samples using Chunking logic.
 
-        For geometric sampling crossover, we need to preserve inclusion probabilities.
-
-        Key mathematical constraints:
-        - Each unit's inclusion probability must be preserved exactly
-        - For unit u in parent1 only: u contributes `length` to its inclusion prob from parent1
-        - For unit u in parent2 only: u contributes `length` to its inclusion prob from parent2
-        - For unit u in both parents: u contributes `2*length` to its inclusion prob
-
-        To preserve inclusion probabilities:
-        - Overlap units must appear in BOTH children (each contributes `length`)
-        - Unique_to_1 units must go to exactly ONE child (contributes `length`)
-        - Unique_to_2 units must go to exactly ONE child (contributes `length`)
-
-        For genetic diversity while preserving probabilities:
-        - Child1 gets: overlap + unique_to_1 (from parent1) + nothing from parent2's unique
-        - Child2 gets: overlap + unique_to_2 (from parent2) + nothing from parent1's unique
-
-        This way:
-        - Overlap units: appear in both children, each with prob `length`, total = 2*length ✓
-        - Unique_to_1: appear only in child1 with prob `length` ✓
-        - Unique_to_2: appear only in child2 with prob `length` ✓
+        Returns a list of Optional[Sample].
+        If a generated child has the wrong size (due to ID conflict/vanishing),
+        it returns None for that specific child slot.
         """
-        ids1 = pulled_samples[0].ids
-        ids2 = pulled_samples[1].ids
+        # We expect all children to have the same size as the first parent
+        expected_size = len(pulled_samples[0].ids)
 
-        # Simple case: samples are identical
-        if ids1 == ids2:
-            return Sample(length, ids1), Sample(length, ids2)
+        all_chunks = [self._chunk_ids(r.ids, n_parents) for r in pulled_samples]
 
-        # Find overlap and unique units
-        overlap = ids1 & ids2
-        unique_to_1 = ids1 - ids2
-        unique_to_2 = ids2 - ids1
+        valid_children: List[Optional[Sample]] = []
 
-        # Child 1: overlap + all unique_to_1 (preserves parent1's contribution)
-        # Child 2: overlap + all unique_to_2 (preserves parent2's contribution)
-        child1_ids = overlap | unique_to_1
-        child2_ids = overlap | unique_to_2
+        for i in range(n_parents):
+            # Construct candidate IDs for Child i using Round Robin chunk selection
+            # Child i takes chunk i from Parent 0, chunk i+1 from Parent 1, etc.
+            candidate_ids: set[int] = set()
 
-        child1 = Sample(length, frozenset(child1_ids))
-        child2 = Sample(length, frozenset(child2_ids))
-        return child1, child2
+            for parent_idx in range(n_parents):
+                # Ensure we take distinct chunks from distinct parents
+                chunk_index = (i + parent_idx) % n_parents
+                chunk_to_take = all_chunks[parent_idx][chunk_index]
+                candidate_ids.update(chunk_to_take)
+
+            # QUALITY CONTROL:
+            # Survival of the fittest: if the size is wrong, the sample dies (becomes None).
+            if len(candidate_ids) == expected_size:
+                valid_children.append(Sample(length, frozenset(candidate_ids)))
+            else:
+                valid_children.append(None)
+
+        return valid_children
 
     def _update_leftovers(self,
                           leftovers: List[Optional[Sample]],
@@ -119,17 +106,11 @@ class GeneticOptimizer:
     def _classify_sample_by_partition(self,
                                       sample: Sample,
                                       border_units: set[int]) -> int:
-        """
-        Classify a sample based on its border units using the new logic.
-        - Returns -1 if the sample contains NO border units.
-        - Returns 1 if the sample's middle ID IS a border unit.
-        - Returns 0 if the sample HAS border units, but its middle ID is NOT one.
-
-        """
+        """Classify a sample based on its border units."""
         if not sample.ids & border_units:
             return -1  # No border unit in sample
 
-        # Determine the middle id in a stable order and check membership in border_units
+        # Determine the middle id in a stable order
         mid_idx = len(sample.ids) // 2
         mid_id = sorted(sample.ids)[mid_idx]
         if mid_id in border_units:
@@ -140,28 +121,16 @@ class GeneticOptimizer:
                                    samples: List[Sample],
                                    border_units: set[int],
                                    reverse: bool = False) -> List[Sample]:
-        """
-        Sort samples by partition classification.
-
-        Args:
-            samples: List of samples to sort
-            border_units: Set of border unit indices
-            partitions: Dictionary mapping partition index to unit indices (unused
-                        by new classifier but kept for signature)
-            reverse: If False (default), sort 1 -> 0 -> -1
-                     If True, sort -1 -> 0 -> 1
-        """
+        """Sort samples by partition classification."""
         classified = []
         for sample in samples:
             part_idx = self._classify_sample_by_partition(sample, border_units)
             classified.append((part_idx, sample))
 
         if reverse:
-            # Sort 0 -> -1 -> 1
             key_map = {0: 1, -1: 0, 1: -1}
             classified.sort(key=lambda x: key_map.get(x[0]), reverse=True)
         else:
-            # Sort 1 -> -1 -> 0
             key_map = {1: 1, -1: 0, 0: -1}
             classified.sort(key=lambda x: key_map.get(x[0]), reverse=True)
 
@@ -173,26 +142,18 @@ class GeneticOptimizer:
             border_units: Optional[set[int]] = None,
     ) -> tuple[DesignGenetic, DesignGenetic]:
         """
-        Performs a crossover operation between N parents to produce two children.
-
-        This method always converts parent heaps to lists and processes them
-        sequentially.
-
-        If partitions and border_units are provided, samples are sorted by partition
-        before combining to reduce intersection conflicts with border units.
+        Performs a crossover operation between N parents to produce children.
+        Discards 'defective' children (where samples vanished due to conflict).
         """
         parents = [par.copy() for par in parents]
         n = len(parents)
 
-        child1 = DesignGenetic(inclusions=None, rng=parents[0].rng)
-        child2 = DesignGenetic(inclusions=None, rng=parents[1].rng)
+        # Initialize N child designs
+        children_designs = [DesignGenetic(inclusions=None, rng=parents[0].rng) for _ in range(n)]
 
         samples_list: List[List[Sample]] = []
 
-        # --- UNIFIED LOGIC ---
-        # 1. Convert heaps to lists, sorting *only* if partition info is given
-        if  border_units is not None:
-            # Sort lists based on partition logic
+        if border_units is not None:
             for i, parent in enumerate(parents):
                 samples = list(parent.heap)
                 sorted_samples = self._sort_samples_by_partition(
@@ -228,23 +189,28 @@ class GeneticOptimizer:
             if length <= EPSILON:
                 continue
 
-            # Step 3: Create the new child samples
-            new_sample1, new_sample2 = self._create_child_samples(pulled_samples, length, n)
+            # Step 3: Create the new child samples (returns list of Optional[Sample])
+            generated_samples = self._create_child_samples(pulled_samples, length, n)
 
-            new_sample1.index = [child1.step, []]
-            new_sample2.index = [child2.step, []]
-            child1.push(new_sample1)
-            child2.push(new_sample2)
+            # Step 3.5: Distribute valid samples to valid designs
+            for i, sample in enumerate(generated_samples):
+                if sample is not None:
+                    # --- HEALTHY CHILD ---
+                    # The sample is valid (correct size). We accept it.
+                    sample.index = [children_designs[i].step, []]
+                    children_designs[i].push(sample)
+                    children_designs[i].step += 1
+                    children_designs[i].changes += 1
+                else:
+                    # --- DEFECTIVE CHILD ---
+                    # The sample had the wrong size (IDs vanished). We discard it.
+                    pass
 
             # Step 4: Calculate and store any remaining sample portions
             self._update_leftovers(leftovers, pulled_samples, length)
 
-            child1.step += 1
-            child1.changes += 1
-            child2.step += 1
-            child2.changes += 1
-
-        return child1, child2
+        # Return the first two children (assuming N=2 crossover)
+        return children_designs[0], children_designs[1]
 
     def design_fragmentation_n(
             self,
