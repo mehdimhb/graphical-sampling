@@ -309,8 +309,25 @@ class GeneticOptimizer:
                     cooccur[id1].update(ids_list)
             return cooccur
 
+        # NEW: Build weighted cooccurrence based on probability
+        def build_weighted_cooccurrence(samples):
+            """Build weighted cooccurrence based on sample probabilities"""
+            cooccur = {}
+            weights = {}
+            for s in samples:
+                ids_list = list(s.ids)
+                for id1 in ids_list:
+                    if id1 not in cooccur:
+                        cooccur[id1] = {}
+                    for id2 in ids_list:
+                        if id1 != id2:
+                            cooccur[id1][id2] = cooccur[id1].get(id2, 0) + s.probability
+            return cooccur
+
         cooccur1 = build_cooccurrence(samples1)
         cooccur2 = build_cooccurrence(samples2)
+        weighted_cooccur1 = build_weighted_cooccurrence(samples1)
+        weighted_cooccur2 = build_weighted_cooccurrence(samples2)
 
         # Apply guided switches to child1 (guided by parent2's structure)
         for _ in range(num_iterations):
@@ -336,12 +353,20 @@ class GeneticOptimizer:
                 child1.push(r2)
                 continue
 
-            # Prefer switches that match parent2's cooccurrence patterns
+            # NEW: Use weighted selection for n1 based on probability contribution
             n1 = self.rng.choice(list(diff1))
 
-            # Find best n2: one that cooccurs with n1 in parent2
+            # Find best n2: one that cooccurs with n1 in parent2 with highest weight
             best_n2 = None
-            if n1 in cooccur2:
+            if n1 in weighted_cooccur2:
+                candidates = {k: v for k, v in weighted_cooccur2[n1].items() if k in diff2}
+                if candidates:
+                    # Select based on weight (higher weight = more likely)
+                    weights = np.array(list(candidates.values()))
+                    weights = weights / weights.sum()
+                    best_n2 = self.rng.choice(list(candidates.keys()), p=weights)
+
+            if best_n2 is None and n1 in cooccur2:
                 candidates = list(diff2 & cooccur2[n1])
                 if candidates:
                     best_n2 = self.rng.choice(candidates)
@@ -349,8 +374,8 @@ class GeneticOptimizer:
             if best_n2 is None:
                 best_n2 = self.rng.choice(list(diff2))
 
-            # Perform the switch
-            coef = self.rng.uniform(0.3, 0.7)
+            # Perform the switch with adaptive coefficient
+            coef = self.rng.uniform(0.2, 0.8)  # Wider range for more exploration
             length = coef * min(r1.probability, r2.probability)
 
             child1.push(Sample(length, r1.ids - {n1} | {best_n2}))
@@ -382,8 +407,16 @@ class GeneticOptimizer:
 
             n1 = self.rng.choice(list(diff1))
 
+            # Use weighted selection for child2 as well
             best_n2 = None
-            if n1 in cooccur1:
+            if n1 in weighted_cooccur1:
+                candidates = {k: v for k, v in weighted_cooccur1[n1].items() if k in diff2}
+                if candidates:
+                    weights = np.array(list(candidates.values()))
+                    weights = weights / weights.sum()
+                    best_n2 = self.rng.choice(list(candidates.keys()), p=weights)
+
+            if best_n2 is None and n1 in cooccur1:
                 candidates = list(diff2 & cooccur1[n1])
                 if candidates:
                     best_n2 = self.rng.choice(candidates)
@@ -391,7 +424,7 @@ class GeneticOptimizer:
             if best_n2 is None:
                 best_n2 = self.rng.choice(list(diff2))
 
-            coef = self.rng.uniform(0.3, 0.7)
+            coef = self.rng.uniform(0.2, 0.8)
             length = coef * min(r1.probability, r2.probability)
 
             child2.push(Sample(length, r1.ids - {n1} | {best_n2}))
@@ -405,3 +438,116 @@ class GeneticOptimizer:
 
         return child1, child2
 
+    # def simulated_annealing_crossover(
+    #         self,
+    #         parents: List[DesignGenetic],
+    #         criterion,
+    #         temperature: float = 1.0,
+    #         cooling_rate: float = 0.95,
+    #         num_iterations: int = 50,
+    # ) -> tuple[DesignGenetic, DesignGenetic]:
+    #     """
+    #     Performs crossover with simulated annealing to escape local optima.
+    #     Accepts worse solutions with probability based on temperature.
+    #     """
+    #     if len(parents) != 2:
+    #         raise ValueError("This crossover method requires exactly 2 parents")
+    #
+    #     child1 = parents[0].copy()
+    #     child2 = parents[1].copy()
+    #
+    #     best_child1 = child1.copy()
+    #     best_child2 = child2.copy()
+    #     best_fitness1 = criterion(child1)
+    #     best_fitness2 = criterion(child2)
+    #
+    #     current_fitness1 = best_fitness1
+    #     current_fitness2 = best_fitness2
+    #
+    #     temp = temperature
+    #
+    #     for iteration in range(num_iterations):
+    #         # Try modification on child1
+    #         if len(child1.heap) >= 2:
+    #             candidate1 = child1.copy()
+    #             r1 = candidate1.pull(random=True)
+    #             r2 = candidate1.pull(random=True)
+    #
+    #             if r1.ids != r2.ids:
+    #                 diff1 = r1.ids - r2.ids
+    #                 diff2 = r2.ids - r1.ids
+    #
+    #                 if diff1 and diff2:
+    #                     n1 = self.rng.choice(list(diff1))
+    #                     n2 = self.rng.choice(list(diff2))
+    #                     coef = self.rng.uniform(0.3, 0.7)
+    #                     length = coef * min(r1.probability, r2.probability)
+    #
+    #                     candidate1.push(Sample(length, r1.ids - {n1} | {n2}))
+    #                     candidate1.push(Sample(r1.probability - length, r1.ids))
+    #                     candidate1.push(Sample(length, r2.ids - {n2} | {n1}))
+    #                     candidate1.push(Sample(r2.probability - length, r2.ids))
+    #
+    #                     candidate_fitness = criterion(candidate1)
+    #                     delta = candidate_fitness - current_fitness1
+    #
+    #                     # Accept if better OR with probability based on temperature
+    #                     if delta < 0 or self.rng.random() < np.exp(-delta / (temp + 1e-10)):
+    #                         child1 = candidate1
+    #                         current_fitness1 = candidate_fitness
+    #
+    #                         if candidate_fitness < best_fitness1:
+    #                             best_child1 = candidate1.copy()
+    #                             best_fitness1 = candidate_fitness
+    #                 else:
+    #                     candidate1.push(r1)
+    #                     candidate1.push(r2)
+    #             else:
+    #                 candidate1.push(Sample(r1.probability + r2.probability, r1.ids))
+    #
+    #         # Similar for child2
+    #         if len(child2.heap) >= 2:
+    #             candidate2 = child2.copy()
+    #             r1 = candidate2.pull(random=True)
+    #             r2 = candidate2.pull(random=True)
+    #
+    #             if r1.ids != r2.ids:
+    #                 diff1 = r1.ids - r2.ids
+    #                 diff2 = r2.ids - r1.ids
+    #
+    #                 if diff1 and diff2:
+    #                     n1 = self.rng.choice(list(diff1))
+    #                     n2 = self.rng.choice(list(diff2))
+    #                     coef = self.rng.uniform(0.3, 0.7)
+    #                     length = coef * min(r1.probability, r2.probability)
+    #
+    #                     candidate2.push(Sample(length, r1.ids - {n1} | {n2}))
+    #                     candidate2.push(Sample(r1.probability - length, r1.ids))
+    #                     candidate2.push(Sample(length, r2.ids - {n2} | {n1}))
+    #                     candidate2.push(Sample(r2.probability - length, r2.ids))
+    #
+    #                     candidate_fitness = criterion(candidate2)
+    #                     delta = candidate_fitness - current_fitness2
+    #
+    #                     if delta < 0 or self.rng.random() < np.exp(-delta / (temp + 1e-10)):
+    #                         child2 = candidate2
+    #                         current_fitness2 = candidate_fitness
+    #
+    #                         if candidate_fitness < best_fitness2:
+    #                             best_child2 = candidate2.copy()
+    #                             best_fitness2 = candidate_fitness
+    #                 else:
+    #                     candidate2.push(r1)
+    #                     candidate2.push(r2)
+    #             else:
+    #                 candidate2.push(Sample(r1.probability + r2.probability, r1.ids))
+    #
+    #         # Cool down
+    #         temp *= cooling_rate
+    #
+    #     best_child1.merge_identical()
+    #     best_child2.merge_identical()
+    #
+    #     return best_child1, best_child2
+    #
+    #

@@ -94,8 +94,8 @@ def main():
     # A* with 100 iterations * 100 nodes
     start_time = time.time()
     iterations_used = astar.run(
-        max_iterations=100,
-        num_new_nodes=100,
+        max_iterations=1000,
+        num_new_nodes=15,
         max_open_set_size=100,
         num_changes=10  # Similar to mutation_intensity=10
     )

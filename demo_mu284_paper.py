@@ -39,7 +39,7 @@ def load_mu284_paper_setup(sample_size: int = 15):
     # Print Stat Summary matching Paper Description
     print(f"\nPaper Setup (Section 6.2):")
     print(f"   Variable y (Target): {target_col}")
-    print(f"   Variable x (Auxiliary for π): {aux_col}")
+    print(f"   Variable x (Auxiliary for pi): {aux_col}")
     print(f"   Variable z (Evaluation for OGFS): {eval_col}")
     print(f"   Correlation (x, y): {df[aux_col].corr(df[target_col]):.3f} (Paper: ~0.45)")
     print(f"   Correlation (z, y): {df[eval_col].corr(df[target_col]):.3f} (Paper: ~0.46)")
@@ -48,7 +48,7 @@ def load_mu284_paper_setup(sample_size: int = 15):
         'inclusions': pi,
         'auxiliary_var': x,
         'target_var': y,
-        'eval_var': z,  # NEW: evaluation variable for OGFS
+        'eval_var': z,
         'n': sample_size,
         'data': df
     }
@@ -85,19 +85,25 @@ def main():
 
     ga = GeometricSamplingGA(
         inclusions=data['inclusions'],
-        auxiliary_var=data['eval_var'],  # Use CS82 (z) for OGFS optimization!
-        population_size=100,
-        elitism_rate=0.15,
-        mutation_intensity=10,
-        mutation_rate=0.2,
+        auxiliary_var=data['eval_var'],
+        population_size=150,          # Increased population for better exploration
+        elitism_rate=0.10,            # Keep top 10% unchanged
+        mutation_intensity=15,         # Higher mutation intensity
+        mutation_rate=0.4,            # Higher initial mutation rate
         use_partitions=True,
-        adaptive_parameters=False,
-        random_pull=False,
+        adaptive_parameters=True,
+        random_pull=True,             # Random pull for more exploration
         enable_monitoring=True,
-        enable_live_plots=False
+        enable_live_plots=False,
+        # NEW improved parameters
+        crossover_rate=0.85,          # High crossover rate
+        local_search_intensity=10,    # More local search iterations
+        tournament_size=5,            # Larger tournament for selection
+        restart_threshold=40,         # Restart diversity sooner
+        diversity_threshold=0.02,     # Higher diversity threshold
     )
 
-    best_design = ga.run(max_generations=200, verbose=True)
+    best_design = ga.run(max_generations=300, verbose=True)
 
     # Step 3: Final Report
     if ga.monitor and getattr(ga.monitor, "metrics_history", None):

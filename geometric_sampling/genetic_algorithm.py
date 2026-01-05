@@ -24,8 +24,14 @@ class GeometricSamplingGA:
             enable_monitoring: bool = True,
             enable_live_plots: bool = False,
             save_metrics: bool = True,
-            mutation_rate: float = 2.0,
-            max_children_per_parent: int = 2
+            mutation_rate: float = 0.3,
+            max_children_per_parent: int = 2,
+            # NEW PARAMETERS FOR IMPROVED CONVERGENCE
+            crossover_rate: float = 0.9,
+            local_search_intensity: int = 5,
+            tournament_size: int = 3,
+            restart_threshold: int = 50,
+            diversity_threshold: float = 0.01,
     ):
         # Core algorithm parameters
         self.inclusions = inclusions
@@ -38,6 +44,14 @@ class GeometricSamplingGA:
         self.random_pull = random_pull
         self.adaptive_parameters = adaptive_parameters
         self.max_children_per_parent = max_children_per_parent
+
+        # NEW: crossover and local search parameters
+        self.crossover_rate = crossover_rate
+        self.local_search_intensity = local_search_intensity
+        self.tournament_size = tournament_size
+        self.restart_threshold = restart_threshold
+        self.diversity_threshold = diversity_threshold
+
         # Algorithm components
         self.rng = np.random.default_rng()
         self.optimizer = GeneticOptimizer()
@@ -46,13 +60,15 @@ class GeometricSamplingGA:
                                  save_data=save_metrics) if enable_monitoring else None
 
         # Adaptive parameter state
-        self.mutation_rate = mutation_rate if adaptive_parameters else 2.0
+        self.mutation_rate = mutation_rate if adaptive_parameters else 0.3
         self.stagnation_counter = 0
         self.last_best_fitness = float('inf')
+        self.global_stagnation_counter = 0  # NEW: track long-term stagnation
 
         # Algorithm state
         self.best_design: Optional[DesignGenetic] = None
         self.best_fitness = float('inf')
+        self.fitness_history = []  # NEW: track fitness progress
 
         # Setup partitions if needed
         self.partitions, self.border_units = (
@@ -66,24 +82,100 @@ class GeometricSamplingGA:
             save_report_path: Optional[str] = None) -> Optional[DesignGenetic]:
 
         population = self.create_initial_population()
+
         for generation in range(max_generations):
 
             fitness_scores = [self.evaluate_fitness(design) for design in population]
 
             self._update_best_design(population, fitness_scores)
+            self.fitness_history.append(self.best_fitness)
 
             if self.monitor:
                 self.monitor.record_generation(generation, population, fitness_scores, self)
 
             self.adapt_parameters(self.best_fitness)
 
+            # NEW: Check for diversity collapse and restart if needed
+            diversity = self.calculate_population_diversity(population, fitness_scores)
+            if diversity < self.diversity_threshold and self.global_stagnation_counter > self.restart_threshold:
+                if verbose:
+                    print(f"Gen {generation}: Diversity collapse detected. Injecting new individuals...")
+                population = self._inject_diversity(population, fitness_scores)
+                self.global_stagnation_counter = 0
+
             population = self._create_next_generation(population, fitness_scores)
+
+            # NEW: Apply local search to elite individuals
+            if generation % 10 == 0:
+                population = self._apply_local_search(population, fitness_scores)
 
             self._report(verbose, generation, fitness_scores, population)
 
         self._finalize_run(max_generations, verbose, save_report_path, population)
 
         return self.best_design
+
+    # NEW: Inject diversity when population converges too much
+    def _inject_diversity(self, population: List[DesignGenetic], fitness_scores: List[float]) -> List[DesignGenetic]:
+        """Replace worst individuals with fresh random designs."""
+        elite_count = max(1, int(self.elitism_rate * self.population_size))
+        sorted_indices = np.argsort(fitness_scores)
+
+        # Keep best individuals
+        new_population = [population[i].copy() for i in sorted_indices[:elite_count]]
+
+        # Add some fresh designs
+        num_fresh = self.population_size // 4
+        for i in range(num_fresh):
+            design = DesignGenetic(inclusions=self.inclusions, rng=np.random.default_rng(self.rng.integers(10000)))
+            num_interchanges = self.rng.integers(10, 100)
+            for _ in range(num_interchanges):
+                if len(design.heap) >= 2:
+                    design.iterate(random_pull=True,
+                                   switch_coefficient=self.rng.random(),
+                                   partitions=self.partitions,
+                                   border_units=self.border_units)
+            new_population.append(design)
+
+        # Fill rest with mutated elites
+        while len(new_population) < self.population_size:
+            elite = population[sorted_indices[self.rng.integers(elite_count)]].copy()
+            for _ in range(self.rng.integers(5, 30)):
+                if len(elite.heap) >= 2:
+                    elite.iterate(random_pull=True,
+                                  switch_coefficient=self.rng.random(),
+                                  partitions=self.partitions,
+                                  border_units=self.border_units)
+            new_population.append(elite)
+
+        return new_population
+
+    # NEW: Local search to refine elite individuals
+    def _apply_local_search(self, population: List[DesignGenetic], fitness_scores: List[float]) -> List[DesignGenetic]:
+        """Apply greedy local search to top individuals."""
+        elite_count = max(1, int(self.elitism_rate * self.population_size))
+        sorted_indices = np.argsort(fitness_scores)
+
+        for idx in sorted_indices[:elite_count]:
+            design = population[idx]
+            current_fitness = fitness_scores[idx]
+
+            for _ in range(self.local_search_intensity):
+                # Try a random change
+                candidate = design.copy()
+                if len(candidate.heap) >= 2:
+                    candidate.iterate(random_pull=True,
+                                      switch_coefficient=self.rng.random(),
+                                      partitions=self.partitions,
+                                      border_units=self.border_units)
+                    candidate_fitness = self.evaluate_fitness(candidate)
+
+                    # Accept if better (greedy)
+                    if candidate_fitness < current_fitness:
+                        population[idx] = candidate
+                        current_fitness = candidate_fitness
+
+        return population
 
     # --- Helper methods for the `run` process ---
     def _update_best_design(self, population: List[DesignGenetic], fitness_scores: List[float]):
@@ -93,6 +185,9 @@ class GeometricSamplingGA:
             self.best_fitness = current_best_fitness
             best_idx = np.argmin(fitness_scores)
             self.best_design = population[best_idx].copy()
+            self.global_stagnation_counter = 0
+        else:
+            self.global_stagnation_counter += 1
 
     def _report(self,verbose: bool, generation: int, fitness_scores: List[float], population: List[DesignGenetic]):
         if verbose and generation % 5 == 0:
@@ -137,20 +232,32 @@ class GeometricSamplingGA:
         parent_counts = {}
 
         while len(new_population) < self.population_size:
-            parent1, parent2 = self._select_parent_pair(population, fitness_scores, parent_counts,
-                                                        self.max_children_per_parent)
+            # NEW: Use tournament selection instead of rank-based for more diversity
+            parent1 = self._tournament_selection(population, fitness_scores)
+            parent2 = self._tournament_selection(population, fitness_scores)
+
+            # Avoid same parent
+            attempts = 0
+            while parent1 is parent2 and attempts < 5:
+                parent2 = self._tournament_selection(population, fitness_scores)
+                attempts += 1
 
             child1, child2 = self._create_offspring(parent1, parent2)
+
             # Add valid children to the new population
             for child in [child1, child2]:
-                if len(new_population) < self.population_size :
+                if len(new_population) < self.population_size:
                     new_population.append(child)
 
-                    parent_counts[id(parent1)] = parent_counts.get(id(parent1), 0) + 1
-                    parent_counts[id(parent2)] = parent_counts.get(id(parent2), 0) + 1
-
-
         return new_population
+
+    # NEW: Tournament selection for better exploration
+    def _tournament_selection(self, population: List[DesignGenetic], fitness_scores: List[float]) -> DesignGenetic:
+        """Select best individual from a random tournament."""
+        tournament_indices = self.rng.choice(len(population), size=min(self.tournament_size, len(population)), replace=False)
+        tournament_fitness = [fitness_scores[i] for i in tournament_indices]
+        winner_idx = tournament_indices[np.argmin(tournament_fitness)]
+        return population[winner_idx]
 
     def _select_parent_pair(self, population: List[DesignGenetic], fitness_scores: List[float], parent_counts: dict,
                             max_children: int) -> Tuple[DesignGenetic, DesignGenetic]:
@@ -173,23 +280,25 @@ class GeometricSamplingGA:
         return population[parent1_idx], population[parent1_idx]
 
     def _create_offspring(self, parent1: DesignGenetic, parent2: DesignGenetic) -> Tuple[DesignGenetic, DesignGenetic]:
+        # NEW: Check crossover rate first
+        if self.rng.random() > self.crossover_rate:
+            # No crossover, just mutate parents
+            return self.mutate_design(parent1.copy()), self.mutate_design(parent2.copy())
+
         try:
             # Use the SAFE crossover method that preserves inclusion probabilities
-
             child1, child2 = self.optimizer.combine_n_parents([parent1, parent2],
-                                                              border_units= self.border_units)
+                                                              border_units=self.border_units)
             if not (self.validate_design(child1) and self.validate_design(child2)):
                 child1, child2 = self.optimizer.combine_parents_safe(
                     [parent1, parent2],
-                    crossover_rate=(self.rng.integers(1, 100) / 100),
-                    num_iterations= 20,
+                    crossover_rate=(self.rng.integers(30, 70) / 100),
+                    num_iterations=30,
                 )
-
 
         except Exception as e:
             print(f"Crossover failed: {e}. Returning mutated parents instead.")
-            return self.mutate_design(parent1), self.mutate_design(parent2)
-
+            return self.mutate_design(parent1.copy()), self.mutate_design(parent2.copy())
 
         mutated_child1 = self.mutate_design(child1)
         mutated_child2 = self.mutate_design(child2)
@@ -201,11 +310,14 @@ class GeometricSamplingGA:
             return design  # No mutation occurs
 
         mutated = design.copy()
-        for _ in range(self.mutation_intensity):
+        # NEW: Variable mutation intensity based on design state
+        actual_intensity = self.rng.integers(1, self.mutation_intensity + 1)
+
+        for _ in range(actual_intensity):
             if len(mutated.heap) >= 2:
                 mutated.iterate(
                     random_pull=self.random_pull,
-                    switch_coefficient=(self.rng.integers(1, 100) / 100),
+                    switch_coefficient=(self.rng.integers(20, 80) / 100),  # More varied coefficient
                     partitions=self.partitions,
                     border_units=self.border_units
                 )
@@ -276,20 +388,30 @@ class GeometricSamplingGA:
         if not self.adaptive_parameters:
             return
 
-        if self.last_best_fitness - current_best_fitness > 1e-6:
+        improvement = self.last_best_fitness - current_best_fitness
+
+        if improvement > 1e-6:
             self.stagnation_counter = 0
-            self.mutation_rate *= 0.98  # Decrease mutation on improvement
+            # Decrease mutation on improvement (exploit mode)
+            self.mutation_rate *= 0.95
         else:
             self.stagnation_counter += 1
 
+        # Gradual increase in mutation rate during stagnation
         if self.stagnation_counter > 5:
-            self.mutation_rate *= 1.05  # Increase mutation on stagnation
+            self.mutation_rate *= 1.1  # Increase mutation on stagnation
 
-        if self.stagnation_counter > 20:  # Major reset if stuck too long
-            self.mutation_rate = 0.2
+        if self.stagnation_counter > 15:
+            # More aggressive mutation
+            self.mutation_rate = min(0.6, self.mutation_rate * 1.2)
+            self.mutation_intensity = min(20, self.mutation_intensity + 1)
+
+        if self.stagnation_counter > 30:  # Major reset if stuck too long
+            self.mutation_rate = 0.5
+            self.mutation_intensity = 15
             self.stagnation_counter = 0
 
-        self.mutation_rate = np.clip(self.mutation_rate, 0.05, 0.8)
+        self.mutation_rate = np.clip(self.mutation_rate, 0.1, 0.7)
         self.last_best_fitness = current_best_fitness
 
     # --- Validation and Utility Methods ---
