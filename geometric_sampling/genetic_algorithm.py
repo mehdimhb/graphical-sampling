@@ -24,7 +24,8 @@ class GeometricSamplingGA:
             enable_monitoring: bool = True,
             enable_live_plots: bool = False,
             save_metrics: bool = True,
-            mutation_rate: float = 2.0
+            mutation_rate: float = 2.0,
+            max_children_per_parent: int = 2
     ):
         # Core algorithm parameters
         self.inclusions = inclusions
@@ -36,7 +37,7 @@ class GeometricSamplingGA:
         self.use_partitions = use_partitions
         self.random_pull = random_pull
         self.adaptive_parameters = adaptive_parameters
-
+        self.max_children_per_parent = max_children_per_parent
         # Algorithm components
         self.rng = np.random.default_rng()
         self.optimizer = GeneticOptimizer()
@@ -62,17 +63,10 @@ class GeometricSamplingGA:
     # --- Main Execution Method ---
     def run(self, max_generations: int = 100,
             verbose: bool = True,
-            save_report_path: Optional[str] = None) -> Optional[
-        DesignGenetic]:
-        """Executes the genetic algorithm for a specified number of generations."""
-        self._initialize_run(verbose)
+            save_report_path: Optional[str] = None) -> Optional[DesignGenetic]:
+
         population = self.create_initial_population()
-        for design in population:
-            self.validate_design(design)
         for generation in range(max_generations):
-            # for design in population:
-            #     if design.changes >5:
-            #         design.merge_identical()
 
             fitness_scores = [self.evaluate_fitness(design) for design in population]
 
@@ -85,13 +79,10 @@ class GeometricSamplingGA:
 
             population = self._create_next_generation(population, fitness_scores)
 
-            if verbose and generation % 10 == 0:
-                self._log_generation_progress(generation, fitness_scores)
-            if generation == 99:
-                for design in population:
-                    # if len(design.heap) < 5:
-                    design.show()
-        self._finalize_run(max_generations, verbose, save_report_path)
+            self._report(verbose, generation, fitness_scores, population)
+
+        self._finalize_run(max_generations, verbose, save_report_path, population)
+
         return self.best_design
 
     # --- Helper methods for the `run` process ---
@@ -103,27 +94,28 @@ class GeometricSamplingGA:
             best_idx = np.argmin(fitness_scores)
             self.best_design = population[best_idx].copy()
 
-    def _initialize_run(self, verbose: bool):
-        """Prints initial parameters and sets up the run."""
-        if verbose:
-            print("Initializing Geometric Sampling Genetic Algorithm...")
+    def _report(self,verbose: bool, generation: int, fitness_scores: List[float], population: List[DesignGenetic]):
+        if verbose and generation % 5 == 0:
+            heap_sizes = [len(d.heap) for d in population]
             print(
-                f"Population size: {self.population_size}, Elitism: {self.elitism_rate}, Mutation Intensity: {self.mutation_intensity}")
-            print(f"Adaptive Parameters: {self.adaptive_parameters}, Selection Pressure: {self.selection_pressure}")
-            print("=" * 50)
+                f"Gen {generation} heap sizes - min: {min(heap_sizes)}, max: {max(heap_sizes)}, avg: {sum(heap_sizes) / len(heap_sizes):.1f}")
 
-    def _log_generation_progress(self, generation: int, fitness_scores: List[float]):
-        """Logs the progress of the current generation."""
-        diversity = self.calculate_population_diversity([], fitness_scores)
-        print(f"Generation {generation: >4}: Best Fitness = {self.best_fitness:.8f}, "
-              f"Diversity = {diversity:.3f}, MutRate = {self.mutation_rate:.3f}")
+            diversity = self.calculate_population_diversity([], fitness_scores)
+            print(f"Generation {generation: >4}: Best Fitness = {self.best_fitness:.8f}, "
+                  f"Diversity = {diversity:.3f}, MutRate = {self.mutation_rate:.3f}")
 
-    def _finalize_run(self, max_generations: int, verbose: bool, save_report_path: Optional[str]):
+            # self._log_generation_progress(generation, fitness_scores)
+
+    def _finalize_run(self, max_generations: int, verbose: bool, save_report_path: Optional[str], population: List[DesignGenetic]):
         """Wraps up the algorithm run, printing summaries and generating reports."""
         if verbose:
             print("=" * 50)
             print(f"Algorithm completed after {max_generations} generations.")
             print(f"Best fitness achieved: {self.best_fitness:.8f}")
+            for design in population:
+                if not self.validate_design(design):
+                    print("some design are failed validation")
+
             if self.best_design and self.validate_design(self.best_design):
                 print("✅ Best design passes validation!")
             else:
@@ -143,19 +135,15 @@ class GeometricSamplingGA:
         new_population = [population[i].copy() for i in elite_indices]
 
         parent_counts = {}
-        max_children_per_parent = 2
 
         while len(new_population) < self.population_size:
             parent1, parent2 = self._select_parent_pair(population, fitness_scores, parent_counts,
-                                                        max_children_per_parent)
+                                                        self.max_children_per_parent)
 
             child1, child2 = self._create_offspring(parent1, parent2)
-            self.validate_design(child1)
-            self.validate_design(child2)
-
             # Add valid children to the new population
             for child in [child1, child2]:
-                if len(new_population) < self.population_size and self.validate_design(child) :
+                if len(new_population) < self.population_size :
                     new_population.append(child)
 
                     parent_counts[id(parent1)] = parent_counts.get(id(parent1), 0) + 1
@@ -175,21 +163,33 @@ class GeometricSamplingGA:
                 return population[parent1_idx], population[parent2_idx]
             attempts += 1
 
-        raise Exception("Failed to select two distinct parents after multiple attempts.")
+        # If selection keeps returning the same index, manually pick a different one
+        available_indices = [i for i in range(len(population)) if i != parent1_idx]
+        if available_indices:
+            parent2_idx = self.rng.choice(available_indices)
+            return population[parent1_idx], population[parent2_idx]
+
+        # Last resort: return the same parent twice (will produce similar children via mutation)
+        return population[parent1_idx], population[parent1_idx]
 
     def _create_offspring(self, parent1: DesignGenetic, parent2: DesignGenetic) -> Tuple[DesignGenetic, DesignGenetic]:
         try:
+            # Use the SAFE crossover method that preserves inclusion probabilities
 
             child1, child2 = self.optimizer.combine_n_parents([parent1, parent2],
                                                               border_units= self.border_units)
+            if not (self.validate_design(child1) and self.validate_design(child2)):
+                child1, child2 = self.optimizer.combine_parents_safe(
+                    [parent1, parent2],
+                    crossover_rate=(self.rng.integers(1, 100) / 100),
+                    num_iterations= 20,
+                )
 
 
         except Exception as e:
             print(f"Crossover failed: {e}. Returning mutated parents instead.")
             return self.mutate_design(parent1), self.mutate_design(parent2)
 
-        child1.merge_identical()
-        child2.merge_identical()
 
         mutated_child1 = self.mutate_design(child1)
         mutated_child2 = self.mutate_design(child2)
@@ -209,13 +209,14 @@ class GeometricSamplingGA:
                     partitions=self.partitions,
                     border_units=self.border_units
                 )
-        mutated.merge_identical()
         return mutated
 
     # --- Core GA Components (Selection, Fitness, etc.) ---
     def evaluate_fitness(self, design: DesignGenetic) -> float:
         """Calculates the fitness of a single design."""
         try:
+            self.validate_design(design)
+            design.merge_identical()
             return self.criterion(design)
         except Exception as e:
             print(f"Fitness calculation failed for a design: {e}")
@@ -225,7 +226,9 @@ class GeometricSamplingGA:
         """Creates the starting population with varied individuals."""
         population = []
         # Add a base design
-        population.append(DesignGenetic(inclusions=self.inclusions, rng=np.random.default_rng(42)))
+        base_design = DesignGenetic(inclusions=self.inclusions, rng=np.random.default_rng(42))
+        population.append(base_design)
+        print(f"DEBUG: Base design heap size: {len(base_design.heap)}")
 
         # Add mutated designs
         for i in range(self.population_size - 1):
@@ -237,8 +240,10 @@ class GeometricSamplingGA:
                                    switch_coefficient=(self.rng.integers(1, 100) / 100),
                                    partitions=self.partitions,
                                    border_units=self.border_units)
-            design.merge_identical()
             population.append(design)
+
+        heap_sizes = [len(d.heap) for d in population]
+        print(f"DEBUG: Initial population heap sizes - min: {min(heap_sizes)}, max: {max(heap_sizes)}, avg: {sum(heap_sizes)/len(heap_sizes):.1f}")
         return population
 
     def rank_based_selection(self, population: List[DesignGenetic], fitness_scores: List[float], parent_counts: dict,
@@ -297,7 +302,7 @@ class GeometricSamplingGA:
 
         for i, expected_prob in enumerate(self.inclusions):
             if abs(id_probs.get(i, 0) - expected_prob) > self.VALIDATION_TOLERANCE:
-                print(f"Validation failed for unit {i}: expected {expected_prob:.6f}, got {id_probs.get(i, 0):.6f}")
+                # print(f"Validation failed for unit {i}: expected {expected_prob:.6f}, got {id_probs.get(i, 0):.6f}")
                 return False
         return True
 
@@ -308,10 +313,5 @@ class GeometricSamplingGA:
 
         fitness_mean = np.mean(fitness_scores)
         fitness_diversity = np.std(fitness_scores) / (abs(fitness_mean) + 1e-10)
-
-        # This part requires the population, if not passed, we can only use fitness
-        # sample_counts = [len(design.heap) for design in population]
-        # structural_diversity = np.std(sample_counts) / (np.mean(sample_counts) + 1e-10)
-        # combined_diversity = (fitness_diversity + structural_diversity) / 2
 
         return min(1.0, fitness_diversity)

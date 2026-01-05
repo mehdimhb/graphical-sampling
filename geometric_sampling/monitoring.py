@@ -193,8 +193,8 @@ class GAMonitor:
             plt.ioff()
             plt.close(self.fig)
 
-        # Changed to a 3x2 grid to accommodate more plots
-        fig, axes = plt.subplots(3, 2, figsize=(14, 16))
+        # 2x2 grid layout for final report
+        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
         fig.suptitle('Genetic Algorithm Final Analysis Report', fontsize=16, fontweight='bold')
         generations = [m.generation for m in self.metrics_history]
 
@@ -220,23 +220,8 @@ class GAMonitor:
         ax_stagnation.plot(generations, [m.stagnation_counter for m in self.metrics_history], 'gray', linestyle=':', alpha=0.8, label='Stagnation')
         ax_stagnation.tick_params(axis='y', labelcolor='gray')
 
-        # Plot 4: Mean Heap Size Over Time (Middle-Right)
-        self._setup_plot_axis(axes[1, 1], 'Sample Count (Heap Size) Evolution', 'Generation', 'Count', clear_first=False)
-        mean_heap_sizes = [np.mean(m.heap_sizes) if m.heap_sizes else 0 for m in self.metrics_history]
-        min_heap_sizes = [np.min(m.heap_sizes) if m.heap_sizes else 0 for m in self.metrics_history]
-        max_heap_sizes = [np.max(m.heap_sizes) if m.heap_sizes else 0 for m in self.metrics_history]
-        axes[1, 1].plot(generations, mean_heap_sizes, color='purple', linewidth=2, label='Mean Count')
-        axes[1, 1].fill_between(generations, min_heap_sizes, max_heap_sizes, color='purple', alpha=0.2, label='Min-Max Range')
-        axes[1, 1].legend()
-
-        # Plot 5: Final Heap Size Distribution (Bottom-Left)
-        final_heap_sizes = self.metrics_history[-1].heap_sizes
-        if final_heap_sizes:
-            self._setup_plot_axis(axes[2, 0], f'Final Heap Size Distribution (Gen {generations[-1]})', 'Heap Size', 'Frequency', clear_first=False)
-            axes[2, 0].hist(final_heap_sizes, bins=15, alpha=0.75, color='skyblue', edgecolor='black')
-
-        # Plot 6: Final Statistics Summary (Bottom-Right)
-        axes[2, 1].axis('off')
+        # Plot 4: Final Statistics Summary (Bottom-Right)
+        axes[1, 1].axis('off')
         final_metrics = self.metrics_history[-1]
 
         # Enhanced Statistics Text - Combined from both examples
@@ -264,7 +249,7 @@ class GAMonitor:
         Final Stagnation: {final_metrics.stagnation_counter}
         Best Improvement Rate: {max([m.improvement_rate for m in self.metrics_history]):.4f}
         """
-        axes[2, 1].text(0.05, 0.95, stats_text, transform=axes[2, 1].transAxes, fontsize=9,
+        axes[1, 1].text(0.05, 0.95, stats_text, transform=axes[1, 1].transAxes, fontsize=9,
                         verticalalignment='top', fontfamily='monospace',
                         bbox=dict(boxstyle='round', facecolor='whitesmoke', alpha=0.8))
 
