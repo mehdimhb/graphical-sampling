@@ -278,3 +278,130 @@ class GeneticOptimizer:
             child.changes += 1
 
         return child
+
+    def combine_parents_safe(
+            self,
+            parents: List[DesignGenetic],
+            crossover_rate: float = 0.5,
+            num_iterations: int = 30,
+    ) -> tuple[DesignGenetic, DesignGenetic]:
+
+        if len(parents) != 2:
+            raise ValueError("This crossover method requires exactly 2 parents")
+
+        # Children start as copies of parents
+        child1 = parents[0].copy()
+        child2 = parents[1].copy()
+
+        # Get sample structures from both parents to guide switches
+        samples1 = list(parents[0].heap)
+        samples2 = list(parents[1].heap)
+
+        # Build ID presence maps: which IDs appear together in samples
+        def build_cooccurrence(samples):
+            """Build a map of which IDs tend to appear together"""
+            cooccur = {}
+            for s in samples:
+                ids_list = list(s.ids)
+                for id1 in ids_list:
+                    if id1 not in cooccur:
+                        cooccur[id1] = set()
+                    cooccur[id1].update(ids_list)
+            return cooccur
+
+        cooccur1 = build_cooccurrence(samples1)
+        cooccur2 = build_cooccurrence(samples2)
+
+        # Apply guided switches to child1 (guided by parent2's structure)
+        for _ in range(num_iterations):
+            if self.rng.random() > crossover_rate:
+                continue
+            if len(child1.heap) < 2:
+                continue
+
+            # Pull two samples
+            r1 = child1.pull(random=True)
+            r2 = child1.pull(random=True)
+
+            if r1.ids == r2.ids:
+                child1.push(Sample(r1.probability + r2.probability, r1.ids))
+                continue
+
+            # Find IDs that could be switched based on parent2's structure
+            diff1 = r1.ids - r2.ids
+            diff2 = r2.ids - r1.ids
+
+            if not diff1 or not diff2:
+                child1.push(r1)
+                child1.push(r2)
+                continue
+
+            # Prefer switches that match parent2's cooccurrence patterns
+            n1 = self.rng.choice(list(diff1))
+
+            # Find best n2: one that cooccurs with n1 in parent2
+            best_n2 = None
+            if n1 in cooccur2:
+                candidates = list(diff2 & cooccur2[n1])
+                if candidates:
+                    best_n2 = self.rng.choice(candidates)
+
+            if best_n2 is None:
+                best_n2 = self.rng.choice(list(diff2))
+
+            # Perform the switch
+            coef = self.rng.uniform(0.3, 0.7)
+            length = coef * min(r1.probability, r2.probability)
+
+            child1.push(Sample(length, r1.ids - {n1} | {best_n2}))
+            child1.push(Sample(r1.probability - length, r1.ids))
+            child1.push(Sample(length, r2.ids - {best_n2} | {n1}))
+            child1.push(Sample(r2.probability - length, r2.ids))
+
+        # Apply guided switches to child2 (guided by parent1's structure)
+        for _ in range(num_iterations):
+            if self.rng.random() > crossover_rate:
+                continue
+            if len(child2.heap) < 2:
+                continue
+
+            r1 = child2.pull(random=True)
+            r2 = child2.pull(random=True)
+
+            if r1.ids == r2.ids:
+                child2.push(Sample(r1.probability + r2.probability, r1.ids))
+                continue
+
+            diff1 = r1.ids - r2.ids
+            diff2 = r2.ids - r1.ids
+
+            if not diff1 or not diff2:
+                child2.push(r1)
+                child2.push(r2)
+                continue
+
+            n1 = self.rng.choice(list(diff1))
+
+            best_n2 = None
+            if n1 in cooccur1:
+                candidates = list(diff2 & cooccur1[n1])
+                if candidates:
+                    best_n2 = self.rng.choice(candidates)
+
+            if best_n2 is None:
+                best_n2 = self.rng.choice(list(diff2))
+
+            coef = self.rng.uniform(0.3, 0.7)
+            length = coef * min(r1.probability, r2.probability)
+
+            child2.push(Sample(length, r1.ids - {n1} | {best_n2}))
+            child2.push(Sample(r1.probability - length, r1.ids))
+            child2.push(Sample(length, r2.ids - {best_n2} | {n1}))
+            child2.push(Sample(r2.probability - length, r2.ids))
+
+        # Merge identical samples
+        child1.merge_identical()
+        child2.merge_identical()
+
+        return child1, child2
+
