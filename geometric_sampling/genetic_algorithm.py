@@ -14,6 +14,7 @@ class GeometricSamplingGA:
             self,
             inclusions: np.ndarray,
             auxiliary_var: np.ndarray,
+            main_var: np.ndarray,
             population_size: int = 40,
             elitism_rate: float = 0.15,
             mutation_intensity: int = 3,
@@ -36,6 +37,7 @@ class GeometricSamplingGA:
         # Core algorithm parameters
         self.inclusions = inclusions
         self.auxiliary_var = auxiliary_var
+        self.main_var = main_var
         self.population_size = population_size
         self.elitism_rate = elitism_rate
         self.mutation_intensity = mutation_intensity
@@ -55,7 +57,9 @@ class GeometricSamplingGA:
         # Algorithm components
         self.rng = np.random.default_rng()
         self.optimizer = GeneticOptimizer()
-        self.criterion = VarNHT(auxiliary_var, inclusions)
+        self.criterion = VarNHT(auxiliary_var, inclusions)  # optimized
+        self.criterion_y = VarNHT(main_var, inclusions)  # reported only
+
         self.monitor = GAMonitor(enable_live_plots=enable_live_plots,
                                  save_data=save_metrics) if enable_monitoring else None
 
@@ -181,9 +185,10 @@ class GeometricSamplingGA:
     def _update_best_design(self, population: List[DesignGenetic], fitness_scores: List[float]):
         """Checks for and updates the best design found so far."""
         current_best_fitness = min(fitness_scores)
+        best_idx = np.argmin(fitness_scores)
         if current_best_fitness < self.best_fitness:
             self.best_fitness = current_best_fitness
-            best_idx = np.argmin(fitness_scores)
+            self.best_fitness_y = self.criterion_y(population[best_idx])
             self.best_design = population[best_idx].copy()
             self.global_stagnation_counter = 0
         else:
@@ -196,8 +201,22 @@ class GeometricSamplingGA:
                 f"Gen {generation} heap sizes - min: {min(heap_sizes)}, max: {max(heap_sizes)}, avg: {sum(heap_sizes) / len(heap_sizes):.1f}")
 
             diversity = self.calculate_population_diversity([], fitness_scores)
-            print(f"Generation {generation: >4}: Best Fitness = {self.best_fitness:.8f}, "
-                  f"Diversity = {diversity:.3f}, MutRate = {self.mutation_rate:.3f}")
+            n = np.round(np.sum(self.inclusions))
+            N = len(self.inclusions)
+            var_srs_z = N ** 2 * (1 - n / N) * np.var(self.auxiliary_var) / n
+            var_srs_y = N ** 2 * (1 - n / N) * np.var(self.main_var) / n
+            print(
+                f"Gen {generation:>4} | "
+                f"Best Fitness = {self.best_fitness:.8f} | "
+                f"Best Var(aux) = {var_srs_z / self.best_fitness:.3f} | "
+                f"Best Var(main) = {var_srs_y / self.best_fitness_y:.3f} | "
+                f"Diversity = {diversity:.3f} | "
+                f"MutRate = {self.mutation_rate:.3f}"
+            )
+
+            # diversity = self.calculate_population_diversity([], fitness_scores)
+            # print(f"Generation {generation: >4}: Best Fitness = {self.best_fitness:.8f}, "
+            #       f"Diversity = {diversity:.3f}, MutRate = {self.mutation_rate:.3f}")
 
             # self._log_generation_progress(generation, fitness_scores)
 
@@ -326,6 +345,8 @@ class GeometricSamplingGA:
     # --- Core GA Components (Selection, Fitness, etc.) ---
     def evaluate_fitness(self, design: DesignGenetic) -> float:
         """Calculates the fitness of a single design."""
+
+
         try:
             self.validate_design(design)
             design.merge_identical()
@@ -417,6 +438,10 @@ class GeometricSamplingGA:
     # --- Validation and Utility Methods ---
     def validate_design(self, design: DesignGenetic) -> bool:
         """Checks if a design's inclusion probabilities match the target."""
+        total_prob = sum(sample.probability for sample in design.heap)
+        if abs(total_prob - 1.0) > self.VALIDATION_TOLERANCE:
+            print('total probability', total_prob)
+
         id_probs = {}
         for sample in design.heap:
             for unit in sample.ids:

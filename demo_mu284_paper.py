@@ -86,6 +86,7 @@ def main():
     ga = GeometricSamplingGA(
         inclusions=data['inclusions'],
         auxiliary_var=data['eval_var'],
+        main_var=data['target_var'],
         population_size=150,          # Increased population for better exploration
         elitism_rate=0.10,            # Keep top 10% unchanged
         mutation_intensity=15,         # Higher mutation intensity
@@ -103,7 +104,7 @@ def main():
         diversity_threshold=0.02,     # Higher diversity threshold
     )
 
-    best_design = ga.run(max_generations=300, verbose=True)
+    best_design = ga.run(max_generations=100, verbose=True)
 
     # Step 3: Final Report
     if ga.monitor and getattr(ga.monitor, "metrics_history", None):
