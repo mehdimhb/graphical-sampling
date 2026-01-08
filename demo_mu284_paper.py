@@ -87,14 +87,14 @@ def main():
         inclusions=data['inclusions'],
         auxiliary_var=data['eval_var'],
         main_var=data['target_var'],
-        population_size=150,          # Increased population for better exploration
+        population_size=10,          # Increased population for better exploration
         elitism_rate=0.10,            # Keep top 10% unchanged
         mutation_intensity=15,         # Higher mutation intensity
-        mutation_rate=0.4,            # Higher initial mutation rate
+        mutation_rate=0.10,            # Higher initial mutation rate
         use_partitions=True,
         adaptive_parameters=True,
         random_pull=True,             # Random pull for more exploration
-        enable_monitoring=True,
+        enable_monitoring=False,
         enable_live_plots=False,
         # NEW improved parameters
         crossover_rate=0.85,          # High crossover rate
@@ -104,7 +104,7 @@ def main():
         diversity_threshold=0.02,     # Higher diversity threshold
     )
 
-    best_design = ga.run(max_generations=100, verbose=True)
+    best_design = ga.run(max_generations=1000, verbose=True)
 
     # Step 3: Final Report
     if ga.monitor and getattr(ga.monitor, "metrics_history", None):
