@@ -1,69 +1,118 @@
-
 # Graphical Sampling Method - Python Package
 
-The Graphical Sampling Method, introduced by Panahbehagh (2025), presents an innovative approach to finite population sampling based on a unique graphical framework. This method allows researchers to visually depict first-order inclusion probabilities (FIP) as bars on a two-dimensional graph. By adjusting the positions of these bars, users can explore a wide range of sampling designs while controlling second-order inclusion probabilities (SIP).
+The **Graphical Sampling Method**, introduced by Panahbehagh (2025), presents an innovative approach to **finite population sampling** based on a graphical representation of first-order inclusion probabilities (FIP).  
+This framework enables users to visualize FIP as bars on a continuous line and adjust bar positions to explore a wide range of sampling designs while preserving or controlling second-order inclusion probabilities (SIP).
 
-This package, `graphical_sampling`, provides tools for implementing the Graphical Sampling Method and is available on PyPI.
+This Python package, `graphical_sampling`, provides:
+
+- Tools for constructing graphical sampling designs,
+- Evaluation criteria for comparing designs (e.g., VarNHT),
+- **A Monte Carlo Tree Search (MCTS) engine** for design optimization.
 
 ---
 
-## Features
-- Create various unequal probability sampling designs with a fixed FIP.
-- Control and explore second-order inclusion probabilities (SIP) through visual manipulation.
-- Incorporate search algorithms, such as A* and Genetic Algorithm, to optimize sampling designs for specific needs (e.g., well-spread or optimal sampling).
+## ✨ Features
 
-## Installation
+- Create unequal-probability sampling designs with fixed FIP.
+- Control, modify, and explore SIP using graphical operations.
+- Perform local transformations on designs via switch operations.
+- Optimize sampling designs using:
+  - **Monte Carlo Tree Search (MCTS)** (core search engine)
+- Built-in clustering and spatial sampling utilities.
 
-Install the package via pip:
+---
+
+## 📦 Installation
+
+Install via pip:
+
 ```bash
-pip install graphical_sampling
+pip install graphical-sampling
 ```
 
-## How to Use
+---
 
-The package includes core classes and methods to facilitate sampling design creation and optimization. Below is a basic example demonstrating the API.
-
-### Example Usage
+## 🚀 Basic Usage Example (MCTS Optimization)
 
 ```python
 import graphical_sampling as gs
 import numpy as np
 
-# Set up random generator and sample data
+# Random generator and dataset
 rng = np.random.default_rng()
-N = 50  # Population size
+N = 50
 x = rng.random(size=N)  # Auxiliary variable
-n = 5  # Sample size
+n = 5
 
-# Generate initial inclusion probabilities
+# Generate inclusion probabilities that sum to n
 inclusion = rng.random(N)
 inclusion *= n / inclusion.sum()
 
-# Define initial sampling design and evaluation criteria
+# Construct initial sampling design
 initial_design = gs.Design(inclusion)
+
+# Define evaluation criteria (e.g. VarNHT for NHT variance)
 nht = gs.criteria.VarNHT(x, inclusion)
-astar = gs.search.AStar(initial_design, nht, switch_coefficient=1)
 
-# Display initial criteria and design
-print("Initial criteria value:", astar.initial_criteria_value)
-astar.initial_design.show()
+# Create MCTS search engine
+mcts = gs.search.MCTS(
+    initial_design,
+    nht,
+    switch_coefficient=1.0,   # same as in switch() method
+)
 
-# Run the A* search algorithm to optimize the design
-astar.run(max_iterations=2000, num_new_nodes=10, max_open_set_size=10000, num_changes=1)
+print("Initial criteria value:", mcts.initial_criteria_value)
 
-# Display results after optimization
-print("Best criteria value:", astar.best_criteria_value)
-astar.best_design.show()
+# Optimize sampling design
+mcts.run(
+    max_iterations=2000,         # number of MCTS iterations (playouts)
+    max_children_per_node=10,    # branching factor
+    num_changes=1,               # number of local switches in expansion
+    rollout_depth=5,             # number of random steps in simulation
+)
+
+print("Best criteria value:", mcts.best_criteria_value)
+
+# Visualize initial vs optimized designs
+initial_design.show()
+mcts.best_design.show()
 ```
-
-
-## Maintainers
-
-- Bardia Panahbehagh - [bardia.panah@gmail.com](mailto:bardia.panah@gmail.com)
-- Mehdi Mohebbi - [mehdi.mohebbi23@gmail.com](mailto:mehdi.mohebbi23@gmail.com)
-- AmirMohammad HosseiniNasab - [awmirhn@gmail.com](mailto:awmirhn@gmail.com)
-- Mehdi Hosseini Moghadam - [m.h.moghadam1996@gmail.com](mailto:m.h.moghadam1996@gmail.com)
 
 ---
 
-For more details, consult the official paper: Panahbehagh, B. (2025). Graphical Sampling Method.
+## 📚 Modules Overview
+
+```
+graphical_sampling/
+│
+├── design.py                # Core GFS design (heap of sample segments)
+├── criteria/                # Evaluation measures (e.g., VarNHT)
+├── search/                  # Search algorithms (MCTS)
+│    └── mcts.py
+├── sampling/                # Spatial & probability-based sampling helpers
+├── clustering/              # Balanced clustering algorithms
+├── measure/                 # Density and spread scoring
+├── random/                  # Random coordinate & probability generators
+└── ...
+```
+
+---
+
+## 📖 Reference
+
+For full method details, see:
+
+**Panahbehagh, B. (2025). Graphical Sampling Method.**
+
+---
+
+## 👤 Maintainers
+
+- Bardia Panahbehagh – bardia.panah@gmail.com
+- Mehdi Mohebbi – mehdi.mohebbi23@gmail.com
+- AmirMohammad HosseiniNasab – awmirhn@gmail.com
+- Mehdi Hosseini Moghadam – m.h.moghadam1996@gmail.com
+
+---
+
+Enjoy exploring and optimizing graphical sampling designs with MCTS! 🎯

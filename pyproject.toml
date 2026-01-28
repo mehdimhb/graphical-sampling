@@ -9,7 +9,7 @@ dependencies = [
     "numpy",
     "scikit-learn",
     "scipy",
-    "k-means-constrained>=0.7.5",
+    "k-means-constrained>=0.7.3",
     "package-sampling>=0.3.0",
     "pandas",
 ]

@@ -117,3 +117,4 @@ class AStar:
                     if self.best_criteria_value < self.threshold:
                         return it
         return max_iterations
+                                                                                    

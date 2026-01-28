@@ -7,8 +7,11 @@ from . import sampling
 from . import clustering
 from . import random
 from . import measure
+from .population import Population
 
 
-__version__ = metadata.version("geometric_sampling")
+__version__ = "0.1.0"
+
+
 
 __all__ = ["Design", "criteria", "search", "sampling", "clustering", "random", "measure"]

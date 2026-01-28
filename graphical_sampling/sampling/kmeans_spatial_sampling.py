@@ -2,8 +2,8 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-from . import Population
-
+#from . import Population
+from ..population import Population
 
 class KMeansSpatialSampling:
     def __init__(
