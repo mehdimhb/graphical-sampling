@@ -16,6 +16,7 @@ dependencies = [
     "rpy2>=3.6.1",
     "tqdm>=4.67.1",
     "seaborn>=0.13.2",
+    "geopandas>=1.1.2",
 ]
 authors = [
     { name = "Bardia Panahbehagh", email = "bardia.panah@gmail.com" },
