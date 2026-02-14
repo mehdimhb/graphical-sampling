@@ -7,7 +7,7 @@ from ..population import Population
 from .order import Order
 
 # Type alias for arrays storing unit indices and their shares
-IndexShareArray = np.ndarray  # expected shape (k, 2)
+IndexShareArray = np.ndarray  # expected shape (n, 2)
 # First column: 0-based index of the unit within the Population's arrays.
 # Second column: share/weight for that unit.
 
@@ -30,11 +30,11 @@ class Zone:
     def __post_init__(self):
         # Validate that the initial _index_share has the correct shape
         if self._index_share.ndim != 2 or self._index_share.shape[1] != 2:
-            raise ValueError("index_share must be a 2D array with shape (k, 2)")
+            raise ValueError("index_share must be a 2D array with shape (n, 2)")
 
     def __len__(self) -> int:
         """
-        Returns the number of unique units within this zone (k from (k, 2)).
+        Returns the number of unique units within this zone (n from (n, 2)).
         """
         return self._index_share.shape[0]
 
@@ -75,7 +75,7 @@ class Zone:
 
     # convenience views (no copies)
     @property
-    def index(self) -> np.ndarray:  # (k,) int64
+    def index(self) -> np.ndarray:  # (n,) int64
         """
         Returns a read-only view of the 0-based indices of the units
         within the global Population's arrays.
@@ -89,13 +89,13 @@ class Zone:
         return self._index_share[:, 0].astype(np.int64, copy=False)
 
     @property
-    def share(self) -> np.ndarray:  # (k,) float64
+    def share(self) -> np.ndarray:  # (n,) float64
         """
         Returns a read-only view of the shares (proportions/weights) of each
         unit within this zone.
 
         These shares represent the contribution of each unit to the zone's
-        overall measure (e.g., proportion of area, population, or measure of size).
+        overall index (e.g., proportion of area, population, or index of size).
 
         Returns:
             np.ndarray: A 1D array of float shares.
@@ -103,7 +103,7 @@ class Zone:
         return self._index_share[:, 1]
 
     @property
-    def prob(self) -> np.ndarray:  # (k,) float64
+    def prob(self) -> np.ndarray:  # (n,) float64
         """
         Returns a read-only view of the probabilities of each
         unit within this zone.
@@ -139,8 +139,8 @@ class Zone:
 
         Args:
             order (Order): A callable that takes a 2D NumPy array
-                                            of coordinates (shape (k, 2)) and returns
-                                            a 1D NumPy array of integer indices (shape (k,))
+                                            of coordinates (shape (n, 2)) and returns
+                                            a 1D NumPy array of integer indices (shape (n,))
                                             that define the desired sort order.
             inplace (bool): If True, the ordering is applied in-place to the current Zone object
                             and the method returns None. If False, a new Zone object with the
@@ -384,8 +384,8 @@ class Cluster:
 
         Args:
             order (Order): A callable that takes a 2D NumPy array
-                                            of centroids (shape (k, 2)) and returns
-                                            a 1D NumPy array of integer indices (shape (k,))
+                                            of centroids (shape (n, 2)) and returns
+                                            a 1D NumPy array of integer indices (shape (n,))
                                             that define the desired sort order.
             inplace (bool): If True, the ordering is applied in-place to the current Cluster object
                             and the method returns None. If False, a new Cluster object with the

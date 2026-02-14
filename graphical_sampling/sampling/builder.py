@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from copy import copy
 
 # Assuming these are correctly imported from their respective modules
-from ..clustering import UPBalancedKMeans, NestedUPBalancedKMeans
+from ..clustering import UPBalancedKMeans
 from .entity import Population, Zone, Cluster
 
 
@@ -79,7 +79,7 @@ class BaseZoneBuilder(ABC):
 
 class ClusteringZoneBuilder(BaseZoneBuilder):
     """
-    Builds Zone objects by applying balanced k-means clustering to the units
+    Builds Zone objects by applying balanced n-means clustering to the units
     represented by the input `index_share`.
     """
 
@@ -103,7 +103,7 @@ class ClusteringZoneBuilder(BaseZoneBuilder):
 
     def build_zones(self, population: Population, index_share: np.ndarray) -> List[Zone]:
         """
-        Generates zones by applying balanced k-means clustering to the units defined
+        Generates zones by applying balanced n-means clustering to the units defined
         by the input `index_share`.
 
         Args:
@@ -400,7 +400,7 @@ class ClusterBuilder:
 
     def build_clusters(self, population: Population) -> Tuple[List[Cluster], np.ndarray, np.ndarray]:
         """
-        Builds a list of Cluster objects by first applying balanced k-means
+        Builds a list of Cluster objects by first applying balanced n-means
         clustering to the entire population, and then using the configured
         ZoneBuilder to create zones within each resulting cluster.
 
@@ -480,28 +480,9 @@ class NestedClusterBuilder:
         self._next_cluster_id += 1
         return cluster_id
 
-    def _generate_nested_clusters(self, k: int, population: Population, cluster: dict):
-        free_indices = cluster['free']
-        floor_index = cluster['border']['floor_index']
-        floor_pct = cluster['border']['floor_percentage']
-        ceil_index = cluster['border']['ceil_index']
-        ceil_pct = cluster['border']['ceil_percentage']
-        floor = np.array([floor_index, floor_pct], dtype=float) if floor_index != -1 else None
-        ceil = np.array([ceil_index, ceil_pct], dtype=float) if ceil_index != -1 else None
-
-        index_share = np.column_stack((free_indices, np.ones(free_indices.size)))
-        if floor_index != -1:
-            index_share = np.vstack([floor, index_share])
-        if ceil_index != -1:
-            index_share = np.vstack([index_share, ceil])
-
-        upb_kmeans = NestedUPBalancedKMeans(k=k, split_size=self._split_size)
-        upb_kmeans.fit(population.subset(index_share[:, 0], index_share[:, 1]), index_share_floor=floor, index_share_ceil=ceil)
-        return upb_kmeans.clusters
-
     def build_clusters(self, population: Population) -> Tuple[List[Cluster], np.ndarray, np.ndarray]:
         """
-        Builds a list of Cluster objects by first applying balanced k-means
+        Builds a list of Cluster objects by first applying balanced n-means
         clustering to the entire population, and then using the configured
         ZoneBuilder to create zones within each resulting cluster.
 

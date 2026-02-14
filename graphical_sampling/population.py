@@ -70,9 +70,9 @@ class Population:
         # Assign to slots, casting to canonical dtypes without copying when possible
         self._ids    = _ids_final
         # Normalize coordinates during initialization
-        self._coords = self._normalize_coords(coords).astype(np.float64, copy=False)
-        self._probs  = probs.astype(np.float64,  copy=False)
-        self._indices = indices.astype(np.int64, copy=False) if indices is not None else None
+        self._coords = np.ascontiguousarray(self._normalize_coords(coords), dtype=np.float64)
+        self._probs  = np.ascontiguousarray(probs, dtype=np.float64)
+        self._indices = np.ascontiguousarray(indices, dtype=np.in64) if indices is not None else None
 
     @staticmethod
     def _normalize_coords(coords: np.ndarray) -> np.ndarray:
@@ -187,7 +187,7 @@ class Population:
 
     def as_stacked(self, idx: Optional[np.ndarray] = None) -> np.ndarray:
         """
-        Returns a single (k,4) float64 block (id,p,x,y) for a specified
+        Returns a single (n,4) float64 block (id,p,x,y) for a specified
         subset of sampling units. This format is convenient for
         serialization or Pandas conversion, *without* altering the main copy.
         Args:

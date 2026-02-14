@@ -19,10 +19,10 @@ class Order(ABC):
         Calculates the sorting order for a given set of 2D points.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
-            np.ndarray: A 1D array of integer indices (shape (k,)) that,
+            np.ndarray: A 1D array of integer indices (shape (n,)) that,
                         when used to index the original `points` array,
                         would sort them according to the strategy.
         """
@@ -34,7 +34,7 @@ class Order(ABC):
         as if it were a function. This delegates the call to the `order` method.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: The sorted indices as returned by the `order` method.
@@ -51,13 +51,13 @@ class Change(Order):
         Changes the order of points randomly.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
 
         indices = np.arange(points.shape[0])
         for num_change in range(self.num_changes):
@@ -126,7 +126,7 @@ class HilbertCurve(Order):
         operations or a dedicated library.
 
         Args:
-            coords (np.ndarray): A 2D array of points (shape (k, 2)).
+            coords (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of Morton curve indices.
@@ -156,14 +156,14 @@ class HilbertCurve(Order):
         Orders points based on their Hilbert curve (Morton code approximation) indices.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points
                         along the Hilbert curve.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
 
         hilbert_indices = self._coords_to_hilbert_indices(points)
         # Return the indices that would sort the Hilbert indices
@@ -182,14 +182,14 @@ class LexicoXY(Order):  # Renamed
         Orders points lexicographically (x then y).
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points
                         lexicographically.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
 
         # np.lexsort sorts by the last array first, then the second to last, etc.
         # So, to sort by x then y, we pass y then x.
@@ -208,14 +208,14 @@ class LexicoYX(Order):  # Renamed
         Orders points lexicographically (y then x).
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points
                         lexicographically.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
 
         # To sort by y then x, we pass x then y.
         return np.lexsort((points[:, 0], points[:, 1]))
@@ -232,13 +232,13 @@ class Random(Order):  # Renamed
         Orders points randomly.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of randomly permuted integer indices.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
         return np.random.permutation(points.shape[0])
 
 
@@ -255,13 +255,13 @@ class Angle(Order):  # Renamed
         Orders points by their angle around the origin.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points by angle.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
 
         # arctan2 returns angles in (-pi, pi].
         # np.mod(..., 2 * np.pi) normalizes them to [0, 2*pi).
@@ -281,13 +281,13 @@ class DistFromOrigin(Order):  # Renamed
         Orders points by their Euclidean distance from the origin.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points by distance.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
 
         distances = np.linalg.norm(points, axis=1)
         return np.argsort(distances)
@@ -305,13 +305,13 @@ class Projection(Order):  # Renamed
         Orders points by the sum of their coordinates (x + y).
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points by projection.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
 
         projections = points[:, 0] + points[:, 1]
         return np.argsort(projections)
@@ -329,13 +329,13 @@ class DistFromCentroid(Order):  # Renamed
         Orders points by their Euclidean distance from the set's centroid.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points by distance from centroid.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
         if points.shape[0] == 0:
             return np.array([], dtype=int)
 
@@ -356,13 +356,13 @@ class Spiral(Order):  # Renamed
         Orders points in a spiral pattern.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points in a spiral.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
         if points.shape[0] <= 1:
             return np.arange(points.shape[0])
 
@@ -393,13 +393,13 @@ class MaxCoord(Order):  # Renamed
         Orders points by the maximum of their x and y coordinates.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points by max coordinate.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
 
         max_coords = np.max(points, axis=1)
         return np.argsort(max_coords)
@@ -434,14 +434,14 @@ class Snake(Order):  # Renamed
         Orders points in a snake pattern.
 
         Args:
-            points (np.ndarray): A 2D array of points (shape (k, 2)).
+            points (np.ndarray): A 2D array of points (shape (n, 2)).
 
         Returns:
             np.ndarray: A 1D array of integer indices that sort the points
                         in a snake pattern.
         """
         if points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Input 'points' must be a 2D array with shape (k, 2).")
+            raise ValueError("Input 'points' must be a 2D array with shape (n, 2).")
         if points.shape[0] == 0:
             return np.array([], dtype=int)
 

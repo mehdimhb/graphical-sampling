@@ -90,7 +90,7 @@ def plot(
         for idx, col in zip([tl, tr, bl, br], palette4):
             colors_for_cluster[idx] = col
     else:
-        # Any other k: row-major (y desc, then x asc)
+        # Any other n: row-major (y desc, then x asc)
         if valid.any():
             order = np.lexsort((centroids[:, 0], -centroids[:, 1]))
         else:

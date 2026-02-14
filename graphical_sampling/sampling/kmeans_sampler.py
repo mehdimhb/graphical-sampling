@@ -15,7 +15,7 @@ from .builder import ClusteringZoneBuilder, SweepingZoneBuilder, ClusterBuilder,
 from .order import Order, LexicoXY, LexicoYX, Random, Angle, DistFromOrigin, Projection, DistFromCentroid, \
     Spiral, MaxCoord, Snake, HilbertCurve, Change  # All OrderStrategy implementations
 from ..design import Design
-from ..measure import Density, Moran, LocalBalance, Voronoi
+from ..index import Density, Moran, LocalBalance, Voronoi
 
 
 class KMeansSampler:
@@ -472,11 +472,11 @@ class KMeansSampler:
         Return a pandas DataFrame summarizing expected score and standard deviation
         for the four measures: density, moran, local_balance, and voronoi.
 
-        Index:   measure name
+        Index:   index name
         Columns: ["expected", "std"]
         """
         data = {
-            "measure": ["density", "moran", "local_balance", "voronoi"],
+            "index": ["density", "moran", "local_balance", "voronoi"],
             "expected": [
                 self.expected_density_score(),
                 self.expected_moran_score(),
@@ -490,4 +490,4 @@ class KMeansSampler:
                 self.std_voronoi_score(),
             ],
         }
-        return pd.DataFrame(data).set_index("measure")
+        return pd.DataFrame(data).set_index("index")

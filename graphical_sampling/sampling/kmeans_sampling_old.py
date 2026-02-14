@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from . import Organizer
 from ..structs import Sample
 from ..design import Design
-from ..measure import Density
+from ..index import Density
 
 
 class KMeansSampling:
