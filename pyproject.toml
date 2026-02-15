@@ -16,6 +16,7 @@ dependencies = [
     "rpy2>=3.6.1",
     "tqdm>=4.67.1",
     "numba>=0.63.1",
+    "ipykernel>=6.29.5",
 ]
 authors = [
     { name = "Bardia Panahbehagh", email = "bardia.panah@gmail.com" },

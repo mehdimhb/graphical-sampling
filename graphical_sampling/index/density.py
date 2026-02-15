@@ -32,7 +32,7 @@ class Density:
         return np.exp(kde.score_samples(coords))
 
     def _generate_labels_centroids(self, k):
-        fbn = FIPBalancedNMeans(k=k)
+        fbn = FIPBalancedNMeans(n=k)
         fbn.fit(self.population)
         return fbn.labels, fbn.centroids
 

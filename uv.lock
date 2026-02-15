@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.12' and sys_platform == 'darwin'",
@@ -510,6 +510,7 @@ name = "graphical-sampling"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "ipykernel" },
     { name = "joblib" },
     { name = "k-means-constrained" },
     { name = "matplotlib" },
@@ -537,6 +538,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "joblib", specifier = ">=1.5.0" },
     { name = "k-means-constrained", specifier = ">=0.7.5" },
     { name = "matplotlib" },

@@ -6,15 +6,16 @@ from numpy.typing import NDArray
 from typing import List, Tuple, Union, Optional
 
 # Import the builder classes and entities from their expected relative paths
-from .design import Design
-from .population import Population
-from .clustering import FIPBalancedNMeans
+from ..design import Design
+from ..population import Population
+from ..clustering import FIPBalancedNMeans
 from .entity import Zone, Cluster  
 from .builder import ClusteringZoneBuilder, SweepingZoneBuilder, ClusterBuilder, \
     BaseZoneBuilder, NestedClusterBuilder 
 from .order import Order, LexicoXY, LexicoYX, Random, Angle, DistFromOrigin, Projection, DistFromCentroid, \
     Spiral, MaxCoord, Snake, HilbertCurve, Change  
-from .index import Density, Moran, LocalBalance, Voronoi
+from ..index import Density, Moran, LocalBalance, Voronoi
+from ..structs import Sample
 
 
 class KMeansSampler:
