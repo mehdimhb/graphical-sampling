@@ -1,4 +1,4 @@
-from ..clustering import UPBalancedKMeans
+from ..clustering import FIPBalancedNMeans
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
@@ -11,7 +11,6 @@ class Density:
         self,
         population,
         k: int,
-        split_size: float,
         labels: np.ndarray = None,
         centroids: np.ndarray = None,
         n_jobs: int = -1
@@ -22,7 +21,7 @@ class Density:
         self.original_density = self._density(self.coords)
 
         if (centroids is None) or (labels is None):
-            self.labels, self.centroids = self._generate_labels_centroids(k, split_size)
+            self.labels, self.centroids = self._generate_labels_centroids(k)
         else:
             self.labels, self.centroids = labels, centroids
 
@@ -32,10 +31,10 @@ class Density:
         kde = KernelDensity(kernel="tophat", bandwidth="scott").fit(coords)
         return np.exp(kde.score_samples(coords))
 
-    def _generate_labels_centroids(self, k, split_size):
-        upb_kmeans = UPBalancedKMeans(k=k, split_size=split_size)
-        upb_kmeans.fit(self.population)
-        return upb_kmeans.labels, upb_kmeans.centroids
+    def _generate_labels_centroids(self, k):
+        fbn = FIPBalancedNMeans(k=k)
+        fbn.fit(self.population)
+        return fbn.labels, fbn.centroids
 
     def _assign_samples_to_centroids(self, samples, centroids):
         cost = np.linalg.norm(

@@ -9,7 +9,7 @@ from .population import Population
 # from . import sampling
 from . import clustering
 from . import random
-# from . import index
+from . import index
 
 
 __version__ = metadata.version("graphical_sampling")
@@ -26,4 +26,3 @@ __all__ = [
     "index",
     "plot",
 ]
-

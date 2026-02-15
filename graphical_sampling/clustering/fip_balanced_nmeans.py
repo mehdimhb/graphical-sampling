@@ -6,127 +6,177 @@ from matplotlib.patches import Polygon
 from scipy.spatial import ConvexHull, QhullError
 from scipy.spatial.distance import cdist, pdist, squareform
 from scipy.spatial import cKDTree
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, BisectingKMeans
 from numba import jit
 
 from ..population import Population
 
 
+@jit(nopython=True)
+def _greedy_jitter_numba(D, n, start_node):
+    """
+    Greedy Nearest Neighbor with minimal probabilistic noise (Jitter).
+    """
+    path = np.empty(n, dtype=np.int32)
+    visited = np.zeros(n, dtype=np.bool_)
+
+    curr = start_node
+    path[0] = curr
+    visited[curr] = True
+
+    for i in range(1, n):
+        # Copy row to avoid modifying original matrix
+        # Note: In Numba, row slicing D[curr] is a view, so we copy.
+        dists = D[curr].copy()
+
+        # Mark visited as infinity
+        for v_idx in range(n):
+            if visited[v_idx]:
+                dists[v_idx] = np.inf
+
+        # PROBABILISTIC TRICK:
+        # Instead of sorting to find top 3 (slow), we multiply unvisited
+        # distances by a random factor between 0.9 and 1.1.
+        # This sometimes makes the 2nd or 3rd closest look like the closest.
+        # It preserves the "structure" of the data while adding variety.
+        noise = np.random.rand(n) * 0.2 + 0.9 # Range [0.9, 1.1]
+        dists *= noise
+
+        nxt = np.argmin(dists)
+
+        path[i] = nxt
+        visited[nxt] = True
+        curr = nxt
+
+    return path
+
+
+@jit(nopython=True)
+def _two_opt_open_numba(D, path, n):
+    """
+    Optimizes Open Path.
+    Can flip ANY segment, including the start and end nodes relative to the path structure.
+    (Note: In Open TSP, rotating the array doesn't change length, but reversing inner segments does).
+    """
+    improved = True
+    while improved:
+        improved = False
+        for i in range(1, n - 2):
+            for j in range(i + 1, n - 1):
+                if D[path[i-1], path[j]] + D[path[i], path[j+1]] < \
+                   D[path[i-1], path[i]] + D[path[j], path[j+1]]:
+                    path[i:j+1] = path[i:j+1][::-1]
+                    improved = True
+
+
 class OpenTSPSolver:
-    def solve(self, points: np.ndarray) -> np.ndarray:
+    def solve(self, points: np.ndarray, restarts: int = 15) -> np.ndarray:
         """
-        Finds an OPEN path (Start -> End).
-        - N < 10,000: Full Matrix + Greedy + 2-Opt (High Quality)
-        - N >= 10,000: KD-Tree Greedy (Fast, Low Memory)
+        Finds the best OPEN path (Start -> End) by trying multiple random start nodes.
+
+        Args:
+            points: (N, 2) array of coordinates.
+            restarts: Number of random start nodes to try.
+                      Higher = better quality, linearly more time.
+                      For N < 1000, 20 restarts is near-instant.
         """
         n = len(points)
-        if n < 3: return np.arange(n)  # Too small to optimize
+        if n < 3:
+            return np.arange(n)
 
-        if n < 10000:
-            return self._solve_small_open(points, n)
-        else:
+        # For very large N, fallback to KD-Tree (Safe Mode)
+        if n >= 5000:
             return self._solve_large_safe(points, n)
 
-    def _solve_small_open(self, points, n):
-        # 1. Precompute Distance Matrix
+        # For N < 5000: Use Numba-accelerated Multi-Start
+        return self._solve_numba_accelerated(points, n, restarts)
+
+    def _solve_numba_accelerated(self, points, n, restarts):
+        # 1. Precompute Distance Matrix (Heavy lifting done once)
         D = squareform(pdist(points))
 
-        # 2. Greedy Path (Nearest Neighbor)
-        path = np.zeros(n, dtype=np.int32)
-        seen = np.zeros(n, dtype=bool)
+        # 2. Run the heavy logic in Numba
+        # We pass the matrix and let the JIT function handle the looping.
+        best_path = self._run_multi_start_numba(D, n, restarts)
 
-        curr = 0
-        path[0] = 0
-        seen[0] = True
+        return best_path
 
-        for i in range(1, n):
-            dists = D[curr].copy()
-            dists[seen] = np.inf
-            nxt = np.argmin(dists)
-            path[i] = nxt
-            seen[nxt] = True
-            curr = nxt
+    @staticmethod
+    @jit(nopython=True)
+    def _run_multi_start_numba(D, n, restarts):
+        """
+        Runs the full pipeline (Greedy + 2-Opt) 'restarts' times.
+        Fully Compiled = Blazing Fast.
+        """
+        best_path = np.empty(n, dtype=np.int32) # Placeholder
+        best_dist = np.inf
 
-        # 3. Optimize with Open 2-Opt
-        self._two_opt_open_numba(D, path, n)
+        # We will try different random starts
+        for i in range(restarts):
 
-        return path
+            # --- 1. Randomized Start & Construction ---
+            # Pick a random start node
+            start_node = np.random.randint(0, n)
+
+            # Build path with "Jitter" (Probabilistic Greedy)
+            # We add slight noise to distances to simulate picking from "top k"
+            # without the expensive sorting cost.
+            current_path = _greedy_jitter_numba(D, n, start_node)
+
+            # --- 2. 2-Opt Optimization ---
+            _two_opt_open_numba(D, current_path, n)
+
+            # --- 3. Evaluate ---
+            current_dist = 0.0
+            for k in range(n - 1):
+                current_dist += D[current_path[k], current_path[k+1]]
+
+            if current_dist < best_dist:
+                best_dist = current_dist
+                best_path = current_path.copy()
+
+        return best_path
 
     @staticmethod
     def _solve_large_safe(points, n):
+        # (Legacy KD-Tree implementation for N > 5000)
         tree = cKDTree(points)
         visited = np.zeros(n, dtype=bool)
         path = np.zeros(n, dtype=np.int32)
-
         current_idx = 0
         path[0] = 0
         visited[0] = True
-
         k_search = 10
-
         for i in range(1, n):
             found = False
             while not found:
-                # Query nearest neighbors
                 dists, indices = tree.query(points[current_idx], k=min(n, k_search))
-                if np.ndim(indices) == 0: indices = [indices]
-
+                if np.ndim(indices) == 0:
+                    indices = [indices]
                 for idx in indices:
                     if not visited[idx]:
                         current_idx = idx
                         found = True
                         break
-
                 if not found:
                     k_search *= 2
                     if k_search >= n:
                         remaining = np.where(~visited)[0]
-                        # Fail-safe: pick first available
                         if len(remaining) > 0:
                             current_idx = remaining[0]
                             found = True
                         else:
                             break
-
             path[i] = current_idx
             visited[current_idx] = True
-
-            # Reset search radius to keep queries fast
-            if k_search > 50: k_search = 10
-
+            if k_search > 50:
+                k_search = 10
         return path
-
-    @staticmethod
-    @jit(nopython=True)
-    def _two_opt_open_numba(D, path, n):
-        """
-        Optimizes an Open Path (A -> B).
-        Keeps path[0] fixed as the start point.
-        """
-        improved = True
-        while improved:
-            improved = False
-            # We want to swap segments inside the path.
-            # 'i' starts at 1 (keeping path[0] fixed).
-            # 'j' stops at n-2 (so j+1 is at most n-1).
-            for i in range(1, n - 2):
-                for j in range(i + 1, n - 1):
-
-                    # Check if swapping segment path[i...j] is shorter
-                    # We compare edges: (i-1 -> i) & (j -> j+1)
-                    #           vs      (i-1 -> j) & (i -> j+1)
-
-                    old_dist = D[path[i - 1], path[i]] + D[path[j], path[j + 1]]
-                    new_dist = D[path[i - 1], path[j]] + D[path[i], path[j + 1]]
-
-                    if new_dist < old_dist:
-                        # Reverse the segment
-                        path[i:j + 1] = path[i:j + 1][::-1]
-                        improved = True
 
 
 class FIPBalancedNMeans:
-    def __init__(self, n: int, mode: Literal['soft', 'hard'] = 'soft') -> None:
+    def __init__(self, n: int, n_init=50, tol=1e-9, max_iter=100,
+                 mode: Literal['soft', 'hard'] = 'soft') -> None:
         self.n = n
         self.mode = mode
         self.population: Population | None = None
@@ -136,6 +186,10 @@ class FIPBalancedNMeans:
         self.membership: np.ndarray | None = None
         self.clusters: list[dict] | None = None
         self.tsp_solver = OpenTSPSolver()
+
+        self.n_init = n_init
+        self.tol = tol
+        self.max_iter = max_iter
 
     def fit(self, population: Population) -> None:
         self.population = population
@@ -150,7 +204,11 @@ class FIPBalancedNMeans:
             warnings.filterwarnings("ignore", message=".*invalid value.*")
 
             probs_normalized = probs / probs.sum() * len(coords)
-            kmeans = KMeans(n_clusters=self.n, n_init=100, max_iter=500, tol=1e-5)
+            kmeans = KMeans(n_clusters=self.n,
+                            n_init=self.n_init,
+                            tol=self.tol,
+                            max_iter=self.max_iter,
+                            )
             raw_labels = kmeans.fit_predict(coords, sample_weight=probs_normalized)
             raw_centroids = kmeans.cluster_centers_
 
