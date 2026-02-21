@@ -175,10 +175,8 @@ class OpenTSPSolver:
 
 
 class FIPBalancedNMeans:
-    def __init__(self, n: int, n_init=50, tol=1e-9, max_iter=100,
-                 mode: Literal['soft', 'hard'] = 'soft') -> None:
+    def __init__(self, n: int, n_init=50, tol=1e-9, max_iter=100) -> None:
         self.n = n
-        self.mode = mode
         self.population: Population | None = None
         self.labels: np.ndarray | None = None
         self.centroids: np.ndarray | None = None
@@ -191,32 +189,14 @@ class FIPBalancedNMeans:
         self.tol = tol
         self.max_iter = max_iter
 
-    def fit(self, population: Population) -> None:
+    def fit(self, population: Population, init_centroids: np.ndarray | None = None) -> None:
         self.population = population
         coords = population.coords
         probs = population.probs
         N = len(coords)
 
-        # 1. Weighted K-Means
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message=".*divide by zero.*")
-            warnings.filterwarnings("ignore", message=".*overflow.*")
-            warnings.filterwarnings("ignore", message=".*invalid value.*")
-
-            probs_normalized = probs / probs.sum() * len(coords)
-            kmeans = KMeans(n_clusters=self.n,
-                            n_init=self.n_init,
-                            tol=self.tol,
-                            max_iter=self.max_iter,
-                            )
-            raw_labels = kmeans.fit_predict(coords, sample_weight=probs_normalized)
-            raw_centroids = kmeans.cluster_centers_
-
-        # If hard mode, skip TSP Ordering and exact balancing
-        if self.mode == 'hard':
-            self.labels = raw_labels
-            self.centroids = raw_centroids
-            return
+        # 1. Initial Clustering
+        raw_labels, raw_centroids = self._get_labels_centroids(coords, probs, init_centroids)
 
         # 2. TSP Ordering
         # returns a linear path [Start -> ... -> End]
@@ -237,6 +217,49 @@ class FIPBalancedNMeans:
             coords[self.labels == i].mean(axis=0) if np.any(self.labels == i)
             else np.zeros(coords.shape[1]) for i in range(self.n)
         ])
+
+    def _get_labels_centroids(
+            self,
+            coords: np.ndarray,
+            probs: np.ndarray,
+            init_centroids: np.ndarray | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=".*divide by zero.*")
+            warnings.filterwarnings("ignore", message=".*overflow.*")
+            warnings.filterwarnings("ignore", message=".*invalid value.*")
+
+            probs_normalized = probs / probs.sum() * len(coords)
+
+            if init_centroids is not None:
+                kmeans = KMeans(
+                    n_clusters=self.n,
+                    init=init_centroids,
+                    tol=self.tol,
+                    max_iter=self.max_iter
+                )
+                labels = kmeans.fit_predict(coords, sample_weight=probs_normalized)
+                centroids = kmeans.cluster_centers_
+                return labels, centroids
+
+            best_error = np.inf
+            best_labels = None
+            best_centroids = None
+
+            for _ in range(self.n_init):
+                kmeans = KMeans(n_clusters=self.n, n_init=1, tol=self.tol, max_iter=self.max_iter)
+                raw_labels = kmeans.fit_predict(coords, sample_weight=probs_normalized)
+                raw_centroids = kmeans.cluster_centers_
+
+                sums = np.array([probs[raw_labels == i].sum() for i in range(self.n)])
+                mean_abs_error = np.abs(sums - 1).sum()
+
+                if mean_abs_error < best_error:
+                    best_error = mean_abs_error
+                    best_labels = raw_labels
+                    best_centroids = raw_centroids
+
+            return best_labels, best_centroids
 
     def _generate_exact_clusters(
             self, order: np.ndarray, labels: np.ndarray,
@@ -361,13 +384,14 @@ class FIPBalancedNMeans:
 
     def plot(
         self,
-        ax: plt.Axes | None = None,
-        background_gdf=None,
-        show_centroids: bool = False,
-        connect_centroids: bool = False,
-        size_scale: float = 1000.0,
-        figsize: tuple[int, int] = (8, 6),
-        dpi: int = 100
+            mode: Literal['soft', 'hard'],
+            ax: plt.Axes | None = None,
+            background_gdf=None,
+            show_centroids: bool = False,
+            connect_centroids: bool = False,
+            size_scale: float = 1000.0,
+            figsize: tuple[int, int] = (8, 6),
+            dpi: int = 100
     ) -> plt.Axes:
         """
         Plot the clustering result.
@@ -399,7 +423,7 @@ class FIPBalancedNMeans:
         # Build cluster data list
         cluster_data = []
 
-        if self.mode == 'hard':
+        if mode == 'hard':
             if self.labels is None: raise ValueError("Model not fitted yet.")
             for i in range(self.n):
                 idx = np.where(self.labels == i)[0]
@@ -495,7 +519,7 @@ class FIPBalancedNMeans:
 
             sizes = probs * size_scale
 
-            if self.mode == 'soft' and len(c_data['border_indices']) > 0:
+            if mode == 'soft' and len(c_data['border_indices']) > 0:
                 is_border = np.isin(c_data['indices'], c_data['border_indices'])
                 # Standard points
                 ax.scatter(coords[~is_border, 0], coords[~is_border, 1],
@@ -524,5 +548,5 @@ class FIPBalancedNMeans:
         ax.spines["right"].set_visible(False)
         ax.set_xlabel(r"$X_1$")
         ax.set_ylabel(r"$X_2$")
-        ax.set_title(f"FIP Balanced {self.n}-Means {self.mode.capitalize()} Clustering")
+        ax.set_title(f"FIP Balanced {self.n}-Means {mode.capitalize()} Clustering")
         return ax
