@@ -290,14 +290,7 @@ class KMeansSampling:
         centroids = np.vstack([
             self.coords[labels == i].mean(axis=0) for i in range(self.n)
         ])
-        return Density(
-            self.coords,
-            self.probs,
-            self.n,
-            self.split_size,
-            labels,
-            centroids
-        )
+        return Density(self.coords, self.probs, self.n, self.split_size, labels)
 
     def _get_all_samples_with_probs(self):
         samples = []

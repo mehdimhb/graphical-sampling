@@ -354,13 +354,7 @@ class KMeansSampler:
 
     @cached_property
     def density(self) -> Density:
-        return Density(
-            self.population,
-            self.n,
-            self.split_size,
-            self.labels,
-            self.centroids
-        )
+        return Density(self.population, self.n, self.split_size, self.labels, self.centroids)
 
     @cached_property
     def all_samples(self) -> NDArray:
