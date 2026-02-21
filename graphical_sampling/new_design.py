@@ -17,20 +17,17 @@ class NewDesign:
             return False
         return self.kmeans.clusters == other.kmeans.clusters
 
-    def copy(self) -> NewDesign:
-        new_kmeans = KMeansSampler(
-            population = self.kmeans.population,
-            n=self.kmeans.n,
-            n_zones=self.kmeans.n_zones_value,
-            split_size=self.kmeans.split_size,
-            zone_builder=self.kmeans.zone_builder_str,
-            units_order='Change',
-            zones_order='Change',
-            clusters=deepcopy(self.kmeans.clusters),
-            labels=self.kmeans.labels,
-            centroids=self.kmeans.centroids,
+    def copy(self) -> 'NewDesign':
+        return NewDesign(
+            self.kmeans.__class__(
+                population=self.kmeans.population,
+                n=self.kmeans.n,
+                n_zones=self.kmeans.n_zones_value,
+                zone_builder=self.kmeans.zone_builder_str,
+                units_order=self.kmeans._current_units_order_str, # Corrected: add self.kmeans.
+                zones_order=self.kmeans._current_zones_order_str, # Corrected: add self.kmeans.
+            )
         )
-        return NewDesign(new_kmeans)
 
     def iterate(
             self,
