@@ -16,8 +16,8 @@ def test_soft_balanced_kmeans():
     for _ in range(n_iterations):
         N = int(np_rng.choice([100, 150, 200]))
         n = int(np_rng.choice([3, 4, 5, 6]))
-        coordinates = rng.random_coordinates((N, 2))
-        probabilities = rng.unequal_probabilities(n, N)
+        coordinates = rng.rand_coord((N, 2))
+        probabilities = rng.unequal_inclusions(n, N)
         kmeans = gs.clustering.SoftBalancedKMeans(n, tolerance=tolerance)
         kmeans.fit(coordinates, probabilities)
 

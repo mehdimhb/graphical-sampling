@@ -6,7 +6,7 @@ class Generator:
     def __init__(self, seed: int = None) -> None:
         self.rng = np.random.default_rng(seed)
 
-    def grid_coordinates(self, size: int | tuple[int, ...] = None) -> NDArray:
+    def grid_coords(self, size: int | tuple[int, ...] = None) -> NDArray:
         """
         Generate grid coordinates.
 
@@ -30,7 +30,7 @@ class Generator:
 
         return coordinates.squeeze()
 
-    def random_coordinates(self, size: int | tuple[int, ...] = None) -> NDArray:
+    def rand_coord(self, size: int | tuple[int, ...] = None) -> NDArray:
         """
         Generate random coordinates uniformly from [0, 1].
 
@@ -48,7 +48,7 @@ class Generator:
         coordinates = self.rng.random((batch, N, dim))
         return coordinates.squeeze()
 
-    def uniform_coordinates(
+    def uniform_coords(
         self, low: float = 0.0, high: float = 1.0, size: int | tuple[int, ...] = None
     ) -> NDArray:
         """
@@ -72,7 +72,7 @@ class Generator:
         coordinates = self.rng.uniform(low, high, (batch, N, dim)).squeeze()
         return coordinates.squeeze()
 
-    def normal_1D_coordinates(
+    def normal_1d_coords(
         self, mean: float = 0.0, std: float = 1.0, size: int | tuple[int, ...] = None
     ) -> NDArray:
         """
@@ -94,7 +94,7 @@ class Generator:
         coordinates = self.rng.normal(mean, std, (batch, N)).squeeze()
         return coordinates.squeeze()
 
-    def normal_mD_coordinates(
+    def normal_md_coords(
         self, mean: NDArray, cov: NDArray, size: int | tuple[int, ...] = None
     ) -> NDArray:
         """
@@ -116,7 +116,7 @@ class Generator:
         coordinates = self.rng.multivariate_normal(mean, cov, (batch, N)).squeeze()
         return coordinates.squeeze()
 
-    def cluster_coordinates(
+    def cluster_coords(
         self,
         n_clusters: int,
         cluster_std: float | NDArray,
@@ -161,7 +161,7 @@ class Generator:
 
         return coordinates.squeeze()
 
-    def equal_probabilities(
+    def equal_inclusions(
         self, n: int, size: int | tuple[int, ...] = None
     ) -> NDArray:
         """
@@ -170,7 +170,7 @@ class Generator:
         Args:
             n (int): The total sum of the probabilities.
             size (int): The size of probabilities.
-                - If None, generates a single probability of size `(1,)`.
+                - If None, generates a single prob of size `(1,)`.
                 - If an integer N, generates N probabilities.
                 - If a tuple of `(B, N)`, generates a batch of `B` probabilities of size `(N,)`.
                 - If a tuple of `(B, N, D)`, D has to be 1.
@@ -185,7 +185,7 @@ class Generator:
         probabilities = np.full((batch, N, dim), n / N)
         return probabilities.squeeze()
 
-    def unequal_probabilities(
+    def unequal_inclusions(
         self, n: int, size: int | tuple[int, ...] = None
     ) -> NDArray:
         """
@@ -194,7 +194,7 @@ class Generator:
         Args:
             n (int): The total sum of the probabilities.
             size (int): The size of probabilities.
-                - If None, generates a single probability of size `(1,)`.
+                - If None, generates a single prob of size `(1,)`.
                 - If an integer N, generates N probabilities.
                 - If a tuple of `(B, N)`, generates a batch of `B` probabilities of size `(N,)`.
                 - If a tuple of `(B, N, D)`, D has to be 1.
@@ -210,9 +210,8 @@ class Generator:
         probabilities *= n / probabilities.sum(axis=1)
         return probabilities.squeeze()
 
-    def _check_size(
-        self, size: int | tuple[int, ...], fixed_dim: int = None
-    ) -> tuple[int, int, int]:
+    @staticmethod
+    def _check_size(size: int | tuple[int, ...], fixed_dim: int = None):
         """
         Validate and parse the size input.
 
@@ -226,9 +225,9 @@ class Generator:
                 - `D` is the dimensionality of points.
         """
         if isinstance(size, int):
-            return (1, size, fixed_dim or 1)
+            return 1, size, fixed_dim or 1
         if size is None or len(size) == 0:
-            return (1, 1, fixed_dim or 1)
+            return 1, 1, fixed_dim or 1
         if not isinstance(size, tuple) or len(size) > 3:
             raise ValueError("Size must be a tuple of at most 3 positive integers.")
         if not all(isinstance(x, int) and x > 0 for x in size):
@@ -240,11 +239,12 @@ class Generator:
 
         match len(size):
             case 1:
-                return (1, *size, fixed_dim or 1)
+                return 1, *size, fixed_dim or 1
             case 2:
                 return (1, *size) if fixed_dim is None else (*size, fixed_dim)
             case 3:
                 return size
+        return None
 
 
 def rng(seed=None):

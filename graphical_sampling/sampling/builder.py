@@ -37,14 +37,14 @@ class BaseZoneBuilder(ABC):
         Very small values are clipped to zero.
 
         Args:
-            share (np.ndarray): An array of probability shares.
+            share (np.ndarray): An array of prob shares.
 
         Returns:
             np.ndarray: The numerically stabilized shares.
         """
         index = index_share[:, 0].astype(np.int64)
         share = index_share[:, 1]
-        probs_stabled = np.round(share * population.probs[index], 9)
+        probs_stabled = np.round(share * population.inclusions[index], 9)
         # Clip very small values to zero based on tolerance
         probs_stabled[probs_stabled < 1e-9] = 0.0
 
@@ -299,7 +299,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
         # Extract share from the sorted_index_share
         index = sorted_index_share[:, 0].astype(np.int64)
         share = sorted_index_share[:, 1]
-        cumulative_probs = np.cumsum(population.probs[index] * share)
+        cumulative_probs = np.cumsum(population.inclusions[index] * share)
         total_probs = cumulative_probs[-1] if cumulative_probs.size > 0 else 0.0
 
         # If the total share is less than one threshold, return all units as a single segment
@@ -329,7 +329,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
                 segment_index_share = sorted_index_share[i:j].copy()
                 segment_index_share[0, 1] = split_point_share[i]
             elif i == j:
-                remaining_share = self._get_remaining_share(float(split_point_share[i]), float(population.probs[index[i]]), threshold)
+                remaining_share = self._get_remaining_share(float(split_point_share[i]), float(population.inclusions[index[i]]), threshold)
                 segment_index_share = sorted_index_share[i].copy().reshape(1, 2)
                 segment_index_share[0, 1] = split_point_share[i] - remaining_share
                 split_point_share[i] = remaining_share
@@ -338,7 +338,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
                 remaining_threshold -= population.sum_prob(index[i], split_point_share[i])
                 if j > i+1:
                     remaining_threshold -= population.sum_prob(index[i+1:j], share[i+1:j])
-                remaining_share_ending = self._get_remaining_share(float(split_point_share[j]), float(population.probs[index[j]]), remaining_threshold)
+                remaining_share_ending = self._get_remaining_share(float(split_point_share[j]), float(population.inclusions[index[j]]), remaining_threshold)
                 segment_index_share = sorted_index_share[i:j+1].copy()
                 segment_index_share[0, 1] = split_point_share[i]
                 segment_index_share[-1, 1] = split_point_share[j] - remaining_share_ending

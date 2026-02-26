@@ -158,7 +158,7 @@ class KMeansSampling:
             # add that border unit to the target zone
             target_zone.units = np.vstack([target_zone.units, border_unit])
 
-            # now pull back from target_zone the same total probability mass
+            # now pull back from target_zone the same total prob mass
             p_needed = border_unit[3]
             probs = target_zone.units[:, 3]
             cumsum = np.cumsum(probs)
@@ -235,7 +235,7 @@ class KMeansSampling:
         # 1. prep
         Z = int(np.prod(self.n_zones))
         zone_width = round(1.0 / Z, self.tolerance)
-        design = Design(inclusions=None)
+        design = Design(inclusion=None)
 
         # 2. collect *all* break‐points: zone boundaries + unit boundaries
         cuts = set()
@@ -278,7 +278,7 @@ class KMeansSampling:
                 u_idx = np.searchsorted(mapped, mid, side="right")
                 ids.append(int(z.units[u_idx, 0]))
 
-            design.push(Sample(length, frozenset(ids)))
+            design._push(Sample(length, frozenset(ids)))
             last = p
 
         design.merge_identical()
@@ -299,7 +299,7 @@ class KMeansSampling:
             if len(sample_obj.ids) < self.n:
                 continue
             samples.append(list(sample_obj.ids))
-            samples_probs.append(sample_obj.probability)
+            samples_probs.append(sample_obj.prob)
         return np.array(samples), np.array(samples_probs)
 
     @cached_property

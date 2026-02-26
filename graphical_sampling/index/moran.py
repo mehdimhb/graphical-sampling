@@ -10,7 +10,7 @@ class Moran:
     def __init__(self, population: Population):
         self.population = population
         self.coords = self.population.coords
-        self.probs = self.population.probs
+        self.probs = self.population.inclusions
 
     def score(self, samples: np.ndarray) -> np.ndarray:
         r_sample_list = ro.ListVector({
@@ -20,7 +20,7 @@ class Moran:
 
         with localconverter(default_converter + numpy2ri.converter):
             ro.globalenv['coords'] = self.coords
-            ro.globalenv['probs'] = self.probs
+            ro.globalenv['inclusions'] = self.probs
 
             ro.r("""
             library(Matrix)
@@ -31,7 +31,7 @@ class Moran:
 
             # Precompute W once
             ro.r("""
-                    W0 <- wpik(coords, probs)
+                    W0 <- wpik(coords, inclusions)
                     W <- W0 - diag(diag(W0))
                     diag(W) <- 0
                 """)
@@ -39,13 +39,13 @@ class Moran:
 
             # Define an R function that loops over all samples
             ro.r("""
-                    score_moran <- function(W, probs, coords, samples_list) {
+                    score_moran <- function(W, inclusions, coords, samples_list) {
                       S <- length(samples_list)
                       IBs   <- numeric(S)
 
                       for (i in seq_len(S)) {
                         samp_idx <- samples_list[[i]]
-                        mask <- integer(length(probs))
+                        mask <- integer(length(inclusions))
                         mask[samp_idx] <- 1
 
                         IBs[i]   <- tryCatch(IB(W, mask), error = function(e) Inf)
@@ -56,7 +56,7 @@ class Moran:
                 """)
 
             # Call it once
-            result = ro.r("score_moran(W, probs, coords, samples)")
+            result = ro.r("score_moran(W, inclusions, coords, samples)")
             # result comes back as an R matrix  S×2
 
         # Turn it into an (S×2) numpy array

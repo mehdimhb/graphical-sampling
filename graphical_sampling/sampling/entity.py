@@ -109,9 +109,9 @@ class Zone:
         unit within this zone.
 
         Returns:
-            np.ndarray: A 1D array of float probs.
+            np.ndarray: A 1D array of float inclusions.
         """
-        return self.share * self.pop.probs[self.index]
+        return self.share * self.pop.inclusions[self.index]
 
     @property
     def centroid(self) -> np.ndarray:
@@ -318,7 +318,7 @@ class Cluster:
         cluster_index_share = self.get_index_share(reduce=True)
         cluster_index = cluster_index_share[:, 0].astype(np.int64)
         cluster_share = cluster_index_share[:, 1]
-        total_prob_for_cluster = float(np.sum(self._pop.probs[cluster_index] * cluster_share))
+        total_prob_for_cluster = float(np.sum(self._pop.inclusions[cluster_index] * cluster_share))
         stats = f"Total Prob in Cluster: {round(total_prob_for_cluster, 4)}"
         if zones_stats:
             for zone in self._zones:
@@ -336,7 +336,7 @@ class Cluster:
         Returns:
             np.ndarray: A 1D NumPy array representing the cumulative probabilities
                         of zones. The first element is always 0, and the last
-                        element is the total probability of all zones in the cluster.
+                        element is the total prob of all zones in the cluster.
         """
         edges = [0]
         start = 0

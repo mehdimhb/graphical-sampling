@@ -10,7 +10,7 @@ class LocalBalance:
     def __init__(self, population: Population):
         self.population = population
         self.coords = self.population.coords
-        self.probs = self.population.probs
+        self.probs = self.population.inclusions
 
     def score(self, samples: np.ndarray) -> np.ndarray:
         r_sample_list = ro.ListVector({
@@ -20,7 +20,7 @@ class LocalBalance:
 
         with localconverter(default_converter + numpy2ri.converter):
             ro.globalenv['coords'] = self.coords
-            ro.globalenv['probs'] = self.probs
+            ro.globalenv['inclusions'] = self.probs
             ro.globalenv['samples'] = r_sample_list
 
             ro.r("""
@@ -32,23 +32,23 @@ class LocalBalance:
 
             # Define an R function that loops over all samples
             ro.r("""
-                    score_local_balance <- function(W, probs, coords, samples_list) {
+                    score_local_balance <- function(W, inclusions, coords, samples_list) {
                       S <- length(samples_list)
                       SBLBs <- numeric(S)
 
                       for (i in seq_len(S)) {
                         samp_idx <- samples_list[[i]]
-                        mask <- integer(length(probs))
+                        mask <- integer(length(inclusions))
                         mask[samp_idx] <- 1
 
-                        SBLBs[i] <- tryCatch(sblb(probs, coords, samp_idx), error = function(e) Inf)
+                        SBLBs[i] <- tryCatch(sblb(inclusions, coords, samp_idx), error = function(e) Inf)
                       }
                       cbind(SBLB = SBLBs)
                     }
                 """)
 
             # Call it once
-            result = ro.r("score_local_balance(W, probs, coords, samples)")
+            result = ro.r("score_local_balance(W, inclusions, coords, samples)")
             # result comes back as an R matrix  S×2
 
         # Turn it into an (S×2) numpy array

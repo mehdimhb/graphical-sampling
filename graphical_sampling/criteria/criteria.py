@@ -31,7 +31,7 @@ class VarNHT(Criteria):
             ]
         )
 
-        samples_probabilities = np.array([sample.probability for sample in design])
+        samples_probabilities = np.array([sample.prob for sample in design])
 
         variance_nht = (
             np.sum((nht_estimator**2) * samples_probabilities)

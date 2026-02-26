@@ -20,7 +20,7 @@ class Density:
         self.population = population
         self.n = n
         self.coords = population.coords
-        self.probs = population.probs
+        self.probs = population.inclusions
 
         self.n_jobs = n_jobs
         self.clustering_tol = clustering_tol

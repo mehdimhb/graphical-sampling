@@ -6,10 +6,11 @@ from matplotlib.patches import Polygon
 from scipy.spatial import ConvexHull, QhullError
 from scipy.spatial.distance import cdist, pdist, squareform
 from scipy.spatial import cKDTree
-from sklearn.cluster import KMeans, BisectingKMeans
+from sklearn.cluster import KMeans
 from numba import jit
 
 from ..population import Population
+from ..order import Cluster, Zone, Floor, Ceil
 
 
 @jit(nopython=True)
@@ -182,7 +183,7 @@ class FIPBalancedNMeans:
         self.centroids: np.ndarray | None = None
         self.path_order: np.ndarray | None = None
         self.membership: np.ndarray | None = None
-        self.clusters: list[dict] | None = None
+        self.clusters: list[Cluster] | None = None
         self.tsp_solver = OpenTSPSolver()
 
         self.n_init = n_init
@@ -192,7 +193,7 @@ class FIPBalancedNMeans:
     def fit(self, population: Population, init_centroids: np.ndarray | None = None) -> None:
         self.population = population
         coords = population.coords
-        probs = population.probs
+        probs = population.inclusions
         N = len(coords)
 
         # 1. Initial Clustering
@@ -203,13 +204,12 @@ class FIPBalancedNMeans:
         self.path_order = self.tsp_solver.solve(raw_centroids)
 
         # 3. Exact Balanced Clusters
-        # Sort internally based on the linear path neighbors & split by cumulative probability
         self.clusters = self._generate_exact_clusters(
             self.path_order, raw_labels, coords, probs, population.indices
         )
 
         # 4. Finalize Outputs
-        self.membership = self._generate_membership(self.clusters, N)
+        self.membership = self._generate_membership(self.clusters, N, population.indices)
         self.labels = np.argmax(self.membership, axis=1)
 
         # Recalculate centroids based on final hard labels
@@ -217,6 +217,79 @@ class FIPBalancedNMeans:
             coords[self.labels == i].mean(axis=0) if np.any(self.labels == i)
             else np.zeros(coords.shape[1]) for i in range(self.n)
         ])
+
+    def fit_zones(self, num_zones: int) -> None:
+        """
+        Splits each existing cluster's population into `num_zones` sub-zones.
+        The borders (floor/ceil) of the parent cluster remain untouched.
+        """
+        if self.clusters is None:
+            raise ValueError("The main clusters have not been fitted yet. Call .fit() first.")
+
+        for i, cluster in enumerate(self.clusters):
+            current_ids = cluster.zones[0].ids
+
+            # 1. Safely gather indices and shares, accounting for potential -1 (no border)
+            subset_indices = []
+            shares = []
+
+            has_floor = cluster.floor.index != -1
+            has_ceil = cluster.ceil.index != -1
+
+            if has_floor:
+                subset_indices.append(cluster.floor.index)
+                shares.append(cluster.floor.percentage)
+
+            subset_indices.extend(current_ids)
+            shares.extend([1.0] * len(current_ids))
+
+            if has_ceil:
+                subset_indices.append(cluster.ceil.index)
+                shares.append(cluster.ceil.percentage)
+
+            subset_indices = np.array(subset_indices, dtype=int)
+            shares = np.array(shares, dtype=float)
+
+            # 2. Create subpopulation subset using your sharing logic
+            sp = self.population.subset(subset_indices, share=shares)
+
+            # 3. Fit the subset to get `num_zones` sub-clusters
+            sub_fbn = FIPBalancedNMeans(
+                n=num_zones,
+                n_init=self.n_init,
+                tol=self.tol,
+                max_iter=self.max_iter
+            )
+            sub_fbn.fit(sp)
+
+            # 4. Extract the new zones, filtering out the parent's floor/ceil
+            new_zones = []
+            for j, sc in enumerate(sub_fbn.clusters):
+                sc_indices = []
+
+                # Gather all indices from the sub-cluster (its zones, floor, and ceil)
+                for z in sc.zones:
+                    sc_indices.extend(z.ids)
+                if sc.floor.index != -1:
+                    sc_indices.append(sc.floor.index)
+                if sc.ceil.index != -1:
+                    sc_indices.append(sc.ceil.index)
+
+                # Filter out the parent's border indices to keep them isolated
+                filtered_ids = []
+                seen = set()
+                for idx in sc_indices:
+                    if idx not in seen:
+                        seen.add(idx)
+                        # Only keep the index if it IS NOT the parent's floor or ceil
+                        if (not has_floor or idx != cluster.floor.index) and \
+                                (not has_ceil or idx != cluster.ceil.index):
+                            filtered_ids.append(idx)
+
+                new_zones.append(Zone(label=j, ids=filtered_ids))
+
+            # 5. Replace the parent's single zone with the new partitioned zones
+            self.clusters[i].zones = new_zones
 
     def _get_labels_centroids(
             self,
@@ -264,7 +337,7 @@ class FIPBalancedNMeans:
     def _generate_exact_clusters(
             self, order: np.ndarray, labels: np.ndarray,
             coords: np.ndarray, probs: np.ndarray, pop_indices: np.ndarray
-    ) -> list[dict]:
+    ) -> list[Cluster]:
 
         # Group indices by label
         clusters_idx = {lab: np.flatnonzero(labels == lab) for lab in order}
@@ -294,7 +367,8 @@ class FIPBalancedNMeans:
             # Sort locally: low key -> close to prev; high key -> close to next
             mega_indices.append(curr_idx[np.argsort(key)])
 
-        if not mega_indices: return []
+        if not mega_indices:
+            return []
         full_indices = np.concatenate(mega_indices)
 
         # Exact Mass Splitting (Quota)
@@ -342,16 +416,14 @@ class FIPBalancedNMeans:
             ceil_id = pop_indices[curr_border_idx] if (
                         pop_indices is not None and curr_border_idx != -1) else curr_border_idx
 
-            final_clusters.append({
-                'label': int(order[i]),
-                'free': free_ids,
-                'border': {
-                    'floor_index': int(floor_id),
-                    'floor_percentage': float(prev_border_remainder),
-                    'ceil_index': int(ceil_id),
-                    'ceil_percentage': float(frac_curr)
-                }
-            })
+            final_clusters.append(
+                Cluster(
+                    label=int(order[i]),
+                    zones=[Zone(label=0, ids=free_ids.tolist())],
+                    floor=Floor(index=int(floor_id), percentage=float(prev_border_remainder)),
+                    ceil=Ceil(index=int(ceil_id), percentage=float(frac_curr))
+                )
+            )
 
             # Setup for next iteration
             start_idx = split_idx + 1
@@ -368,22 +440,39 @@ class FIPBalancedNMeans:
 
         return final_clusters
 
-    def _generate_membership(self, clusters, N) -> np.ndarray:
+    def _generate_membership(self, clusters: list[Cluster], N: int,
+                             pop_indices: np.ndarray | None = None) -> np.ndarray:
         membership = np.zeros((N, self.n), dtype=float)
-        for i, c in enumerate(clusters):
-            # Free
-            if len(c['free']) > 0:
-                membership[c['free'], i] = 1.0
-            # Border
-            b = c['border']
-            if b['floor_index'] != -1 and b['floor_percentage'] > 1e-9:
-                membership[b['floor_index'], i] += b['floor_percentage']
-            if b['ceil_index'] != -1 and b['ceil_percentage'] > 1e-9:
-                membership[b['ceil_index'], i] += b['ceil_percentage']
+
+        # If we are working on a subset, the clusters store global indices.
+        # We must reverse-map them to local indices (0 to N-1) to safely build this array.
+        if pop_indices is not None:
+            g2l = {global_idx: local_idx for local_idx, global_idx in enumerate(pop_indices)}
+
+            for cluster in clusters:
+                for zone in cluster.zones:
+                    if len(zone.ids) > 0:
+                        local_ids = [g2l[i] for i in zone.ids]
+                        membership[local_ids, cluster.label] = 1.0
+                if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
+                    membership[g2l[cluster.floor.index], cluster.label] += cluster.floor.percentage
+                if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
+                    membership[g2l[cluster.ceil.index], cluster.label] += cluster.ceil.percentage
+        else:
+            # Standard execution for the main population (no mapping needed)
+            for cluster in clusters:
+                for zone in cluster.zones:
+                    if len(zone.ids) > 0:
+                        membership[zone.ids, cluster.label] = 1.0
+                if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
+                    membership[cluster.floor.index, cluster.label] += cluster.floor.percentage
+                if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
+                    membership[cluster.ceil.index, cluster.label] += cluster.ceil.percentage
+
         return membership
 
     def plot(
-        self,
+            self,
             mode: Literal['soft', 'hard'],
             ax: plt.Axes | None = None,
             background_gdf=None,
@@ -391,28 +480,32 @@ class FIPBalancedNMeans:
             connect_centroids: bool = False,
             size_scale: float = 1000.0,
             figsize: tuple[int, int] = (8, 6),
-            dpi: int = 100
+            dpi: int = 100,
+            # Added: control over zone plotting when fitting_zones is active
+            show_zone_sub_hulls: bool = True,
+            show_zone_labels: bool = True
     ) -> plt.Axes:
-        """
-        Plot the clustering result.
-
-        Args:
-            show_centroids: If True, plots centroids as black triangles.
-            connect_centroids: If True, connects centroids with a dashed line
-                               (Order: TSP path in Soft mode; Label ID in Hard mode).
-        """
 
         def _draw_hull(points: np.ndarray, color: str, alpha: float, edge_color: str, lw: float):
             if points.shape[0] < 3:
                 return None
             try:
                 hull = ConvexHull(points)
-                verts = points[hull.vertices]
+                vertices = points[hull.vertices]
             except (QhullError, ValueError):
                 return None
-            ax.add_patch(Polygon(verts, closed=True, facecolor=color, alpha=alpha,
-                                edgecolor=edge_color, lw=lw))
-            return verts.mean(axis=0)
+            ax.add_patch(Polygon(vertices, closed=True, facecolor=color, alpha=alpha,
+                                 edgecolor=edge_color, lw=lw, zorder=1))
+            return vertices.mean(axis=0)
+
+        def _draw_zone_centroid_label(points: np.ndarray, label: int):
+            if points.shape[0] == 0:
+                return
+            # Use geometric mean of all points in the zone
+            centroid = points.mean(axis=0)
+            ax.text(centroid[0], centroid[1], str(label+1),
+                    size=20, weight='bold', color='black',
+                    horizontalalignment='center', verticalalignment='center', zorder=10)
 
         if ax is None:
             _, ax = plt.subplots(figsize=figsize, dpi=dpi)
@@ -420,122 +513,137 @@ class FIPBalancedNMeans:
         if background_gdf is not None:
             background_gdf.plot(ax=ax, color="white", edgecolor="black", linewidth=1.5, zorder=0)
 
-        # Build cluster data list
-        cluster_data = []
+        # Structure data list (adjusted to handle zones)
+        formatted_cluster_data = []
 
         if mode == 'hard':
             if self.labels is None: raise ValueError("Model not fitted yet.")
             for i in range(self.n):
                 idx = np.where(self.labels == i)[0]
-                cluster_data.append({
-                    'indices': idx,
-                    'shares': np.ones(len(idx), dtype=float),
-                    'border_indices': np.array([], dtype=int)
+                formatted_cluster_data.append({
+                    'parent_color': None,  # assigned later
+                    'free_points': {'indices': idx, 'shares': np.ones(len(idx), dtype=float)},
+                    'border_points': {'indices': np.array([], dtype=int), 'shares': np.array([], dtype=float)},
+                    'zones': []
                 })
         else:
-            if self.clusters is None: raise ValueError("Model not fitted yet.")
-            for c_info in self.clusters:
-                indices, shares, border_indices = [], [], []
+            if self.clusters is None:
+                raise ValueError("Model not fitted yet.")
+            for cluster in self.clusters:
+                # 1. Identify "Internal" (free) points of the parent cluster
+                # In your fit_zones logic, these are the original IDs minus parent borders.
+                zone_ids = [idx for z in cluster.zones for idx in z.ids]
+                free_ids = np.array(zone_ids, dtype=int)
 
-                if len(c_info['free']) > 0:
-                    indices.extend(c_info['free'])
-                    shares.extend([1.0] * len(c_info['free']))
+                # 2. Extract border info (remains untouched by zones)
+                border_indices = []
+                border_shares = []
+                if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
+                    border_indices.append(cluster.floor.index)
+                    border_shares.append(cluster.floor.percentage)
+                if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
+                    border_indices.append(cluster.ceil.index)
+                    border_shares.append(cluster.ceil.percentage)
 
-                b = c_info['border']
-                if b['floor_index'] != -1 and b['floor_percentage'] > 1e-9:
-                    indices.append(b['floor_index'])
-                    shares.append(b['floor_percentage'])
-                    border_indices.append(b['floor_index'])
+                # 3. Handle specific zone-level points (subpopulation indices)
+                zones_list = []
+                # Only use individual zone details if fit_zones was actually called (len > 1)
+                # and we want to draw sub-convex hulls.
+                if len(cluster.zones) > 1 and show_zone_sub_hulls:
+                    for z in cluster.zones:
+                        z_indices = np.array(z.ids, dtype=int)
+                        zones_list.append({
+                            'indices': z_indices,
+                            'shares': np.ones(len(z_indices), dtype=float),
+                            'label': z.label
+                        })
 
-                if b['ceil_index'] != -1 and b['ceil_percentage'] > 1e-9:
-                    indices.append(b['ceil_index'])
-                    shares.append(b['ceil_percentage'])
-                    border_indices.append(b['ceil_index'])
-
-                cluster_data.append({
-                    'indices': np.array(indices, dtype=int),
-                    'shares': np.array(shares, dtype=float),
-                    'border_indices': np.array(border_indices, dtype=int)
+                formatted_cluster_data.append({
+                    'parent_color': None,
+                    'free_points': {'indices': free_ids, 'shares': np.ones(len(free_ids), dtype=float)},
+                    'border_points': {'indices': np.array(border_indices, dtype=int),
+                                      'shares': np.array(border_shares, dtype=float)},
+                    'zones': zones_list
                 })
 
-        k = len(cluster_data)
+        k = len(formatted_cluster_data)
 
         # 1. Calculate Weighted Centroids (used for color sorting AND plotting)
         centroids = np.full((k, 2), np.nan, float)
 
-        for i, c_data in enumerate(cluster_data):
-            if len(c_data['indices']) == 0: continue
-            pts = self.population.coords[c_data['indices']]
-            w   = self.population.probs[c_data['indices']] * c_data['shares']
-            s   = float(w.sum())
-            centroids[i] = (pts * w[:, None]).sum(axis=0) / s if s > 0 else pts.mean(axis=0)
+        for i, c_data in enumerate(formatted_cluster_data):
+            all_indices = np.concatenate([c_data['free_points']['indices'], c_data['border_points']['indices']])
+            if len(all_indices) == 0: continue
 
-        valid = ~np.isnan(centroids).any(axis=1)
+            all_shares = np.concatenate([c_data['free_points']['shares'], c_data['border_points']['shares']])
 
-        # 2. Color Palette & Assignment
-        palette4 = ["#59A14F", "#E15759", "#1F77B4", "#FDD835"]
+            pts = self.population.coords[all_indices]
+            # Probabilities must be adjusted by sharing weights
+            adjusted_probs = self.population.inclusions[all_indices] * all_shares
+            s = float(adjusted_probs.sum())
+            centroids[i] = (pts * adjusted_probs[:, None]).sum(axis=0) / s if s > 0 else pts.mean(axis=0)
+
+        # 2. Spatial Color Assignment (Lexicographical sort)
         palette_seq = [
             "#59A14F", "#E15759", "#1F77B4", "#FDD835",
             "#9467BD", "#8C564B", "#17BECF", "#FF7F0E", "#56B4E9",
             "#EF5350", "#CC79A7", "#FBC02D", "#7F3C8D", "#11A579",
             "#EF5350", "#FFC107"
         ]
-        colors_for_cluster = ["#808080"] * k
 
-        if k == 4 and valid.all():
-            y_mid = np.median(centroids[:, 1])
-            top_idx = np.where(centroids[:, 1] >= y_mid)[0]
-            bot_idx = np.where(centroids[:, 1] <  y_mid)[0]
-
-            if top_idx.size != 2 or bot_idx.size != 2:
-                order_y = np.argsort(-centroids[:, 1])
-                top_idx = order_y[:2]; bot_idx = order_y[2:]
-
-            tl = top_idx[np.argmin(centroids[top_idx, 0])]
-            tr = top_idx[np.argmax(centroids[top_idx, 0])]
-            bl = bot_idx[np.argmin(centroids[bot_idx, 0])]
-            br = bot_idx[np.argmax(centroids[bot_idx, 0])]
-
-            for idx, col in zip([tl, tr, bl, br], palette4):
-                colors_for_cluster[idx] = col
-        else:
-            if valid.any():
-                # Spatial sort for colors
-                order = np.lexsort((centroids[:, 0], -centroids[:, 1]))
+        # Sort spatially (Top-to-bottom, left-to-right)
+        order = np.lexsort((centroids[:, 0], -centroids[:, 1]))
+        for rank, idx in enumerate(order):
+            if rank < len(palette_seq):
+                formatted_cluster_data[idx]['parent_color'] = palette_seq[rank % len(palette_seq)]
             else:
-                order = np.arange(k)
-            for rank, idx in enumerate(order):
-                colors_for_cluster[idx] = palette_seq[rank % len(palette_seq)]
+                formatted_cluster_data[idx]['parent_color'] = "#808080"  # Fallback
 
-        # 3. Draw Clusters
-        for i, c_data in enumerate(cluster_data):
-            if len(c_data['indices']) == 0: continue
+        # 3. Draw Clusters and Zones
+        for i, c_data in enumerate(formatted_cluster_data):
+            c = c_data['parent_color']
+            if c is None: continue  # Skip empty/invalid clusters
 
-            color = colors_for_cluster[i]
-            coords = self.population.coords[c_data['indices']]
-            probs  = self.population.probs[c_data['indices']] * c_data['shares']
+            # --- Draw Internal Points and Soft Hull ---
+            # Use all relevant indices for the main hull
+            all_indices = np.concatenate([c_data['free_points']['indices'], c_data['border_points']['indices']])
+            coords = self.population.coords[all_indices]
+            all_shares = np.concatenate([c_data['free_points']['shares'], c_data['border_points']['shares']])
+            probs = self.population.inclusions[all_indices] * all_shares
 
-            _draw_hull(coords, color=color, alpha=0.20, edge_color="black", lw=1.0)
+            # The overall structure (Soft border shape) is drawn first (Lowest Z-order)
+            _draw_hull(coords, color=c, alpha=0.15, edge_color="black", lw=1.0)
 
+            # --- Draw Internal Zones ---
+            if c_data['zones']:
+                # Plot internal sub-hulls to visualize fit_zones segmentation
+                for zone in c_data['zones']:
+                    if zone['indices'].size > 0:
+                        zone_coords = self.population.coords[zone['indices']]
+                        # Sub-hulls use slightly more opacity to differentiate them
+                        _draw_hull(zone_coords, color=c, alpha=0.35, edge_color="none", lw=0.0)
+
+                        if show_zone_labels:
+                            _draw_zone_centroid_label(zone_coords, zone['label'])
+
+            # --- Draw Points ---
             sizes = probs * size_scale
-
-            if mode == 'soft' and len(c_data['border_indices']) > 0:
-                is_border = np.isin(c_data['indices'], c_data['border_indices'])
-                # Standard points
+            if mode == 'soft' and len(c_data['border_points']['indices']) > 0:
+                is_border = np.isin(all_indices, c_data['border_points']['indices'])
+                # Free points of the parent cluster
                 ax.scatter(coords[~is_border, 0], coords[~is_border, 1],
-                           s=sizes[~is_border], color=color,
+                           s=sizes[~is_border], color=c,
                            edgecolors="none", alpha=1.0, zorder=2)
-                # Border points (Black)
+                # Border points (Black) - Highest Z-order for points
                 ax.scatter(coords[is_border, 0], coords[is_border, 1],
                            s=sizes[is_border], color="black",
                            edgecolors="none", alpha=1.0, zorder=3)
             else:
-                ax.scatter(coords[:, 0], coords[:, 1], s=sizes, color=color,
+                ax.scatter(coords[:, 0], coords[:, 1], s=sizes, color=c,
                            edgecolors="none", alpha=1.0, zorder=2)
 
-        # 4. Handle Centroids Visuals
+        # 4. Handle Centroids Visuals (drawn based on parent centroids)
         if connect_centroids and len(centroids) > 1:
-            # Connect in the order they appear in the list (TSP path order for Soft)
             ax.plot(centroids[:, 0], centroids[:, 1],
                     color="black", linestyle="--", linewidth=1.5, alpha=0.7, zorder=4)
 
@@ -548,5 +656,5 @@ class FIPBalancedNMeans:
         ax.spines["right"].set_visible(False)
         ax.set_xlabel(r"$X_1$")
         ax.set_ylabel(r"$X_2$")
-        ax.set_title(f"FIP Balanced {self.n}-Means {mode.capitalize()} Clustering")
+        ax.set_title(f"FIP Balanced {self.n}-Means {mode.capitalize()} Clustering with Zones")
         return ax

@@ -39,7 +39,7 @@ class KMeansSampler:
         # Store the Population object
         self.population = population
         self.coords = self.population.coords
-        self.probs = self.population.probs
+        self.probs = self.population.inclusions
 
         self.n = n
         self.split_size = split_size
@@ -101,7 +101,7 @@ class KMeansSampler:
         _ = self.all_samples_probs
         _ = self.density
 
-        # Ensure total probability sums to 1 after potential filtering and initial build
+        # Ensure total prob sums to 1 after potential filtering and initial build
         # if np.sum(self.all_samples_probs) > 0:
         #     self.all_samples_probs *= 1 / np.sum(self.all_samples_probs)
 
@@ -280,7 +280,7 @@ class KMeansSampler:
 
                 cluster_index_share = cluster.get_index_share(reduce=False)
                 cluster_index = cluster_index_share[:, 0].astype(int)
-                cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.probs[cluster_index])
+                cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.inclusions[cluster_index])
 
                 if cluster_probs.size == 0:
                     samples[i, j] = -1
@@ -302,7 +302,7 @@ class KMeansSampler:
         for cluster in self.clusters:
             cluster_index_share = cluster.get_index_share(reduce=False)
             cluster_index = cluster_index_share[:, 0].astype(int)
-            cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.probs[cluster_index])
+            cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.inclusions[cluster_index])
 
             if cluster_probs.size == 0:
                 continue
@@ -312,17 +312,17 @@ class KMeansSampler:
 
         pts = sorted(c for c in cuts if 0.0 <= c <= 1.0)
         if not pts:
-            return Design(inclusions=None)
+            return Design(inclusion=None)
         if pts[0] != 0.0:
             pts.insert(0, 0.0)
         if pts[-1] != 1.0:
             pts.append(1.0)
 
-        design = Design(inclusions=None)
+        design = Design(inclusion=None)
 
         last = pts[0]
         for p in pts[1:]:
-            length = round(p - last, 12)  # probability weight for r in this interval
+            length = round(p - last, 12)  # prob weight for r in this interval
             if length <= 0:
                 last = p
                 continue
@@ -333,7 +333,7 @@ class KMeansSampler:
             for cluster in self.clusters:
                 cluster_index_share = cluster.get_index_share(reduce=False)
                 cluster_index = cluster_index_share[:, 0].astype(int)
-                cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.probs[cluster_index])
+                cluster_probs = np.cumsum(cluster_index_share[:, 1] * self.population.inclusions[cluster_index])
 
                 if cluster_probs.size == 0:
                     continue
@@ -345,7 +345,7 @@ class KMeansSampler:
                 ids_in_sample.append(cluster_index[unit_index])
 
             if ids_in_sample:
-                design.push(Sample(length, frozenset(ids_in_sample)))
+                design._push(Sample(length, frozenset(ids_in_sample)))
 
             last = p
 
@@ -360,7 +360,7 @@ class KMeansSampler:
     def all_samples(self) -> NDArray:
         samples_list = []
         for sample_obj in self.design:
-            if len(sample_obj.ids) == self.n and sample_obj.probability > 1e-9:
+            if len(sample_obj.ids) == self.n and sample_obj.prob > 1e-9:
                 samples_list.append(list(sample_obj.ids))
 
         if not samples_list:
@@ -371,8 +371,8 @@ class KMeansSampler:
     def all_samples_probs(self) -> NDArray:
         samples_probs_list = []
         for sample_obj in self.design:
-            if len(sample_obj.ids) == self.n and sample_obj.probability > 1e-9:
-                samples_probs_list.append(sample_obj.probability)
+            if len(sample_obj.ids) == self.n and sample_obj.prob > 1e-9:
+                samples_probs_list.append(sample_obj.prob)
 
         if not samples_probs_list:
             return np.array([])

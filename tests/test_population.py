@@ -16,8 +16,8 @@ def test_population():
         N = int(np.random.choice([100, 150, 200]))
         n = int(np.random.choice([4, 5, 6, 7, 8]))
         num_zone_in_d = int(np.random.choice([2, 3, 4]))
-        coordinates = rng.random_coordinates((N, 2))
-        probabilities = rng.unequal_probabilities(n, N)
+        coordinates = rng.rand_coord((N, 2))
+        probabilities = rng.unequal_inclusions(n, N)
 
         population = gs.sampling.Organizer(
             coordinates,
