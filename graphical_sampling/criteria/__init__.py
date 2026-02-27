@@ -1,4 +1,9 @@
-from .criteria import VarNHT, MoranCriteria, MoranWithPenaltyCriteria
+from .criteria import (
+    Criteria, VarNHT, MoranCriteria, DensityDisparityCriteria, VoronoiCriteria, LocalBalanceCriteria
+)
 
 
-__all__ = ["VarNHT", "MoranCriteria", "MoranWithPenaltyCriteria"]
+__all__ = [
+    'Criteria', 'VarNHT', 'MoranCriteria',
+    'DensityDisparityCriteria', 'VoronoiCriteria', 'LocalBalanceCriteria'
+]

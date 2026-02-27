@@ -3,11 +3,11 @@ import numpy as np
 
 class Population:
     """
-    Represents a population of sampling units, each with a unique identifier,
+    Represents a pop of sampling units, each with a unique identifier,
     2D spatial coordinates, and an associated first-order inclusion prob.
 
     This class is designed for use in sampling designs and provides efficient
-    storage and access to population data using NumPy arrays. It ensures
+    storage and access to pop data using NumPy arrays. It ensures
     specific data types and shapes for its attributes to ensure data integrity
     and optimize performance in sampling operations.
 
@@ -17,15 +17,16 @@ class Population:
         _coords (np.ndarray): A 2D array of float coordinates for each sampling unit (shape (N, 2)).
         _inclusions (np.ndarray): A 1D array of float values representing the
                              first-order inclusion prob for each sampling unit (shape (N,)).
-        _indices (np.ndarray): A 1D array of original population indices (shape (N,)).
+        _indices (np.ndarray): A 1D array of original pop indices (shape (N,)).
     """
 
-    __slots__ = ("_ids", "_coords", "_inclusions", "_indices", "_n")
+    __slots__ = ("_ids", "_coords", "_inclusions", "_variable", "_indices", "_n")
 
     def __init__(
             self,
             coords: np.ndarray,  # shape (N, 2)
             inclusions: np.ndarray,  # shape (N,)
+            variable: np.ndarray | None = None,  # shape (N,) or None
             ids: np.ndarray | None = None,  # shape (N,) or None
             indices: np.ndarray | None = None,  # shape (N,) or None
             n: int | None = None,  # target sample size for normalizing inclusions
@@ -38,17 +39,19 @@ class Population:
                                  (shape (N, 2)).
             inclusions (np.ndarray): A 1D array of float first-order inclusion
                                 probabilities, or raw vector if `n` is provided (shape (N,)).
+            variable (np.ndarray): A 1D array of float values representing the
+                                    variable of interest for each sampling unit (shape (N,)) or None.
             ids (np.ndarray, optional): A 1D array of unique integer identifiers
                                                (shape (N,)). If None (default),
                                                `np.arange(1, N+1)` will be used to generate IDs.
-            indices (np.ndarray, optional): A 1D array of original population indices (shape (N,)).
+            indices (np.ndarray, optional): A 1D array of original pop indices (shape (N,)).
                                                       this is used in the case of subset populations.
             n (int, optional): The desired sample size. If provided, `inclusions` is treated
                                as a vector of weights and normalized into probabilities.
 
         Raises:
             ValueError: If the shapes of `coords` or `inclusions` do not match the
-                        implied population size N, or if `coords` is not (N,2).
+                        implied pop size N, or if `coords` is not (N,2).
         """
         N = coords.shape[0]
 
@@ -61,12 +64,15 @@ class Population:
         if n is not None:
             inclusions = self._normalize_inclusions(inclusions, n)
 
-        # Handle ids being None
+        if not np.all(0 < inclusions) & np.all(inclusions <= 1):
+            raise ValueError("All inclusion probabilities must be in the range (0, 1].")
+
+        # Handle indices being None
         if ids is None:
             _ids_final = np.arange(1, N + 1, dtype=np.int64)
         else:
             if ids.ndim != 1 or ids.size != N:
-                raise ValueError("ids must be a 1D array with shape (N,) or None")
+                raise ValueError("indices must be a 1D array with shape (N,) or None")
             _ids_final = np.ascontiguousarray(ids, dtype=np.int64)
 
         if indices is None:
@@ -79,6 +85,7 @@ class Population:
         self._ids = _ids_final
         self._coords = np.ascontiguousarray(self._normalize_coords(coords), dtype=np.float64)
         self._inclusions = np.ascontiguousarray(inclusions, dtype=np.float64)
+        self._variable = np.ascontiguousarray(variable, dtype=np.float64)
         self._indices = _indices_final
         self._n = n if n is not None else int(np.sum(self._inclusions))
 
@@ -96,9 +103,9 @@ class Population:
         n_null = np.sum(raw_inclusions == 0)
 
         if n_null > 0:
-           ValueError("There are zero values in the initial weights.")
+            raise ValueError("There are zero values in the initial weights.")
         if n_neg > 0:
-            ValueError(f"There are {n_neg} negative value(s) shifted to zero.")
+            raise ValueError(f"There are {n_neg} negative value(s) shifted to zero.")
 
         total_weight = np.sum(raw_inclusions)
         if total_weight == 0:
@@ -164,6 +171,14 @@ class Population:
     @property
     def inclusions(self) -> np.ndarray:
         view = self._inclusions.view()
+        view.flags.writeable = False
+        return view
+
+    @property
+    def variable(self) -> np.ndarray | None:
+        if self._variable is None:
+            return None
+        view = self._variable.view()
         view.flags.writeable = False
         return view
 

@@ -64,13 +64,13 @@ class BaseZoneBuilder(ABC):
     def build_zones(self, population: Population, index_share: np.ndarray) -> List[Zone]:
         """
         Abstract method to be implemented by subclasses for specific zone generation logic.
-        This method should take the `index_share` array representing the subset of population
+        This method should take the `index_share` array representing the subset of pop
         units and their current shares within that subset, and return a list of Zones.
 
         Args:
             population (Population): The overall Population object currently being processed.
             index_share (np.ndarray): A 2D NumPy array where the first column contains
-                                      the 0-based original population indices of units
+                                      the 0-based original pop indices of units
                                       and the second column contains their corresponding
                                       shares within the current subset.
         """
@@ -91,7 +91,7 @@ class ClusteringZoneBuilder(BaseZoneBuilder):
 
         Args:
             n_zones (int): The total number of zones to create by clustering
-                                       within the given subset of population units.
+                                       within the given subset of pop units.
             split_size (float): Parameter for AuxiliaryBalancedKMeans, controlling the
                                  size of auxiliary splits.
         """
@@ -109,7 +109,7 @@ class ClusteringZoneBuilder(BaseZoneBuilder):
         Args:
             population (Population): The overall Population object currently being processed.
             index_share (np.ndarray): A 2D NumPy array where the first column contains
-                                      the 0-based original population indices of units
+                                      the 0-based original pop indices of units
                                       and the second column contains their current shares
                                       within the subset being zoned.
 
@@ -124,11 +124,11 @@ class ClusteringZoneBuilder(BaseZoneBuilder):
 
         # If only one zone is requested or there are no units to zone_cluster, return a single zone
         if self._n_zones == 1:
-            # stabilized_zis = self._numerical_stabilizer(population, index_share)
+            # stabilized_zis = self._numerical_stabilizer(pop, index_share)
             zone_id = self._get_next_zone_id()
             return [Zone(id=zone_id, _pop=population, _index_share=index_share)]
 
-        # Extract original population indices and shares for clustering
+        # Extract original pop indices and shares for clustering
         indices = index_share[:, 0].astype(np.int64)
         shares = index_share[:, 1]
 
@@ -136,7 +136,7 @@ class ClusteringZoneBuilder(BaseZoneBuilder):
         upb_kmeans.fit(population.subset(indices, shares))
 
         # Prepare the data structure required for building zones,
-        # which includes the indices of population units and their membership shares.
+        # which includes the indices of pop units and their membership shares.
         # zones_index_share = generate_index_shares(self._n_zones, upb_kmeans.membership, indices)
 
         zones: List[Zone] = []
@@ -197,7 +197,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
         Args:
             population (Population): The overall Population object currently being processed.
             index_share (np.ndarray): A 2D NumPy array where the first column contains
-                                      the 0-based original population indices of units
+                                      the 0-based original pop indices of units
                                       and the second column contains their current shares
                                       within the subset being zoned.
 
@@ -212,7 +212,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
         num_rows, num_cols = self._n_zones
         total_target_zones = num_rows * num_cols
 
-        # Extract original population indices from the input index_share
+        # Extract original pop indices from the input index_share
         index = index_share[:, 0].astype(np.int64)
 
         # Sort units by X-coordinate for the first sweep
@@ -241,7 +241,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
             if v_seg_index_share.size == 0:
                 continue
 
-            # Extract original population indices for this vertical segment
+            # Extract original pop indices for this vertical segment
             v_seg_pop_indices = v_seg_index_share[:, 0].astype(np.int64)
 
             # Sort units within this vertical segment by Y-coordinate for the second sweep
@@ -264,7 +264,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
                 # The indices for the zone are in the first column
                 pop_indices_for_zone = h_seg_index_share[:, 0].astype(np.int64)
 
-                # stabilized_zis = self._numerical_stabilizer(population, zis)
+                # stabilized_zis = self._numerical_stabilizer(pop, zis)
 
                 zone_id = self._get_next_zone_id()
 
@@ -284,7 +284,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
             sorted_index_share (np.ndarray): A 2D NumPy array similar to `index_share`,
                                              but where the units are sorted along a
                                              specific spatial coordinate (e.g., X or Y).
-                                             The first column is original population indices,
+                                             The first column is original pop indices,
                                              second is share.
             threshold (float): The target cumulative share for each sweep segment.
                                      Segments are created such that their total share is
@@ -292,7 +292,7 @@ class SweepingZoneBuilder(BaseZoneBuilder):
 
         Returns:
             List[np.ndarray]: A list of `index_share` arrays, where each array
-                              contains the population indices and their share
+                              contains the pop indices and their share
                               for one swept segment. Returns an empty list if
                               `sorted_index_share` is empty.
         """
@@ -401,7 +401,7 @@ class ClusterBuilder:
     def build_clusters(self, population: Population) -> Tuple[List[Cluster], np.ndarray, np.ndarray]:
         """
         Builds a list of Cluster objects by first applying balanced n-means
-        clustering to the entire population, and then using the configured
+        clustering to the entire pop, and then using the configured
         ZoneBuilder to create zones within each resulting cluster.
 
         Args:
@@ -414,8 +414,8 @@ class ClusterBuilder:
         """
         self._next_cluster_id = 0  # Reset the cluster ID counter for a new build operation
 
-        # Initialize and fit the AuxiliaryBalancedKMeans model to the population
-        # This step performs the initial division of the population into self._num_clusters
+        # Initialize and fit the AuxiliaryBalancedKMeans model to the pop
+        # This step performs the initial division of the pop into self._num_clusters
         upb_kmeans = UPBalancedKMeans(k=self._n_clusters, split_size=self._split_size)
         upb_kmeans.fit(population)
 
@@ -483,7 +483,7 @@ class NestedClusterBuilder:
     def build_clusters(self, population: Population) -> Tuple[List[Cluster], np.ndarray, np.ndarray]:
         """
         Builds a list of Cluster objects by first applying balanced n-means
-        clustering to the entire population, and then using the configured
+        clustering to the entire pop, and then using the configured
         ZoneBuilder to create zones within each resulting cluster.
 
         Args:
@@ -560,26 +560,26 @@ class NestedClusterBuilder:
 def generate_index_shares(n: int, membership: np.ndarray, source_indices: Optional[np.ndarray] = None) -> List[np.ndarray]:
     """
     Prepares a list of `index_share` arrays, where each array corresponds to a cluster or zone
-    and contains the original population indices and their corresponding membership shares.
+    and contains the original pop indices and their corresponding membership shares.
 
     Args:
         n (int): The number of index_shares to generate.
         membership (np.ndarray): A 2D NumPy array representing the membership of each
-                                 population unit to each cluster, as determined by
+                                 pop unit to each cluster, as determined by
                                  AuxiliaryBalancedKMeans. The rows correspond to
-                                 population unit indices, and columns correspond to cluster labels.
+                                 pop unit indices, and columns correspond to cluster labels.
         source_indices (Optional[np.ndarray]): A 1D NumPy array representing the indices of source.
 
     Returns:
         List[np.ndarray]: A list of NumPy arrays. Each inner array is an `index_share`
                           array for a specific cluster. It has two columns: the first
-                          column contains the original indices of the population units
+                          column contains the original indices of the pop units
                           belonging to that cluster, and the second column contains
                           their membership share (e.g., 1 for full membership in a
                           hard clustering, or a float for soft clustering).
     """
     # Get the row and column indices of non-zero elements in the membership matrix.
-    # 'indices' will contain population unit indices, and 'labels' will contain cluster labels.
+    # 'indices' will contain pop unit indices, and 'labels' will contain cluster labels.
     indices, labels = np.nonzero(membership)
     index_shares = []
 
@@ -587,18 +587,18 @@ def generate_index_shares(n: int, membership: np.ndarray, source_indices: Option
 
     # Iterate through each cluster to gather its members and their shares
     for i in range(n):
-        # Create a boolean mask to select population units that belong to the current cluster (i)
+        # Create a boolean mask to select pop units that belong to the current cluster (i)
         mask = (labels == i)
 
-        # Get the population indices that are part of the current cluster
+        # Get the pop indices that are part of the current cluster
         masked_indices = indices[mask]
         masked_output_indices = output_indices[mask]
 
-        # Get the membership shares for these specific population units in the current cluster
+        # Get the membership shares for these specific pop units in the current cluster
         # This uses advanced indexing to fetch the share from the original membership matrix
         shares = membership[(masked_indices, i)]
 
-        # Combine the population indices and their membership shares into a 2-column array.
+        # Combine the pop indices and their membership shares into a 2-column array.
         # This `index_share` array is then appended to the list.
         index_shares.append(np.column_stack([masked_output_indices, shares]))
     return index_shares

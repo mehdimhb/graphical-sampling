@@ -15,7 +15,7 @@ from .builder import ClusteringZoneBuilder, SweepingZoneBuilder, ClusterBuilder,
 from .order import Order, LexicoXY, LexicoYX, Random, Angle, DistFromOrigin, Projection, DistFromCentroid, \
     Spiral, MaxCoord, Snake, HilbertCurve, Change  # All OrderStrategy implementations
 from ..design import Design
-from ..index import Density, Moran, LocalBalance, Voronoi
+from ..index import DensityDisparity, Moran, LocalBalance, Voronoi
 
 
 class KMeansSampler:
@@ -34,7 +34,7 @@ class KMeansSampler:
             centroids = None,
     ) -> None:
         if not isinstance(population, Population):
-            raise TypeError("Input 'population' must be an instance of the Population class.")
+            raise TypeError("Input 'pop' must be an instance of the Population class.")
 
         # Store the Population object
         self.population = population
@@ -353,8 +353,8 @@ class KMeansSampler:
         return design
 
     @cached_property
-    def density(self) -> Density:
-        return Density(self.population, self.n, self.split_size, self.labels, self.centroids)
+    def density(self) -> DensityDisparity:
+        return DensityDisparity(self.population, self.n, self.split_size, self.labels, self.centroids)
 
     @cached_property
     def all_samples(self) -> NDArray:

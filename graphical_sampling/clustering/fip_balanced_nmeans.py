@@ -220,14 +220,14 @@ class FIPBalancedNMeans:
 
     def fit_zones(self, num_zones: int) -> None:
         """
-        Splits each existing cluster's population into `num_zones` sub-zones.
+        Splits each existing cluster's pop into `num_zones` sub-zones.
         The borders (floor/ceil) of the parent cluster remain untouched.
         """
         if self.clusters is None:
             raise ValueError("The main clusters have not been fitted yet. Call .fit() first.")
 
         for i, cluster in enumerate(self.clusters):
-            current_ids = cluster.zones[0].ids
+            current_ids = cluster.zones[0].indices
 
             # 1. Safely gather indices and shares, accounting for potential -1 (no border)
             subset_indices = []
@@ -269,7 +269,7 @@ class FIPBalancedNMeans:
 
                 # Gather all indices from the sub-cluster (its zones, floor, and ceil)
                 for z in sc.zones:
-                    sc_indices.extend(z.ids)
+                    sc_indices.extend(z.indices)
                 if sc.floor.index != -1:
                     sc_indices.append(sc.floor.index)
                 if sc.ceil.index != -1:
@@ -286,7 +286,7 @@ class FIPBalancedNMeans:
                                 (not has_ceil or idx != cluster.ceil.index):
                             filtered_ids.append(idx)
 
-                new_zones.append(Zone(label=j, ids=filtered_ids))
+                new_zones.append(Zone(label=j, indices=filtered_ids))
 
             # 5. Replace the parent's single zone with the new partitioned zones
             self.clusters[i].zones = new_zones
@@ -409,7 +409,7 @@ class FIPBalancedNMeans:
             # Extract free indices
             free_indices = full_indices[start_idx: end_idx]
 
-            # Convert internal indices to population indices
+            # Convert internal indices to pop indices
             free_ids = pop_indices[free_indices] if pop_indices is not None else free_indices
             floor_id = pop_indices[prev_border_idx] if (
                         pop_indices is not None and prev_border_idx != -1) else prev_border_idx
@@ -419,7 +419,7 @@ class FIPBalancedNMeans:
             final_clusters.append(
                 Cluster(
                     label=int(order[i]),
-                    zones=[Zone(label=0, ids=free_ids.tolist())],
+                    zones=[Zone(label=0, indices=free_ids.tolist())],
                     floor=Floor(index=int(floor_id), percentage=float(prev_border_remainder)),
                     ceil=Ceil(index=int(ceil_id), percentage=float(frac_curr))
                 )
@@ -451,19 +451,19 @@ class FIPBalancedNMeans:
 
             for cluster in clusters:
                 for zone in cluster.zones:
-                    if len(zone.ids) > 0:
-                        local_ids = [g2l[i] for i in zone.ids]
+                    if len(zone.indices) > 0:
+                        local_ids = [g2l[i] for i in zone.indices]
                         membership[local_ids, cluster.label] = 1.0
                 if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
                     membership[g2l[cluster.floor.index], cluster.label] += cluster.floor.percentage
                 if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
                     membership[g2l[cluster.ceil.index], cluster.label] += cluster.ceil.percentage
         else:
-            # Standard execution for the main population (no mapping needed)
+            # Standard execution for the main pop (no mapping needed)
             for cluster in clusters:
                 for zone in cluster.zones:
-                    if len(zone.ids) > 0:
-                        membership[zone.ids, cluster.label] = 1.0
+                    if len(zone.indices) > 0:
+                        membership[zone.indices, cluster.label] = 1.0
                 if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
                     membership[cluster.floor.index, cluster.label] += cluster.floor.percentage
                 if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
@@ -532,7 +532,7 @@ class FIPBalancedNMeans:
             for cluster in self.clusters:
                 # 1. Identify "Internal" (free) points of the parent cluster
                 # In your fit_zones logic, these are the original IDs minus parent borders.
-                zone_ids = [idx for z in cluster.zones for idx in z.ids]
+                zone_ids = [idx for z in cluster.zones for idx in z.indices]
                 free_ids = np.array(zone_ids, dtype=int)
 
                 # 2. Extract border info (remains untouched by zones)
@@ -551,7 +551,7 @@ class FIPBalancedNMeans:
                 # and we want to draw sub-convex hulls.
                 if len(cluster.zones) > 1 and show_zone_sub_hulls:
                     for z in cluster.zones:
-                        z_indices = np.array(z.ids, dtype=int)
+                        z_indices = np.array(z.indices, dtype=int)
                         zones_list.append({
                             'indices': z_indices,
                             'shares': np.ones(len(z_indices), dtype=float),

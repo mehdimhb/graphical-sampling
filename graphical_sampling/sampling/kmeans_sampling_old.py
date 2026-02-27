@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from . import Organizer
 from ..structs import Sample
 from ..design import Design
-from ..index import Density
+from ..index import DensityDisparity
 
 
 class KMeansSampling:
@@ -91,16 +91,16 @@ class KMeansSampling:
 
     def _has_missed_samples(self, design) -> bool:
         for sample_obj in design:
-            if len(sample_obj.ids) < self.n:
+            if len(sample_obj.indices) < self.n:
                 return True
         return False
 
     def get_num_missed_samples(self, design) -> int:
         k = 0
         for sample_obj in design:
-            if len(sample_obj.ids) < self.n:
+            if len(sample_obj.indices) < self.n:
                 k += 1
-                # print(f'Missed Samples with length {len(sample_obj.ids)}: {sample_obj}')
+                # print(f'Missed Samples with length {len(sample_obj.indices)}: {sample_obj}')
         return k
 
     def _move_border_units_inside_zones(self):
@@ -285,12 +285,12 @@ class KMeansSampling:
 
         return design
 
-    def _build_density(self) -> Density:
+    def _build_density(self) -> DensityDisparity:
         labels = np.argmax(self.popu.dbk.membership, axis=1)
         centroids = np.vstack([
             self.coords[labels == i].mean(axis=0) for i in range(self.n)
         ])
-        return Density(self.coords, self.probs, self.n, self.split_size, labels)
+        return DensityDisparity(self.coords, self.probs, self.n, self.split_size, labels)
 
     def _get_all_samples_with_probs(self):
         samples = []

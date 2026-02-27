@@ -95,7 +95,7 @@ class Zone:
         unit within this zone.
 
         These shares represent the contribution of each unit to the zone's
-        overall index (e.g., proportion of area, population, or index of size).
+        overall index (e.g., proportion of area, pop, or index of size).
 
         Returns:
             np.ndarray: A 1D array of float shares.
@@ -128,7 +128,7 @@ class Zone:
             np.ndarray: A 1D NumPy array of shape (2,) representing the
                         (x, y) coordinates of the zone's arithmetic centroid.
         """
-        # Retrieve coordinates of units within this zone using their population indices and internal _pop
+        # Retrieve coordinates of units within this zone using their pop indices and internal _pop
         pts = self._pop.coords[self.index]
         # Calculate the mean along axis 0 (i.e., mean of x and mean of y)
         return np.mean(pts, axis=0)
@@ -198,7 +198,7 @@ class Cluster:
                 if zone.pop is not self._pop:
                     raise ValueError(
                         "Cluster and all zones within a cluster must refer to the same Population instance. "
-                        f"Zone at index {i} has a different population reference."
+                        f"Zone at index {i} has a different pop reference."
                     )
 
     def __len__(self) -> int:
@@ -271,11 +271,11 @@ class Cluster:
 
     def get_index_share(self, reduce: bool = True) -> IndexShareArray:
         """
-        Aggregates the unit population indices and shares from all constituent
+        Aggregates the unit pop indices and shares from all constituent
         zones within this cluster.
 
         Args:
-            reduce (bool, optional): If True (default), duplicate unit population
+            reduce (bool, optional): If True (default), duplicate unit pop
                                      indices across different zones within the
                                      cluster are merged, and their shares are summed.
                                      If False, a raw vertical concatenation
@@ -371,7 +371,7 @@ class Cluster:
         if aggregated_shares.size == 0:
             return np.array([np.nan, np.nan], dtype=np.float64)
 
-        # Get the unique unit population indices from the first column
+        # Get the unique unit pop indices from the first column
         unique_unit_pop_indices = aggregated_shares[:, 0].astype(np.int64)
         # Retrieve coordinates of these unique units using the Population object
         pts = self._pop.coords[unique_unit_pop_indices]

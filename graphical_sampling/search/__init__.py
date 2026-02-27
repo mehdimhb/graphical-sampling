@@ -1,5 +1,3 @@
-from .astar import AStar
-from .bees import Bees
+from .gbfs import GreedyBestFirstSearch
 
-
-__all__ = ["AStar", "Bees"]
+__all__ = ['GreedyBestFirstSearch']

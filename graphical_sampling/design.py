@@ -6,7 +6,8 @@ from matplotlib import pyplot as plt
 
 from .population import Population
 from .structs import MaxHeap, Sample
-from .order import Order  # <-- Import the new Order class
+from .order import Order
+from .index import DensityDisparity, Moran, Voronoi, LocalBalance
 
 
 class Design:
@@ -16,22 +17,36 @@ class Design:
             num_zones: int = 1,
             order: Order | None = None,
     ):
-        self.pop = population
-        self.num_zones = num_zones
-        self.order = order if order is not None else Order.from_indices(population)
-        self.heaps = [MaxHeap() for _ in range(num_zones)]
-        self.rng = np.random.default_rng()
+        self._pop = population
+        self._num_zones = num_zones
+        self._order = order if order is not None else Order.from_indices(population, random=True)
+        self._heaps = [MaxHeap() for _ in range(num_zones)]
+        self._rng = np.random.default_rng()
 
         self._build()
 
-    def copy(self) -> Design:
+        self._all_samples_and_probs: tuple[np.ndarray, np.ndarray] | None = None
+        self._nht_variance: float | None = None
+        self._density_expected_and_variance: tuple[float, float] | None = None
+        self._moran_expected_and_variance: tuple[float, float] | None = None
+        self._voronoi_expected_and_variance: tuple[float, float] | None = None
+        self._local_balance_expected_and_variance: tuple[float, float] | None = None
+
+    def copy(self, new_order: Order | None = None) -> Design:
         new_design = Design.__new__(Design)
 
-        new_design.pop = self.pop
-        new_design.num_zones = self.num_zones
-        new_design.order = self.order
-        new_design.rng = np.random.default_rng()
-        new_design.heaps = [h.copy() for h in self.heaps]
+        new_design._pop = self.pop
+        new_design._num_zones = self.num_zones
+        new_design._order = self.order.copy() if new_order is None else new_order
+        new_design._heaps = [h.copy() for h in self._heaps]
+        new_design._rng = np.random.default_rng()
+
+        new_design._all_samples_and_probs = None
+        new_design._nht_variance = None
+        new_design._density_expected_and_variance = None
+        new_design._moran_expected_and_variance = None
+        new_design._voronoi_expected_and_variance = None
+        new_design._local_balance_expected_and_variance = None
 
         return new_design
 
@@ -80,18 +95,18 @@ class Design:
 
             last_point = point
 
-    def exchange(self, zones: int = 1, random_pull: bool = False, switch_coef: float = 0.5) -> None:
+    def exchange(self, zones: int = 1, random_pull: bool = False, exchange_coef: float = 0.5) -> None:
         if not (0 < zones <= self.num_zones):
             raise ValueError(
                 f"zones_count must be greater than 0 and less than or equal to {self.num_zones}. Got {zones}."
             )
 
-        valid_zones = [i for i, h in enumerate(self.heaps) if len(h) >= 2]
+        valid_zones = [i for i, h in enumerate(self._heaps) if len(h) >= 2]
         if not valid_zones:
             return
 
         actual_count = min(zones, len(valid_zones))
-        selected_zones = self.rng.choice(valid_zones, size=actual_count, replace=False)
+        selected_zones = self._rng.choice(valid_zones, size=actual_count, replace=False)
 
         for zone_idx in selected_zones:
             zone_idx = int(zone_idx)
@@ -103,17 +118,17 @@ class Design:
                 self._push(zone_idx, Sample(r1.prob + r2.prob, r1.ids))
             else:
                 # _switch can now return 2 or 4 items; _push elegantly handles both
-                self._push(zone_idx, *self._switch(r1, r2, switch_coef))
+                self._push(zone_idx, *self._switch(r1, r2, exchange_coef))
 
     def _pull(self, zone_idx: int, random: bool = False) -> Sample:
         if random:
-            return self.heaps[zone_idx].random_pop()
-        return self.heaps[zone_idx].pop()
+            return self._heaps[zone_idx].random_pop()
+        return self._heaps[zone_idx].pop()
 
     def _push(self, zone_idx: int, *args: Sample) -> None:
         for r in args:
             if not r.almost_zero():
-                self.heaps[zone_idx].push(r)
+                self._heaps[zone_idx].push(r)
 
     def _switch(self, r1: Sample, r2: Sample, coef: float = 0.5) -> tuple[Sample, ...]:
         diff1 = list((r1.ids - r2.ids) - self.order.fixed_ids)
@@ -123,8 +138,8 @@ class Design:
             return r1, r2
 
         length = coef * min(r1.prob, r2.prob)
-        n1 = self.rng.choice(diff1)
-        n2 = self.rng.choice(diff2)
+        n1 = self._rng.choice(diff1)
+        n2 = self._rng.choice(diff2)
 
         return (
             Sample(length, r1.ids - {n1} | {n2}),
@@ -136,10 +151,10 @@ class Design:
     def merge_identical(self):
         for i in range(self.num_zones):
             dic = {}
-            for r in self.heaps[i]:
+            for r in self._heaps[i]:
                 dic.setdefault(r.ids, 0.0)
                 dic[r.ids] += r.prob
-            self.heaps[i] = MaxHeap(
+            self._heaps[i] = MaxHeap(
                 initial_heap=[Sample(length, ids) for ids, length in dic.items()]
             )
 
@@ -148,7 +163,7 @@ class Design:
         cmap_names = ['Blues', 'Greens', 'Wistia', 'Oranges', 'Reds', 'Purples']
         plt.figure(figsize=(8, 4.5))
 
-        for zone_idx, heap in enumerate(self.heaps):
+        for zone_idx, heap in enumerate(self._heaps):
             cmap_name = cmap_names[zone_idx % len(cmap_names)]
             cmap = plt.get_cmap(cmap_name)
 
@@ -184,15 +199,118 @@ class Design:
         plt.show()
 
     def __iter__(self) -> Iterator[Sample]:
-        return chain.from_iterable(self.heaps)
+        return chain.from_iterable(self._heaps)
 
     def __len__(self) -> int:
-        return sum(len(h) for h in self.heaps)
+        return sum(len(h) for h in self._heaps)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Design):
             return NotImplemented
-        return self.heaps == other.heaps
+        return self._heaps == other._heaps
 
     def __hash__(self) -> int:
-        return hash(tuple(self.heaps))
+        return hash(tuple(self._heaps))
+
+    # === getters for main properties ===
+
+    @property
+    def pop(self) -> Population:
+        return self._pop
+
+    @property
+    def num_zones(self) -> int:
+        return self._num_zones
+
+    @property
+    def order(self) -> Order:
+        return self._order
+
+    # === Cached properties for scores and samples/probs ===
+
+    @property
+    def all_samples_and_probs(self) -> tuple[np.ndarray, np.ndarray]:
+        if self._all_samples_and_probs is not None:
+            return self._all_samples_and_probs
+
+        all_samples = []
+        all_prob = []
+
+        for sample in self:
+            all_samples.append(list(sample.ids))
+            all_prob.append(sample.prob)
+
+        samples_array = np.array(all_samples, dtype=np.int64)
+        probs_array = np.array(all_prob, dtype=np.float32)
+
+        if probs_array.size > 0:
+            probs_array *= 1.0 / probs_array.sum()
+
+        self._all_samples_and_probs = (samples_array, probs_array)
+        return self._all_samples_and_probs
+
+    @property
+    def nht_variance(self) -> float:
+        if self._nht_variance is not None:
+            return self._nht_variance
+
+        samples, samples_probs = self.all_samples_and_probs
+
+        nht_values = self.pop.variable[samples] / self.pop.inclusions[samples]
+        nht_estimator = np.sum(nht_values, axis=1)
+
+        true_total = self.pop.variable.sum()
+        variance = np.sum(((nht_estimator - true_total) ** 2) * samples_probs)
+
+        self._nht_variance = variance.item()
+        return self._nht_variance
+
+    def _expected_and_variance(self, scores: np.ndarray) -> tuple[float, float]:
+        samples, samples_probs = self.all_samples_and_probs
+        expected_score = np.sum(scores * samples_probs)
+        variance_score = np.sum(((scores - expected_score) ** 2) * samples_probs)
+        return expected_score.item(), variance_score.item()
+
+    @property
+    def density_disparity(self) -> tuple[float, float]:
+        if self._density_expected_and_variance is not None:
+            return self._density_expected_and_variance
+
+        samples, _ = self.all_samples_and_probs
+        self._density_expected_and_variance = self._expected_and_variance(
+            DensityDisparity(self.pop).score(samples)
+        )
+        return self._density_expected_and_variance
+
+    @property
+    def moran(self) -> tuple[float, float]:
+        if self._moran_expected_and_variance is not None:
+            return self._moran_expected_and_variance
+
+        samples, _ = self.all_samples_and_probs
+        self._moran_expected_and_variance = self._expected_and_variance(
+            Moran(self.pop).score(samples)
+        )
+        return self._moran_expected_and_variance
+
+    @property
+    def voronoi(self) -> tuple[float, float]:
+        if self._voronoi_expected_and_variance is not None:
+            return self._voronoi_expected_and_variance
+
+        samples, _ = self.all_samples_and_probs
+        self._voronoi_expected_and_variance = self._expected_and_variance(
+            Voronoi(self.pop).score(samples)
+        )
+        return self._voronoi_expected_and_variance
+
+    @property
+    def local_balance(self) -> tuple[float, float]:
+        if self._local_balance_expected_and_variance is not None:
+            return self._local_balance_expected_and_variance
+
+        samples, _ = self.all_samples_and_probs
+        self._local_balance_expected_and_variance = self._expected_and_variance(
+            LocalBalance(self.pop).score(samples)
+        )
+        return self._local_balance_expected_and_variance
