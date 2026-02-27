@@ -7,20 +7,18 @@ from sklearn.neighbors import KernelDensity
 from joblib import Parallel, delayed
 
 
-class Density:
+class DensityDisparity:
     def __init__(
             self,
             population,
-            n: int,
             n_jobs: int = -1,
             clustering_tol: float = 1e-9,
             clustering_max_iter: int = 100,
             kde_rtol: float = 1e-4
     ):
-        self.population = population
-        self.n = n
-        self.coords = population.coords
-        self.probs = population.inclusions
+        self.pop = population
+        self.coords = self.pop.coords
+        self.probs = self.pop.inclusions
 
         self.n_jobs = n_jobs
         self.clustering_tol = clustering_tol
@@ -67,11 +65,11 @@ class Density:
 
         # 1. Clustering per sample (Using the raw_sample as initial centroids)
         fbn = FIPBalancedNMeans(
-            n=self.n,
+            n=self.pop.n,
             tol=self.clustering_tol,
             max_iter=self.clustering_max_iter,
         )
-        fbn.fit(self.population, init_centroids=raw_sample)
+        fbn.fit(self.pop, init_centroids=raw_sample)
         labels = fbn.labels
         centroids = fbn.centroids
 
@@ -84,7 +82,7 @@ class Density:
         translations = assigned_sample - centroids
         translated_coords = self.coords + translations[labels]
 
-        # 4. Second KDE: Density of the translated coordinates
+        # 4. Second KDE: DensityDisparity of the translated coordinates
         translated_density = self._density(translated_coords)
 
         # 5. Score Calculation
