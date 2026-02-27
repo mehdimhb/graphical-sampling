@@ -2,6 +2,8 @@ import heapq
 from itertools import chain, count
 from typing import Generator
 
+from joblib import Parallel, delayed
+
 from ..design import Design
 from ..criteria import Criteria
 
@@ -77,14 +79,15 @@ class GreedyBestFirstSearch:
             num_zone_changes: int,
             random_pull: bool,
             exchange_coef: float,
+            num_explore: int = 1,
+            n_jobs: int = -1
     ) -> None:
         closed_set = set()
         open_set = []  # Min-heap of (criteria_value, counter, type_str, design)
 
-        # Dynamic logging interval: print progress roughly 10 times per run
         log_interval = max(1, max_iterations // 10)
-
-        print(f"--- Starting GBFS: Max Iterations={max_iterations}, Initial Designs={len(self.initial_designs)} ---")
+        print(
+            f"--- Starting Parallel GBFS: Max Iterations={max_iterations}, Batch Size={num_explore}, Workers={n_jobs} ---")
 
         # Initialize Open Set and Top K
         for design in self.initial_designs:
@@ -99,34 +102,64 @@ class GreedyBestFirstSearch:
                 print(f"Search exhausted at iteration {iteration}: Open set is empty.")
                 break
 
-            # Periodic status update
             if iteration % log_interval == 0:
                 print(
                     f"Iter {iteration:5d}/{max_iterations} | Best: {self.best_criteria_value:.4f} | Open: {len(open_set):5d} | Closed: {len(closed_set):5d}")
 
-            # Automatically pops the minimum item, progressing the search forward
-            val, _, node_type, current_design = heapq.heappop(open_set)
+            # 1. Batch Extraction: Pop up to `num_explore` nodes
+            nodes_to_explore = []
+            for _ in range(num_explore):
+                if not open_set:
+                    break
+                nodes_to_explore.append(heapq.heappop(open_set))
 
-            if current_design in closed_set:
-                continue
+            all_neighbors = []
+            valid_expansion = False
 
-            closed_set.add(current_design)
-
-            neighbors = self._exchange_neighbors(
-                current_design, num_new_exchange_nodes, num_zones, num_changes, random_pull, exchange_coef
-            )
-
-            if node_type == 'order_change':
-                order_neighbors = self._order_neighbors(
-                    current_design, num_new_order_nodes, num_clusters, num_zones, num_changes, num_zone_changes
-                )
-                neighbors = chain(neighbors, order_neighbors)
-
-            for new_type, new_design in neighbors:
-                if new_design in closed_set:
+            # 2. Sequential Neighbor Generation
+            # (Generating designs is usually fast; it's the criteria evaluation that is slow)
+            for val, _, node_type, current_design in nodes_to_explore:
+                if current_design in closed_set:
                     continue
 
-                new_val = self.criteria(new_design)
+                valid_expansion = True
+                closed_set.add(current_design)
+
+                neighbors = self._exchange_neighbors(
+                    current_design, num_new_exchange_nodes, num_zones, num_changes, random_pull, exchange_coef
+                )
+
+                if node_type == 'order_change':
+                    order_neighbors = self._order_neighbors(
+                        current_design, num_new_order_nodes, num_clusters, num_zones, num_changes, num_zone_changes
+                    )
+                    neighbors = chain(neighbors, order_neighbors)
+
+                all_neighbors.extend(neighbors)
+
+            # Skip the rest of the loop if all popped nodes were already closed
+            if not valid_expansion:
+                continue
+
+            # 3. Deduplication: Prevent redundant evaluations in the same batch
+            unique_neighbors = {}
+            for new_type, new_design in all_neighbors:
+                if new_design not in closed_set and new_design not in unique_neighbors:
+                    unique_neighbors[new_design] = new_type
+
+            if not unique_neighbors:
+                continue
+
+            designs_to_eval = list(unique_neighbors.keys())
+
+            # 4. Parallel Criteria Evaluation
+            criteria_values = Parallel(n_jobs=n_jobs)(
+                delayed(self.criteria)(design) for design in designs_to_eval
+            )
+
+            # 5. Process Results
+            for new_design, new_val in zip(designs_to_eval, criteria_values):
+                new_type = unique_neighbors[new_design]
 
                 # Update Global Best
                 if new_val < self.best_criteria_value:
@@ -143,7 +176,6 @@ class GreedyBestFirstSearch:
 
             # --- Lazy Pruning ---
             if len(open_set) > max_open_set_size * 2:
-                # print(f"  [-] Pruning open set from {len(open_set)} to {max_open_set_size}") # Uncomment if you want to track memory management
                 open_set = heapq.nsmallest(max_open_set_size, open_set)
                 heapq.heapify(open_set)
 
