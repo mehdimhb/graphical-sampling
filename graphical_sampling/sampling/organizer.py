@@ -378,10 +378,10 @@ class Organizer:
                 marker="X",
                 alpha=0.8,
                 s=100,
-                label=f"Sample {sample_idx + 1}",
+                label=f"_Sample {sample_idx + 1}",
                 zorder=5
             )
-            ax.set_title(f"Sample {sample_idx + 1}")
+            ax.set_title(f"_Sample {sample_idx + 1}")
 
         for ax in axes[n_samples:]:
             fig.delaxes(ax)

@@ -1,11 +1,14 @@
 import heapq
 from itertools import chain, count
-from typing import Generator
+from typing import Generator, Callable, Literal, Any
 
 from joblib import Parallel, delayed
 
 from ..design import Design
 from ..criteria import Criteria
+
+
+PullStrategy = Literal['default', 'random', 'largest']
 
 
 class GreedyBestFirstSearch:
@@ -23,12 +26,18 @@ class GreedyBestFirstSearch:
         self.best_criteria_value = self.criteria(best_initial)
 
     @staticmethod
+    def _get(x: Any | Callable, iteration: int) -> Any:
+        if isinstance(x, Callable):
+            return x(iteration)
+        return x
+
+    @staticmethod
     def _apply_exchange(
-            design: Design, num_zones: int, num_changes: int, random_pull: bool, exchange_coef: float
+            design: Design, num_zones: int, num_changes: int, pull_strategy: PullStrategy, exchange_coef: float
     ) -> Design:
         new_design = design.copy()
         for _ in range(num_changes):
-            new_design.exchange(zones=num_zones, random_pull=random_pull, exchange_coef=exchange_coef)
+            new_design.exchange(partitions=num_zones, pull_strategy=pull_strategy, exchange_coef=exchange_coef)
         return new_design
 
     @staticmethod
@@ -37,7 +46,7 @@ class GreedyBestFirstSearch:
     ) -> Design:
         new_order = design.order.copy()
         new_order.change(num_clusters, num_zones, num_changes, num_zone_changes)
-        return design.copy(new_order)
+        return design.from_order(design.pop, new_order)
 
     def _order_neighbors(
             self, design: Design, num_new_nodes: int, num_clusters: int, num_zones: int, num_changes: int,
@@ -50,10 +59,10 @@ class GreedyBestFirstSearch:
 
     def _exchange_neighbors(
             self, design: Design, num_new_nodes: int, num_zones: int,
-            num_changes: int, random_pull: bool, exchange_coef: float
+            num_changes: int, pull_strategy: PullStrategy, exchange_coef: float
     ) -> Generator[tuple[str, Design], None, None]:
         for _ in range(num_new_nodes):
-            yield 'exchange', self._apply_exchange(design, num_zones, num_changes, random_pull, exchange_coef)
+            yield 'exchange', self._apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef)
 
     def _update_top_k(self, design: Design, criteria_value: float, k: int) -> None:
         """Maintains the top K best designs using a Min-Heap containing negative values."""
@@ -71,14 +80,14 @@ class GreedyBestFirstSearch:
             max_iterations: int,
             max_open_set_size: int,
             top_k: int,
-            num_new_order_nodes: int,
-            num_new_exchange_nodes: int,
-            num_clusters: int,
-            num_zones: int,
-            num_changes: int,
-            num_zone_changes: int,
-            random_pull: bool,
-            exchange_coef: float,
+            num_new_order_nodes: int | Callable[[int], int],
+            num_new_exchange_nodes: int | Callable[[int], int],
+            num_clusters: int | Callable[[int], int],
+            num_zones: int | Callable[[int], int],
+            num_changes: int | Callable[[int], int],
+            num_zone_changes: int | Callable[[int], int],
+            pull_strategy: PullStrategy = 'default',
+            exchange_coef: float = 0.75,
             num_explore: int = 1,
             n_jobs: int = -1
     ) -> None:
@@ -126,12 +135,21 @@ class GreedyBestFirstSearch:
                 closed_set.add(current_design)
 
                 neighbors = self._exchange_neighbors(
-                    current_design, num_new_exchange_nodes, num_zones, num_changes, random_pull, exchange_coef
-                )
+                    current_design,
+                    self._get(num_new_exchange_nodes, iteration),
+                    self._get(num_zones, iteration),
+                    self._get(num_changes, iteration),
+                    self._get(pull_strategy, iteration),
+                    self._get(exchange_coef, iteration))
 
                 if node_type == 'order_change':
                     order_neighbors = self._order_neighbors(
-                        current_design, num_new_order_nodes, num_clusters, num_zones, num_changes, num_zone_changes
+                        current_design,
+                        self._get(num_new_order_nodes, iteration),
+                        self._get(num_clusters, iteration),
+                        self._get(num_zones, iteration),
+                        self._get(num_changes, iteration),
+                        self._get(num_zone_changes, iteration),
                     )
                     neighbors = chain(neighbors, order_neighbors)
 

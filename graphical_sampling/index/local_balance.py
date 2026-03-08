@@ -39,7 +39,7 @@ def _compute_batch_local_balance_numba(coords: np.ndarray, probs: np.ndarray, sa
             for dim in range(dimensions):
                 xd[j, dim + 1] = coords[pop_idx, dim] * prob_factor
 
-        # 2. Iterate through all population units to build the Voronoi domains
+        # 2. Iterate through all pop units to build the Voronoi domains
         for i in range(population_size):
             if in_sample[i]:
                 continue
@@ -90,7 +90,7 @@ class LocalBalance:
         self.coords = self.population.coords
         self.probs = self.population.inclusions
 
-        # Precompute the `qq` matrix inverse strictly once for the entire population.
+        # Precompute the `qq` matrix inverse strictly once for the entire pop.
         # This replaces the C++ inefficiency of doing this per sample.
         N = len(self.coords)
         X_aug = np.hstack([np.ones((N, 1)), self.coords])

@@ -1,5 +1,6 @@
 import warnings
 from typing import Literal
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
@@ -178,12 +179,12 @@ class OpenTSPSolver:
 class FIPBalancedNMeans:
     def __init__(self, n: int, n_init=50, tol=1e-9, max_iter=100) -> None:
         self.n = n
-        self.population: Population | None = None
+        self.pop: Population | None = None
         self.labels: np.ndarray | None = None
         self.centroids: np.ndarray | None = None
         self.path_order: np.ndarray | None = None
         self.membership: np.ndarray | None = None
-        self.clusters: list[Cluster] | None = None
+        self.clusters: list[Cluster] = []
         self.tsp_solver = OpenTSPSolver()
 
         self.n_init = n_init
@@ -191,7 +192,7 @@ class FIPBalancedNMeans:
         self.max_iter = max_iter
 
     def fit(self, population: Population, init_centroids: np.ndarray | None = None) -> None:
-        self.population = population
+        self.pop = population
         coords = population.coords
         probs = population.inclusions
         N = len(coords)
@@ -218,78 +219,169 @@ class FIPBalancedNMeans:
             else np.zeros(coords.shape[1]) for i in range(self.n)
         ])
 
-    def fit_zones(self, num_zones: int) -> None:
+    def fit_zones(self, num_zones: int | tuple[int, int], mode: Literal['cluster', 'sweep_xy', 'sweep_yx']) -> None:
         """
-        Splits each existing cluster's pop into `num_zones` sub-zones.
-        The borders (floor/ceil) of the parent cluster remain untouched.
+        Splits each existing cluster's pop into `num_partitions` sub-zones.
+        'num_partitions' should be int in case of 'cluster' mode. in case of 'sweep_xy' or 'sweep_yx' mode,
+        it can be a tuple with first indicating number of zones in x-axis and second indicating number of zones in
+        y-axis. if it is a int then will be interpreted as (num_partitions, num_partitions).
         """
         if self.clusters is None:
             raise ValueError("The main clusters have not been fitted yet. Call .fit() first.")
 
         for i, cluster in enumerate(self.clusters):
-            current_ids = cluster.zones[0].indices
+            # Create subpopulation subset using your sharing logic
+            sp = self.pop.subset(cluster.zones[0].indices)
 
-            # 1. Safely gather indices and shares, accounting for potential -1 (no border)
-            subset_indices = []
-            shares = []
+            if isinstance(num_zones, tuple) and mode == 'cluster':
+                raise ValueError(f"num_partitions must be a 'int' in the mode of cluster, not {type(num_zones)}")
+            elif isinstance(num_zones, int) and mode != 'cluster':
+                num_zones = (num_zones, num_zones)
 
-            has_floor = cluster.floor.index != -1
-            has_ceil = cluster.ceil.index != -1
+            # Replace the parent's single zone with the new partitioned zones
+            if mode == 'cluster':
+                self.clusters[i].zones = self._get_zones_from_fbn(sp, num_zones)
+            elif mode == 'sweep_xy':
+                self.clusters[i].zones = self._get_zones_from_sweeping(sp, num_zones, x_first=True)
+            elif mode == 'sweep_yx':
+                self.clusters[i].zones = self._get_zones_from_sweeping(sp, num_zones, x_first=False)
+            else:
+                raise ValueError(f"Unknown mode '{mode}'. Must be 'cluster' or 'sweep'.")
 
-            if has_floor:
-                subset_indices.append(cluster.floor.index)
-                shares.append(cluster.floor.percentage)
+    def _get_zones_from_fbn(self, subpopulation: Population, num_zones: int) -> list[Zone]:
+        zones_fbn = FIPBalancedNMeans(
+            n=num_zones,
+            n_init=self.n_init,
+            tol=self.tol,
+            max_iter=self.max_iter
+        )
+        zones_fbn.fit(subpopulation)
 
-            subset_indices.extend(current_ids)
-            shares.extend([1.0] * len(current_ids))
+        zones = []
+        for zone in zones_fbn.clusters:
+            sc_indices = []
+            sc_shares = []
 
-            if has_ceil:
-                subset_indices.append(cluster.ceil.index)
-                shares.append(cluster.ceil.percentage)
+            if zone.floor.index != -1:
+                sc_indices.append(zone.floor.index)
+                sc_shares.append(zone.floor.percentage)
 
-            subset_indices = np.array(subset_indices, dtype=int)
-            shares = np.array(shares, dtype=float)
+            for z in zone.zones:
+                for idx, share in zip(z.indices, z.shares):
+                    sc_indices.append(idx)
+                    sc_shares.append(share)
+            if zone.ceil.index != -1:
+                sc_indices.append(zone.ceil.index)
+                sc_shares.append(zone.ceil.percentage)
 
-            # 2. Create subpopulation subset using your sharing logic
-            sp = self.population.subset(subset_indices, share=shares)
-
-            # 3. Fit the subset to get `num_zones` sub-clusters
-            sub_fbn = FIPBalancedNMeans(
-                n=num_zones,
-                n_init=self.n_init,
-                tol=self.tol,
-                max_iter=self.max_iter
+            zones.append(
+                Zone(
+                    _indices=np.array(sc_indices),
+                    _shares=np.array(sc_shares),
+                    sort=np.arange(len(sc_indices)).tolist()
+                )
             )
-            sub_fbn.fit(sp)
 
-            # 4. Extract the new zones, filtering out the parent's floor/ceil
-            new_zones = []
-            for j, sc in enumerate(sub_fbn.clusters):
-                sc_indices = []
+        return zones
 
-                # Gather all indices from the sub-cluster (its zones, floor, and ceil)
-                for z in sc.zones:
-                    sc_indices.extend(z.indices)
-                if sc.floor.index != -1:
-                    sc_indices.append(sc.floor.index)
-                if sc.ceil.index != -1:
-                    sc_indices.append(sc.ceil.index)
+    @staticmethod
+    def _get_zones_indices_share(
+            num_zones: int,
+            indices: np.ndarray,
+            shares: np.ndarray,
+            probs: np.ndarray
+    ) -> list[tuple[np.ndarray, np.ndarray]]:
+        cum_probs = np.cumsum(probs)
+        total_mass = cum_probs[-1]
+        target_mass = total_mass / num_zones
+        thresholds = np.arange(1, num_zones) * target_mass
+        split_indices = np.array(np.searchsorted(cum_probs, thresholds, side='left'))
 
-                # Filter out the parent's border indices to keep them isolated
-                filtered_ids = []
-                seen = set()
-                for idx in sc_indices:
-                    if idx not in seen:
-                        seen.add(idx)
-                        # Only keep the index if it IS NOT the parent's floor or ceil
-                        if (not has_floor or idx != cluster.floor.index) and \
-                                (not has_ceil or idx != cluster.ceil.index):
-                            filtered_ids.append(idx)
+        zones = []
+        start_idx = 0
+        split_idx = -1
+        prev_border_remainder = 0.0
+        prev_border_idx = -1
 
-                new_zones.append(Zone(label=j, indices=filtered_ids))
+        for i in range(num_zones):
+            if i < num_zones - 1:
+                split_idx = split_indices[i]
 
-            # 5. Replace the parent's single zone with the new partitioned zones
-            self.clusters[i].zones = new_zones
+                mass_at_split = cum_probs[split_idx]
+                mass_before = mass_at_split - probs[split_idx]
+                needed = thresholds[i] - mass_before
+                available = probs[split_idx]
+
+                frac_curr = np.clip(needed / available, 0.0, 1.0)
+
+                curr_border_idx = indices[split_idx]
+                end_idx = split_idx
+            else:
+                end_idx = len(indices)
+                frac_curr = 0.0
+                curr_border_idx = -1
+
+            free_ids = indices[start_idx: end_idx]
+            floor_id = prev_border_idx
+            floor_share = prev_border_remainder
+            ceil_id = curr_border_idx
+            ceil_share = frac_curr
+
+            zone_indices = []
+            zone_share = []
+            if floor_id != -1:
+                zone_indices.append(floor_id)
+                zone_share.append(floor_share)
+            zone_indices.extend(free_ids.tolist())
+            zone_share.extend(np.ones_like(free_ids).tolist())
+            if ceil_id != -1:
+                zone_indices.append(ceil_id)
+                zone_share.append(ceil_share)
+            zones.append((np.array(zone_indices), np.array(zone_share) * shares[zone_indices]))
+
+            start_idx = split_idx + 1
+            if curr_border_idx != -1:
+                prev_border_idx = curr_border_idx
+                prev_border_remainder = 1.0 - frac_curr
+                if np.isclose(frac_curr, 1.0):
+                    prev_border_remainder = 0.0
+                    prev_border_idx = -1
+            else:
+                prev_border_idx = -1
+                prev_border_remainder = 0.0
+
+        return zones
+
+
+    def _get_zones_from_sweeping(
+            self, sp: Population, num_zones: tuple[int, int], x_first: bool
+    ) -> list[Zone]:
+        sort = np.argsort(sp.coords[:, 0]) if x_first else np.argsort(sp.coords[:, 1])
+
+        initial_zones = self._get_zones_indices_share(
+            num_zones=num_zones[0] if x_first else num_zones[1],
+            indices=sort,
+            shares=np.ones(len(sort)),
+            probs=sp.inclusions[sort],
+        )
+        final_zones = []
+        for zone_indices, zone_share in initial_zones:
+            sort = np.argsort(sp.coords[zone_indices][:, 1]) if x_first else np.argsort(sp.coords[zone_indices][:, 0])
+            secondary_zones = self._get_zones_indices_share(
+                num_zones=num_zones[1] if x_first else num_zones[0],
+                indices=sort,
+                shares=zone_share,
+                probs=sp.inclusions[zone_indices][sort] * zone_share[sort],
+            )
+            for sec_zone_indices, sec_zone_share in secondary_zones:
+                final_zones.append(
+                    Zone(
+                        _indices=sp.indices[zone_indices][sec_zone_indices],
+                        _shares=sec_zone_share,
+                        sort=np.arange(len(sec_zone_share)).tolist(),
+                    )
+                )
+        return final_zones
 
     def _get_labels_centroids(
             self,
@@ -305,14 +397,14 @@ class FIPBalancedNMeans:
             probs_normalized = probs / probs.sum() * len(coords)
 
             if init_centroids is not None:
-                kmeans = KMeans(
+                k_means = KMeans(
                     n_clusters=self.n,
                     init=init_centroids,
                     tol=self.tol,
                     max_iter=self.max_iter
                 )
-                labels = kmeans.fit_predict(coords, sample_weight=probs_normalized)
-                centroids = kmeans.cluster_centers_
+                labels = k_means.fit_predict(coords, sample_weight=probs_normalized)
+                centroids = k_means.cluster_centers_
                 return labels, centroids
 
             best_error = np.inf
@@ -320,9 +412,9 @@ class FIPBalancedNMeans:
             best_centroids = None
 
             for _ in range(self.n_init):
-                kmeans = KMeans(n_clusters=self.n, n_init=1, tol=self.tol, max_iter=self.max_iter)
-                raw_labels = kmeans.fit_predict(coords, sample_weight=probs_normalized)
-                raw_centroids = kmeans.cluster_centers_
+                k_means = KMeans(n_clusters=self.n, n_init=1, tol=self.tol, max_iter=self.max_iter)
+                raw_labels = k_means.fit_predict(coords, sample_weight=probs_normalized)
+                raw_centroids = k_means.cluster_centers_
 
                 sums = np.array([probs[raw_labels == i].sum() for i in range(self.n)])
                 mean_abs_error = np.abs(sums - 1).sum()
@@ -419,7 +511,9 @@ class FIPBalancedNMeans:
             final_clusters.append(
                 Cluster(
                     label=int(order[i]),
-                    zones=[Zone(label=0, indices=free_ids.tolist())],
+                    zones=[
+                        Zone(_indices=free_ids, _shares=np.ones_like(free_ids), sort=np.arange(len(free_ids)).tolist())
+                    ],
                     floor=Floor(index=int(floor_id), percentage=float(prev_border_remainder)),
                     ceil=Ceil(index=int(ceil_id), percentage=float(frac_curr))
                 )
@@ -481,7 +575,6 @@ class FIPBalancedNMeans:
             size_scale: float = 1000.0,
             figsize: tuple[int, int] = (8, 6),
             dpi: int = 100,
-            # Added: control over zone plotting when fitting_zones is active
             show_zone_sub_hulls: bool = True,
             show_zone_labels: bool = True
     ) -> plt.Axes:
@@ -550,12 +643,12 @@ class FIPBalancedNMeans:
                 # Only use individual zone details if fit_zones was actually called (len > 1)
                 # and we want to draw sub-convex hulls.
                 if len(cluster.zones) > 1 and show_zone_sub_hulls:
-                    for z in cluster.zones:
+                    for zone_index, z in enumerate(cluster.zones):
                         z_indices = np.array(z.indices, dtype=int)
                         zones_list.append({
                             'indices': z_indices,
                             'shares': np.ones(len(z_indices), dtype=float),
-                            'label': z.label
+                            'label': zone_index
                         })
 
                 formatted_cluster_data.append({
@@ -577,9 +670,9 @@ class FIPBalancedNMeans:
 
             all_shares = np.concatenate([c_data['free_points']['shares'], c_data['border_points']['shares']])
 
-            pts = self.population.coords[all_indices]
+            pts = self.pop.coords[all_indices]
             # Probabilities must be adjusted by sharing weights
-            adjusted_probs = self.population.inclusions[all_indices] * all_shares
+            adjusted_probs = self.pop.inclusions[all_indices] * all_shares
             s = float(adjusted_probs.sum())
             centroids[i] = (pts * adjusted_probs[:, None]).sum(axis=0) / s if s > 0 else pts.mean(axis=0)
 
@@ -607,9 +700,9 @@ class FIPBalancedNMeans:
             # --- Draw Internal Points and Soft Hull ---
             # Use all relevant indices for the main hull
             all_indices = np.concatenate([c_data['free_points']['indices'], c_data['border_points']['indices']])
-            coords = self.population.coords[all_indices]
+            coords = self.pop.coords[all_indices]
             all_shares = np.concatenate([c_data['free_points']['shares'], c_data['border_points']['shares']])
-            probs = self.population.inclusions[all_indices] * all_shares
+            probs = self.pop.inclusions[all_indices] * all_shares
 
             # The overall structure (Soft border shape) is drawn first (Lowest Z-order)
             _draw_hull(coords, color=c, alpha=0.15, edge_color="black", lw=1.0)
@@ -619,7 +712,7 @@ class FIPBalancedNMeans:
                 # Plot internal sub-hulls to visualize fit_zones segmentation
                 for zone in c_data['zones']:
                     if zone['indices'].size > 0:
-                        zone_coords = self.population.coords[zone['indices']]
+                        zone_coords = self.pop.coords[zone['indices']]
                         # Sub-hulls use slightly more opacity to differentiate them
                         _draw_hull(zone_coords, color=c, alpha=0.35, edge_color="none", lw=0.0)
 

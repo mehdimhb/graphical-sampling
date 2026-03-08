@@ -23,7 +23,7 @@ def _compute_batch_voronoi_numba(coords: np.ndarray, probs: np.ndarray, samples:
         # Array to hold the accumulated inclusion probabilities for this specific sample
         accumulated_incl = np.zeros(sample_size)
 
-        # For every unit in the population, find the nearest sample unit(s)
+        # For every unit in the pop, find the nearest sample unit(s)
         for i in range(population_size):
             dists_sq = np.zeros(sample_size)
             min_dist_sq = np.inf
@@ -45,7 +45,7 @@ def _compute_batch_voronoi_numba(coords: np.ndarray, probs: np.ndarray, samples:
                 if dists_sq[j] <= min_dist_sq + 1e-11:
                     ties += 1
 
-            # 3. Distribute the population unit's probability to the nearest sample unit(s)
+            # 3. Distribute the pop unit's probability to the nearest sample unit(s)
             prob_share = probs[i] / ties
             for j in range(sample_size):
                 if dists_sq[j] <= min_dist_sq + 1e-11:

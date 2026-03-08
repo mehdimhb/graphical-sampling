@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from typing import List, Tuple, Union, Optional
 
 # Import the new builder classes and entities from their expected relative paths
-from ..structs import Sample
+from ..structs import _Sample
 from ..population import Population
 from ..clustering import UPBalancedKMeans
 from .entity import Zone, Cluster  # Assuming these are in .entity
@@ -345,7 +345,7 @@ class KMeansSampler:
                 ids_in_sample.append(cluster_index[unit_index])
 
             if ids_in_sample:
-                design._push(Sample(length, frozenset(ids_in_sample)))
+                design._push(_Sample(length, frozenset(ids_in_sample)))
 
             last = p
 

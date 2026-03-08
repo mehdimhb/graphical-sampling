@@ -1,12 +1,12 @@
 import heapq
 from dataclasses import dataclass
-from typing import Iterator, Collection, Any
+from typing import Iterator, Any
 
 import numpy as np
 
 
 @dataclass(frozen=True)
-class Sample:
+class _Sample:
     prob: float
     ids: frozenset[int]
 
@@ -14,43 +14,43 @@ class Sample:
         return self.prob < 1e-9
 
     def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, Sample):
+        if not isinstance(other, _Sample):
             return NotImplemented
         return self.ids == other.ids
 
     def __lt__(self, other: Any) -> bool:
-        if not isinstance(other, Sample):
+        if not isinstance(other, _Sample):
             return NotImplemented
         return self.prob < other.prob
 
-    def __neg__(self) -> Sample:
-        return Sample(-self.prob, self.ids)
+    def __neg__(self) -> _Sample:
+        return _Sample(-self.prob, self.ids)
 
     def __hash__(self) -> int:
         return hash(self.ids)
 
 
-class MaxHeap:
+class _MaxHeap:
     def __init__(
         self,
-        initial_heap: Collection[Sample] | None = None
+        initial_heap: list[_Sample] | None = None
     ):
-        self.heap: list[Sample] = []
+        self.heap: list[_Sample] = []
         if initial_heap is not None:
-            self.heap = [-item for item in initial_heap]
+            self.heap = initial_heap
             heapq.heapify(self.heap)
         self.rng = np.random.default_rng()
 
-    def push(self, item: Sample):
+    def push(self, item: _Sample):
         heapq.heappush(self.heap, -item)
 
-    def pop(self) -> Sample:
+    def pop(self) -> _Sample:
         return -heapq.heappop(self.heap)
 
-    def peek(self) -> Sample:
+    def peek(self) -> _Sample:
         return -self.heap[0]
 
-    def random_pop(self) -> Sample:
+    def random_pop(self) -> _Sample:
         idx = self.rng.integers(len(self.heap))
         val = -self.heap[idx]
         self.heap[idx] = self.heap[-1]
@@ -60,8 +60,8 @@ class MaxHeap:
             heapq._siftdown(self.heap, 0, idx)  # type: ignore
         return val
 
-    def copy(self) -> MaxHeap:
-        new_heap = MaxHeap()
+    def copy(self) -> _MaxHeap:
+        new_heap = _MaxHeap()
         new_heap.heap = self.heap[:]
         new_heap.rng = self.rng
         return new_heap
@@ -72,7 +72,7 @@ class MaxHeap:
     def __bool__(self) -> bool:
         return bool(self.heap)
 
-    def __iter__(self) -> Iterator[Sample]:
+    def __iter__(self) -> Iterator[_Sample]:
         return map(lambda x: -x, self.heap)
 
     def __str__(self):
@@ -82,6 +82,6 @@ class MaxHeap:
         return hash(tuple(self.heap))
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, MaxHeap):
+        if not isinstance(other, _MaxHeap):
             return NotImplemented
         return self.heap == other.heap

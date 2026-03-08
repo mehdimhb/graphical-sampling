@@ -76,14 +76,14 @@ class Moran:
         Calculates Moran's I for ALL samples simultaneously using pure matrix operations.
         sample_indicators: 2D array of shape (Population_Size, Number_of_Samples)
         """
-        # Shape reference: N = population size, S = number of samples
+        # Shape reference: N = pop size, S = number of samples
         row_weight_sums = np.sum(spatial_weights, axis=1, keepdims=True)  # Shape: (N, 1)
         total_weight = np.sum(spatial_weights)  # Scalar
 
-        # 1. Weighted Mean Sample -> Shape: (1, S)
+        # 1. Weighted Mean _Sample -> Shape: (1, S)
         weighted_sample_means = np.sum(row_weight_sums * sample_indicators, axis=0, keepdims=True) / total_weight
 
-        # 2. Centered Sample Data -> Shape: (N, S)
+        # 2. Centered _Sample Data -> Shape: (N, S)
         centered_samples = sample_indicators - weighted_sample_means
 
         # 3. Core Matrix Multiplication (W @ z) -> Shape: (N, S)

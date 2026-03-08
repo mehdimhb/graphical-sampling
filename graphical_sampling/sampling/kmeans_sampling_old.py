@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from . import Organizer
-from ..structs import Sample
+from ..structs import _Sample
 from ..design import Design
 from ..index import DensityDisparity
 
@@ -278,7 +278,7 @@ class KMeansSampling:
                 u_idx = np.searchsorted(mapped, mid, side="right")
                 ids.append(int(z.units[u_idx, 0]))
 
-            design._push(Sample(length, frozenset(ids)))
+            design._push(_Sample(length, frozenset(ids)))
             last = p
 
         design.merge_identical()

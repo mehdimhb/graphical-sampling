@@ -1,8 +1,8 @@
-from graphical_sampling.structs import MaxHeap
+from graphical_sampling.structs import _MaxHeap
 
 
 def test_push():
-    h = MaxHeap[int]()
+    h = _MaxHeap[int]()
     h._push(1)
     h._push(2)
     h._push(3)
@@ -13,7 +13,7 @@ def test_push():
 
 
 def test_randompop():
-    h = MaxHeap[int]()
+    h = _MaxHeap[int]()
     h._push(1)
     h._push(2)
     h._push(3)
@@ -28,7 +28,7 @@ def test_randompop():
 
 
 def test_copy():
-    h = MaxHeap[int]()
+    h = _MaxHeap[int]()
     h._push(1)
     h._push(2)
     h._push(3)
@@ -49,7 +49,7 @@ def test_copy():
 
 
 def test_len():
-    h = MaxHeap[int]()
+    h = _MaxHeap[int]()
     assert len(h) == 0
     h._push(1)
     assert len(h) == 1
@@ -66,7 +66,7 @@ def test_len():
 
 
 def test_iter():
-    h = MaxHeap[int]()
+    h = _MaxHeap[int]()
     h._push(1)
     h._push(2)
     h._push(3)
@@ -75,7 +75,7 @@ def test_iter():
 
 
 def test_str():
-    h = MaxHeap[int]()
+    h = _MaxHeap[int]()
     h._push(1)
     h._push(2)
     h._push(3)

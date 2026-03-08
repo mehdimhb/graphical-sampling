@@ -33,7 +33,7 @@ import numpy as np
 rng = np.random.default_rng()
 N = 50  # Population size
 x = rng.random(size=N)  # Auxiliary variable
-n = 5  # Sample size
+n = 5  # _Sample size
 
 # Generate initial inclusion probabilities
 inclusion = rng.random(N)
@@ -46,14 +46,14 @@ astar = gm.search.AStar(initial_design, nht, switch_coefficient=1)
 
 # Display initial criteria and design
 print("Initial criteria value:", astar.initial_criteria_value)
-astar.initial_designs.show()
+astar.initial_designs.plot()
 
 # Run the A* search algorithm to optimize the design
 astar.run(max_iterations=2000, num_new_nodes=10, max_open_set_size=10000, num_changes=1)
 
 # Display results after optimization
 print("Best criteria value:", astar.best_criteria_value)
-astar.best_design.show()
+astar.best_design.plot()
 ```
 
 
