@@ -1,0 +1,48 @@
+[project]
+name = "graphical-sampling"
+version = "0.1.0"
+description = "Python package for Graphical Sampling Method"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "scikit-learn",
+    "scipy",
+    "k-means-constrained>=0.7.5",
+    "package-sampling>=0.3.0",
+    "pandas",
+    "joblib>=1.5.0",
+    "rpy2>=3.6.1",
+    "tqdm>=4.67.1",
+    "numba>=0.63.1",
+    "ipykernel>=6.29.5",
+]
+authors = [
+    { name = "Bardia Panahbehagh", email = "bardia.panah@gmail.com" },
+    { name = "Mehdi Mohebbi", email = "mehdi.mohebbi23@gmail.com" },
+    { name = "AmirMohammad HosseiniNasab", email = "awmirhn@gmail.com" },
+    { name = "Mehdi Hosseini Moghadam", email = "m.h.moghadam1996@gmail.com" }
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "ipywidgets>=8.1.7",
+    "mypy>=1.13.0",
+    "notebook>=7.2.2",
+    "opencv-python>=4.11.0.86",
+    "pytest>=8.3.4",
+    "ruff>=0.7.1",
+    "types-tqdm>=4.66.0.20240417",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["graphical_sampling"]
+
+[tool.ruff]
+extend-exclude = ["*.ipynb"]

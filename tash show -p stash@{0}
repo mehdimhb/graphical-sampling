@@ -1,0 +1,1132 @@
+[1mdiff --git a/simulations/jupyters/increasing_size_three_popu.ipynb b/simulations/jupyters/increasing_size_three_popu.ipynb[m
+[1mindex 569f96d..2e9e74b 100644[m
+[1m--- a/simulations/jupyters/increasing_size_three_popu.ipynb[m
+[1m+++ b/simulations/jupyters/increasing_size_three_popu.ipynb[m
+[36m@@ -384,21 +384,9 @@[m
+  ],[m
+  "metadata": {[m
+   "kernelspec": {[m
+[31m-   "display_name": "graphical-sampling",[m
+[32m+[m[32m   "display_name": "PYTHON FIXED",[m
+    "language": "python",[m
+[31m-   "name": "python3"[m
+[31m-  },[m
+[31m-  "language_info": {[m
+[31m-   "codemirror_mode": {[m
+[31m-    "name": "ipython",[m
+[31m-    "version": 3[m
+[31m-   },[m
+[31m-   "file_extension": ".py",[m
+[31m-   "mimetype": "text/x-python",[m
+[31m-   "name": "python",[m
+[31m-   "nbconvert_exporter": "python",[m
+[31m-   "pygments_lexer": "ipython3",[m
+[31m-   "version": "3.10.12"[m
+[32m+[m[32m   "name": "geo_fix"[m
+   }[m
+  },[m
+  "nbformat": 4,[m
+[1mdiff --git a/simulations/jupyters/measurs_samplings.ipynb b/simulations/jupyters/measurs_samplings.ipynb[m
+[1mindex 37807b4..b71a313 100644[m
+[1m--- a/simulations/jupyters/measurs_samplings.ipynb[m
+[1m+++ b/simulations/jupyters/measurs_samplings.ipynb[m
+[36m@@ -11,9 +11,18 @@[m
+     },[m
+     {[m
+       "cell_type": "code",[m
+[31m-      "execution_count": 2,[m
+[32m+[m[32m      "execution_count": 71,[m
+       "metadata": {},[m
+[31m-      "outputs": [],[m
+[32m+[m[32m      "outputs": [[m
+[32m+[m[32m        {[m
+[32m+[m[32m          "name": "stdout",[m
+[32m+[m[32m          "output_type": "stream",[m
+[32m+[m[32m          "text": [[m
+[32m+[m[32m            "The autoreload extension is already loaded. To reload it, use:\n",[m
+[32m+[m[32m            "  %reload_ext autoreload\n"[m
+[32m+[m[32m          ][m
+[32m+[m[32m        }[m
+[32m+[m[32m      ],[m
+       "source": [[m
+         "%load_ext autoreload\n",[m
+         "%autoreload 2"[m
+[36m@@ -21,7 +30,7 @@[m
+     },[m
+     {[m
+       "cell_type": "code",[m
+[31m-      "execution_count": 3,[m
+[32m+[m[32m      "execution_count": 72,[m
+       "metadata": {},[m
+       "outputs": [],[m
+       "source": [[m
+[36m@@ -33,7 +42,7 @@[m
+     },[m
+     {[m
+       "cell_type": "code",[m
+[31m-      "execution_count": 4,[m
+[32m+[m[32m      "execution_count": 73,[m
+       "metadata": {},[m
+       "outputs": [],[m
+       "source": [[m
+[36m@@ -63,7 +72,7 @@[m
+     },[m
+     {[m
+       "cell_type": "code",[m
+[31m-      "execution_count": 5,[m
+[32m+[m[32m      "execution_count": 74,[m
+       "metadata": {},[m
+       "outputs": [],[m
+       "source": [[m
+[36m@@ -135,7 +144,7 @@[m
+     },[m
+     {[m
+       "cell_type": "code",[m
+[31m-      "execution_count": 6,[m
+[32m+[m[32m      "execution_count": 75,[m
+       "metadata": {},[m
+       "outputs": [],[m
+       "source": [[m
+[36m@@ -193,35431 +202,551 @@[m
+     },[m
+     {[m
+       "cell_type": "code",[m
+[31m-      "execution_count": null,[m
+[32m+[m[32m      "execution_count": 76,[m
+[32m+[m[32m      "metadata": {},[m
+[32m+[m[32m      "outputs": [],[m
+[32m+[m[32m      "source": [[m
+[32m+[m[32m        "if 0 ==1:\n",[m
+[32m+[m[32m        "    # --- High-Efficiency Main Configuration and Loop ---\n",[m
+[32m+[m[32m        "    import os\n",[m
+[32m+[m[32m        "    import warnings\n",[m
+[32m+[m[32m        "    import numpy as np\n",[m
+[32m+[m[32m        "    import pandas as pd\n",[m
+[32m+[m[32m        "    # from tqdm import tqdm\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "    # (Assuming your custom imports like Population, Density, Moran, Voronoi,\n",[m
+[32m+[m[32m        "    # LocalBalance, run_sampling_design, inclusion_probabilities are up here)\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "    # 1. Configuration Switches & Setup\n",[m
+[32m+[m[32m        "    INCLUDE_NMCS_IN_SIM = False  # Use theoretical math for Nmcs to save time\n",[m
+[32m+[m[32m        "    FIND_PIK_EXPLOSION = False\n",[m
+[32m+[m[32m        "    sample_cnt = 5000            # Increased sample count improves simulation stability\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "    pop_names = ['grid_N144_perm', 'clust_N144_perm']\n",[m
+[32m+[m[32m        "    # pop_names = ['swiss']\n",[m
+[32m+[m[32m        "    # n_sizes = [4,5, 15,16, 30,32, 60,64]\n",[m
+[32m+[m[32m        "    n_sizes = [4, 8, 16, 32]\n",[m
+[32m+[m[32m        "    # Silence rpy2 warnings\n",[m
+[32m+[m[32m        "    warnings.filterwarnings(\"ignore\", category=UserWarning, module=\"rpy2\")\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "    # --- Smart Folder Setup ---\n",[m
+[32m+[m[32m        "    data_folder = \"populations\"\n",[m
+[32m+[m[32m        "    for _ in range(3):\n",[m
+[32m+[m[32m        "        if os.path.exists(data_folder):\n",[m
+[32m+[m[32m        "            break\n",[m
+[32m+[m[32m        "        data_folder = \"../\" + data_folder\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "    base_dir = os.path.dirname(data_folder) if os.path.dirname(data_folder) else \".\"\n",[m
+[32m+[m[32m        "    results_folder = os.path.join(base_dir, \"simulations\", \"results\")\n",[m
+[32m+[m[32m        "    os.makedirs(results_folder, exist_ok=True) # Ensure results folder exists\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "    # (Make sure pop_names and n_sizes are defined in your notebook!)\n",[m
+[32m+[m[32m        "    # Example: pop_names = [\"meuse\", \"swiss\", \"rand\"]\n",[m
+[32m+[m[32m        "    # Example: n_sizes = [10]\n",[m
+[32m+[m[32m        "    inclusion = \"unequal\"\n",[m
+[32m+[m[32m        "    for name in pop_names:\n",[m
+[32m+[m[32m        "        for n_size in n_sizes:\n",[m
+[32m+[m[32m        "            n = n_size\n",[m
+[32m+[m[32m        "            # 2. Load and Prep Data\n",[m
+[32m+[m[32m        "            file_path = os.path.join(data_folder, f\"{name}.csv\")\n",[m
+[32m+[m[32m        "            if not os.path.exists(file_path):\n",[m
+[32m+[m[32m        "                print(f\"File not found: {file_path}\")\n",[m
+[32m+[m[32m        "                continue\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            df = pd.read_csv(file_path)\n",[m
+[32m+[m[32m        "            # df = df[0:30]\n",[m
+[32m+[m[32m        "            coords = df[[\"x\", \"y\"]].values.astype(float)\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # Assign target variable and inclusion probabilities\n",[m
+[32m+[m[32m        "            if name == 'meuse':\n",[m
+[32m+[m[32m        "                y_values = df[\"cadmium\"].values\n",[m
+[32m+[m[32m        "                pik = inclusion_probabilities(df[\"copper\"].values, n_size)\n",[m
+[32m+[m[32m        "            elif name == 'swiss':\n",[m
+[32m+[m[32m        "                y_values = df[\"AREA_A\"].values\n",[m
+[32m+[m[32m        "                y_values = y_values.clip(5,100)\n",[m
+[32m+[m[32m        "                p_values = df[\"AREA\"].values.clip(5, 100)\n",[m
+[32m+[m[32m        "                pik = inclusion_probabilities(p_values, n_size)\n",[m
+[32m+[m[32m        "                # print(\"y_value\",y_values)\n",[m
+[32m+[m[32m        "                # print(\"p_value\",p_values)\n",[m
+[32m+[m[32m        "            else:\n",[m
+[32m+[m[32m        "                y_values = df['z.90'].values\n",[m
+[32m+[m[32m        "                pik = inclusion_probabilities(df[\"prob\"].values, n_size)\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            N = len(df)\n",[m
+[32m+[m[32m        "            true_sum_y = np.sum(y_values)\n",[m
+[32m+[m[32m        "            if inclusion == \"equal\":\n",[m
+[32m+[m[32m        "                pik = inclusion_probabilities(np.ones(N), n_size)\n",[m
+[32m+[m[32m        "                rho = 0\n",[m
+[32m+[m[32m        "            else:\n",[m
+[32m+[m[32m        "                rho = np.corrcoef(y_values, pik)[0, 1]\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # # 1. Force probabilities slightly away from absolute 0 and 1\n",[m
+[32m+[m[32m        "            # pik = np.clip(pik, 1e-7, 1 - 1e-7)\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # # 2. Force the array to sum exactly to 'n' to fix floating-point drift\n",[m
+[32m+[m[32m        "            # pik = pik * (n / np.sum(pik))\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            print(f\"\\n--- Processing {name} (N={N}, n={n}, True Total={true_sum_y:.3f}, Rho={rho:.3f}) ---\")\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # --- DEBUG BLOCK: Theoretical SRS Benchmark ---\n",[m
+[32m+[m[32m        "            S2_y = np.var(y_values, ddof=1)\n",[m
+[32m+[m[32m        "            theoretical_srs_var = (N**2) * (1 - n/N) * (S2_y / n)\n",[m
+[32m+[m[32m        "            print(f\"DEBUG: Theoretical SRS Total Variance: {theoretical_srs_var:.2f}\")\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # 3. Setup Metrics (One-time initialization)\n",[m
+[32m+[m[32m        "            pop_wrapped = Population(coords=coords, probs=pik)\n",[m
+[32m+[m[32m        "            scorer_D = Density(population=pop_wrapped, n=n)\n",[m
+[32m+[m[32m        "            scorer_M = Moran(population=pop_wrapped)\n",[m
+[32m+[m[32m        "            scorer_V = Voronoi(population=pop_wrapped)\n",[m
+[32m+[m[32m        "            scorer_L = LocalBalance(population=pop_wrapped)\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # 4. Sampling and Scoring Loop\n",[m
+[32m+[m[32m        "            all_data = []\n",[m
+[32m+[m[32m        "            methods = [\"Wave\", \"Lopi\", \"Scps\", \"Rand\", \"Maxe\",  ]\n",[m
+[32m+[m[32m        "            # methods = [\"Wave\"]\n",[m
+[32m+[m[32m        "            if INCLUDE_NMCS_IN_SIM:\n",[m
+[32m+[m[32m        "                methods.insert(0, \"Nmcs\")\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            for m in methods:\n",[m
+[32m+[m[32m        "                print(f\"Running simulation for {m}...\")\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "                samples, _ = run_sampling_design(m, coords, pik, n, sample_cnt)\n",[m
+[32m+[m[32m        "                print('onja?')\n",[m
+[32m+[m[32m        "                # Vectorized scoring (High Efficiency)\n",[m
+[32m+[m[32m        "                d_scores = scorer_D.score(samples)\n",[m
+[32m+[m[32m        "                m_scores = scorer_M.score(samples)\n",[m
+[32m+[m[32m        "                v_scores = scorer_V.score(samples)\n",[m
+[32m+[m[32m        "                l_scores = scorer_L.score(samples)\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "                # Calculate Estimators\n",[m
+[32m+[m[32m        "                if m == \"Rand\":\n",[m
+[32m+[m[32m        "                    est_scores = N * np.mean(y_values[samples], axis=1)\n",[m
+[32m+[m[32m        "                else:\n",[m
+[32m+[m[32m        "                    est_scores = np.sum(y_values[samples] / pik[samples], axis=1)\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "                # Store results for EVERY iteration\n",[m
+[32m+[m[32m        "                for i in range(sample_cnt):\n",[m
+[32m+[m[32m        "                    if m == 'Wave': # & (i + 1) %  == 0):\n",[m
+[32m+[m[32m        "                        print(f\"    {m}: {i+1} / {sample_cnt} iterations completed\")\n",[m
+[32m+[m[32m        "                    all_data.append([N, n, sample_cnt, rho, m, d_scores[i], v_scores[i], m_scores[i], l_scores[i], est_scores[i]])\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "                    # --- TRACKING RARE EXTREME ESTIMATES ---\n",[m
+[32m+[m[32m        "                    if FIND_PIK_EXPLOSION:\n",[m
+[32m+[m[32m        "                        error_margin = abs(est_scores[i] - true_sum_y) / true_sum_y\n",[m
+[32m+[m[32m        "                        if error_margin > 0.5:\n",[m
+[32m+[m[32m        "                            print(f\"\\n[ALERT] Method: {m} | Iteration: {i}\")\n",[m
+[32m+[m[32m        "                            print(f\"Estimate: {est_scores[i]:.2f} | True Total: {true_sum_y:.2f} | Error: {error_margin:.2%}\")\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "                            bad_sample_idx = samples[i]\n",[m
+[32m+[m[32m        "                            bad_y = y_values[bad_sample_idx]\n",[m
+[32m+[m[32m        "                            bad_pik = pik[bad_sample_idx]\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "                            contributions = bad_y / bad_pik\n",[m
+[32m+[m[32m        "                            culprit_local_idx = np.argmax(contributions)\n",[m
+[32m+[m[32m        "                            culprit_pop_idx = bad_sample_idx[culprit_local_idx]\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "                            print(f\"Sample Indices: {bad_sample_idx}\")\n",[m
+[32m+[m[32m        "                            print(f\"Exploded Unit Index: {culprit_pop_idx} | y: {bad_y[culprit_local_idx]} | pik: {bad_pik[culprit_local_idx]}\")\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # 5. Data Processing & Aggregation\n",[m
+[32m+[m[32m        "            res_df = pd.DataFrame(all_data, columns=[\"N\", \"n\", \"ite\" ,\"rho\", \"Method\", \"D\", \"V\", \"M\", \"L\", \"HT\"])\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # Aggregate simulation results (ignores N, n, rho because we group by Method only on target cols)\n",[m
+[32m+[m[32m        "            summary = res_df.groupby(\"Method\").agg({\n",[m
+[32m+[m[32m        "                \"D\": [\"mean\", \"std\"],\n",[m
+[32m+[m[32m        "                \"V\": [\"mean\", \"std\"],\n",[m
+[32m+[m[32m        "                \"M\": [\"mean\", \"std\"],\n",[m
+[32m+[m[32m        "                \"L\": [\"mean\", \"std\"],\n",[m
+[32m+[m[32m        "                \"HT\": [\"mean\", \"var\"]\n",[m
+[32m+[m[32m        "            })\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # CRITICAL: Force column order before renaming\n",[m
+[32m+[m[32m        "            summary = summary[[\"D\", \"V\", \"M\", \"L\", \"HT\"]]\n",[m
+[32m+[m[32m        "            summary.columns = [\"Dm\", \"Ds\", \"Vm\", \"Vs\", \"Mm\", \"Ms\", \"Lm\", \"Ls\", \"HTm\", \"HTv\"]\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # 6. Inject Theoretical Nmcs row (If available)\n",[m
+[32m+[m[32m        "            theoretical_results = None\n",[m
+[32m+[m[32m        "            if theoretical_results:\n",[m
+[32m+[m[32m        "                t = theoretical_results\n",[m
+[32m+[m[32m        "                summary.loc[\"Nmcs\"] = [\n",[m
+[32m+[m[32m        "                    t['Exp_Density'], t['SD_Density'],\n",[m
+[32m+[m[32m        "                    t['Exp_Voronoi'], t['SD_Voronoi'],\n",[m
+[32m+[m[32m        "                    t['Exp_Moran'], t['SD_Moran'],\n",[m
+[32m+[m[32m        "                    t['Exp_Local'], t['SD_Local'],\n",[m
+[32m+[m[32m        "                    true_sum_y, t['HT_Variance']\n",[m
+[32m+[m[32m        "                ]\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # 7. Final Metrics: RB and Efficiency (Eff)\n",[m
+[32m+[m[32m        "            summary[\"RB\"] = (summary[\"HTm\"] - true_sum_y) / true_sum_y\n",[m
+[32m+[m[32m        "            if \"Rand\" in summary.index:\n",[m
+[32m+[m[32m        "                rand_var = summary.loc[\"Rand\", \"HTv\"]\n",[m
+[32m+[m[32m        "                summary[\"Eff\"] = rand_var / summary[\"HTv\"].replace(0, np.nan)\n",[m
+[32m+[m[32m        "            else:\n",[m
+[32m+[m[32m        "                summary[\"Eff\"] = np.nan\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            summary['rho'] = rho\n",[m
+[32m+[m[32m        "            summary['ite'] = sample_cnt\n",[m
+[32m+[m[32m        "            summary['n'] = n\n",[m
+[32m+[m[32m        "            summary['N'] = N\n",[m
+[32m+[m[32m        "            # Final Table Output formatting\n",[m
+[32m+[m[32m        "            final_cols = ['N', 'n', 'ite','rho', \"HTm\", \"HTv\" ,\"Eff\", \"RB\", \"Dm\", \"Ds\", \"Vm\", \"Vs\", \"Mm\", \"Ms\", \"Lm\", \"Ls\"]\n",[m
+[32m+[m[32m        "            summary = summary.reindex(columns=final_cols)\n",[m
+[32m+[m[32m        "            print(summary.round(3))\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # 8. Save Data\n",[m
+[32m+[m[32m        "            # A. Save individual summary\n",[m
+[32m+[m[32m        "            summary_file = os.path.join(results_folder, f\"summary_{name}_n={n}_corr={rho:.1f}.csv\")\n",[m
+[32m+[m[32m        "            summary.to_csv(summary_file)\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "            # B. Save extended raw iterations (Append Mode)\n",[m
+[32m+[m[32m        "            extended_file = os.path.join(results_folder, \"all_iterations_extended.csv\")\n",[m
+[32m+[m[32m        "            res_df.to_csv(extended_file, mode='a', index=False, header=not os.path.exists(extended_file))\n",[m
+[32m+[m[32m        "\n",[m
+[32m+[m[32m        "    print(\"\\nAll simulations completed and saved!\")"[m
+[32m+[m[32m      ][m
+[32m+[m[32m    },[m
+[32m+[m[32m    {[m
+[32m+[m[32m      "cell_type": "markdown",[m
+[32m+[m[32m      "metadata": {},[m
+[32m+[m[32m      "source": [[m
+[32m+[m[32m        "### Plot some examples"[m
+[32m+[m[32m      ][m
+[32m+[m[32m    },[m
+[32m+[m[32m    {[m
+[32m+[m[32m      "cell_type": "code",[m
+[32m+[m[32m      "execution_count": 111,[m
+       "metadata": {},[m
+       "outputs": [[m
+         {[m
+           "name": "stdout",[m
+           "output_type": "stream",[m
+           "text": [[m
+[31m-            "\n",[m
+[31m-            "--- Processing grid_N144_perm (N=144, n=4, True Total=271.558, Rho=0.016) ---\n",[m
+[31m-            "DEBUG: Theoretical SRS Total Variance: 4952.92\n",[m
+[31m-            "Running simulation for Wave...\n"[m
+[31m-          ][m
+[31m-        },[m
+[31m-        {[m
+[31m-          "name": "stderr",[m
+[31m-          "output_type": "stream",[m
+[31m-          "text": [[m
+[31m-            "R callback write-console: Loading required package: Matrix\n",[m
+[31m-            "  \n"[m
+[32m+[m[32m            "283\n",[m
+[32m+[m[32m            "Selected populations: ['grid_N144_perm', 'rand_N144_perm', 'clust_N144_perm']\n",[m
+[32m+[m[32m            "Selected methods: ['Maxe', 'Wave', 'Lopi']\n",[m
+[32m+[m[32m            "j= 0 pop_name= grid_N144_perm Method= Maxe sample= [ 45  76 117 137]\n",[m
+[32m+[m[32m            "j= 1 pop_name= grid_N144_perm Method= Wave sample= [  7  87 139 141]\n",[m
+[32m+[m[32m            "j= 2 pop_name= grid_N144_perm Method= Lopi sample= [  1  50  56 124]\n",[m
+[32m+[m[32m            "j= 0 pop_name= rand_N144_perm Method= Maxe sample= [ 34  53  69 129]\n",[m
+[32m+[m[32m            "j= 1 pop_name= rand_N144_perm Method= Wave sample= [ 45  94 107 121]\n",[m
+[32m+[m[32m            "j= 2 pop_name= rand_N144_perm Method= Lopi sample= [34 36 40 68]\n",[m
+[32m+[m[32m            "j= 0 pop_name= clust_N144_perm Method= Maxe sample= [ 58  76  95 110]\n",[m
+[32m+[m[32m            "j= 1 pop_name= clust_N144_perm Method= Wave sample= [63 78 79 86]\n",[m
+[32m+[m[32m            "j= 2 pop_name= clust_N144_perm Method= Lopi sample= [ 56  58  97 143]\n"[m
+           ][m
+         },[m
+         {[m
+[31m-          "name": "stdout",[m
+[31m-          "output_type": "stream",[m
+[31m-          "text": [[m
+[31m-            "onja?\n",[m
+[31m-            "    Wave: 1 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 2 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 3 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 4 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 5 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 6 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 7 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 8 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 9 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 10 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 11 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 12 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 13 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 14 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 15 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 16 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 17 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 18 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 19 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 20 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 21 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 22 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 23 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 24 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 25 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 26 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 27 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 28 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 29 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 30 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 31 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 32 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 33 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 34 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 35 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 36 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 37 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 38 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 39 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 40 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 41 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 42 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 43 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 44 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 45 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 46 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 47 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 48 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 49 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 50 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 51 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 52 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 53 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 54 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 55 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 56 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 57 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 58 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 59 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 60 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 61 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 62 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 63 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 64 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 65 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 66 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 67 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 68 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 69 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 70 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 71 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 72 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 73 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 74 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 75 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 76 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 77 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 78 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 79 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 80 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 81 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 82 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 83 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 84 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 85 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 86 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 87 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 88 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 89 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 90 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 91 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 92 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 93 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 94 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 95 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 96 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 97 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 98 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 99 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 100 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 101 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 102 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 103 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 104 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 105 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 106 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 107 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 108 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 109 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 110 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 111 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 112 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 113 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 114 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 115 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 116 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 117 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 118 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 119 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 120 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 121 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 122 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 123 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 124 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 125 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 126 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 127 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 128 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 129 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 130 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 131 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 132 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 133 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 134 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 135 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 136 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 137 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 138 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 139 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 140 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 141 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 142 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 143 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 144 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 145 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 146 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 147 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 148 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 149 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 150 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 151 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 152 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 153 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 154 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 155 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 156 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 157 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 158 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 159 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 160 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 161 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 162 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 163 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 164 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 165 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 166 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 167 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 168 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 169 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 170 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 171 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 172 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 173 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 174 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 175 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 176 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 177 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 178 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 179 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 180 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 181 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 182 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 183 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 184 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 185 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 186 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 187 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 188 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 189 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 190 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 191 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 192 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 193 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 194 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 195 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 196 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 197 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 198 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 199 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 200 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 201 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 202 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 203 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 204 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 205 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 206 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 207 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 208 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 209 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 210 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 211 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 212 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 213 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 214 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 215 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 216 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 217 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 218 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 219 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 220 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 221 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 222 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 223 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 224 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 225 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 226 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 227 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 228 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 229 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 230 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 231 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 232 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 233 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 234 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 235 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 236 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 237 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 238 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 239 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 240 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 241 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 242 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 243 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 244 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 245 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 246 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 247 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 248 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 249 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 250 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 251 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 252 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 253 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 254 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 255 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 256 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 257 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 258 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 259 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 260 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 261 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 262 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 263 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 264 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 265 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 266 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 267 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 268 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 269 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 270 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 271 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 272 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 273 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 274 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 275 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 276 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 277 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 278 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 279 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 280 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 281 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 282 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 283 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 284 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 285 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 286 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 287 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 288 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 289 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 290 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 291 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 292 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 293 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 294 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 295 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 296 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 297 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 298 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 299 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 300 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 301 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 302 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 303 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 304 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 305 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 306 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 307 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 308 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 309 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 310 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 311 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 312 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 313 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 314 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 315 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 316 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 317 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 318 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 319 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 320 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 321 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 322 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 323 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 324 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 325 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 326 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 327 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 328 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 329 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 330 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 331 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 332 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 333 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 334 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 335 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 336 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 337 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 338 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 339 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 340 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 341 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 342 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 343 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 344 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 345 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 346 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 347 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 348 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 349 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 350 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 351 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 352 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 353 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 354 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 355 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 356 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 357 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 358 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 359 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 360 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 361 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 362 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 363 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 364 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 365 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 366 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 367 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 368 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 369 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 370 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 371 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 372 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 373 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 374 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 375 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 376 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 377 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 378 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 379 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 380 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 381 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 382 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 383 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 384 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 385 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 386 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 387 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 388 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 389 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 390 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 391 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 392 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 393 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 394 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 395 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 396 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 397 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 398 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 399 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 400 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 401 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 402 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 403 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 404 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 405 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 406 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 407 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 408 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 409 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 410 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 411 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 412 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 413 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 414 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 415 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 416 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 417 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 418 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 419 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 420 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 421 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 422 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 423 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 424 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 425 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 426 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 427 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 428 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 429 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 430 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 431 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 432 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 433 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 434 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 435 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 436 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 437 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 438 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 439 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 440 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 441 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 442 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 443 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 444 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 445 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 446 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 447 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 448 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 449 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 450 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 451 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 452 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 453 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 454 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 455 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 456 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 457 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 458 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 459 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 460 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 461 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 462 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 463 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 464 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 465 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 466 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 467 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 468 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 469 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 470 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 471 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 472 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 473 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 474 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 475 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 476 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 477 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 478 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 479 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 480 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 481 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 482 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 483 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 484 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 485 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 486 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 487 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 488 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 489 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 490 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 491 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 492 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 493 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 494 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 495 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 496 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 497 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 498 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 499 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 500 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 501 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 502 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 503 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 504 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 505 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 506 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 507 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 508 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 509 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 510 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 511 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 512 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 513 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 514 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 515 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 516 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 517 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 518 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 519 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 520 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 521 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 522 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 523 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 524 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 525 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 526 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 527 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 528 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 529 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 530 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 531 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 532 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 533 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 534 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 535 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 536 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 537 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 538 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 539 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 540 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 541 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 542 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 543 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 544 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 545 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 546 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 547 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 548 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 549 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 550 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 551 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 552 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 553 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 554 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 555 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 556 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 557 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 558 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 559 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 560 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 561 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 562 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 563 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 564 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 565 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 566 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 567 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 568 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 569 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 570 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 571 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 572 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 573 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 574 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 575 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 576 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 577 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 578 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 579 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 580 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 581 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 582 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 583 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 584 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 585 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 586 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 587 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 588 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 589 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 590 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 591 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 592 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 593 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 594 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 595 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 596 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 597 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 598 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 599 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 600 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 601 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 602 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 603 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 604 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 605 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 606 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 607 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 608 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 609 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 610 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 611 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 612 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 613 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 614 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 615 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 616 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 617 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 618 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 619 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 620 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 621 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 622 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 623 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 624 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 625 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 626 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 627 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 628 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 629 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 630 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 631 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 632 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 633 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 634 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 635 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 636 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 637 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 638 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 639 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 640 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 641 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 642 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 643 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 644 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 645 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 646 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 647 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 648 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 649 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 650 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 651 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 652 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 653 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 654 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 655 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 656 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 657 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 658 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 659 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 660 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 661 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 662 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 663 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 664 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 665 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 666 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 667 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 668 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 669 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 670 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 671 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 672 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 673 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 674 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 675 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 676 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 677 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 678 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 679 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 680 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 681 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 682 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 683 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 684 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 685 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 686 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 687 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 688 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 689 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 690 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 691 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 692 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 693 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 694 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 695 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 696 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 697 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 698 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 699 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 700 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 701 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 702 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 703 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 704 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 705 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 706 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 707 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 708 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 709 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 710 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 711 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 712 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 713 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 714 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 715 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 716 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 717 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 718 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 719 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 720 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 721 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 722 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 723 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 724 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 725 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 726 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 727 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 728 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 729 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 730 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 731 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 732 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 733 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 734 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 735 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 736 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 737 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 738 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 739 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 740 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 741 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 742 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 743 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 744 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 745 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 746 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 747 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 748 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 749 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 750 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 751 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 752 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 753 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 754 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 755 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 756 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 757 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 758 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 759 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 760 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 761 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 762 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 763 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 764 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 765 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 766 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 767 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 768 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 769 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 770 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 771 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 772 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 773 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 774 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 775 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 776 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 777 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 778 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 779 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 780 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 781 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 782 / 5000 iterations completed\n",[m
+[31m-            "    Wave: 783 / 5000 iterations completed\n",[m
+[31m- 
