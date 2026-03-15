@@ -172,3 +172,4 @@ temp_*
 *.png
 
 .DS_Store
+*.tar.gz
