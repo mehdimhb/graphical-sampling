@@ -4,8 +4,13 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
+
     "cSpell.words": [
         "newaxis",
         "tophat"
-    ]
+    ],
+
+    "python.defaultInterpreterPath": "/home/bardia/graphical-sampling/.venv/bin/python",
+    "jupyter.jupyterServerType": "local",
+    "python.terminal.activateEnvironment": true
 }
