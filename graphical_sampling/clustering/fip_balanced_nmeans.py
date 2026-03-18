@@ -454,37 +454,49 @@ class FIPBalancedNMeans:
             # --------------------------------------------------
             if self.init_clust_method == "expanded":
                 N = coords.shape[0]
-
+            
                 counts = (probs / self.split_size).round().astype(int)
                 counts[counts == 0] = 1
-
+            
                 expanded_coords = np.repeat(coords, counts, axis=0)
                 expanded_idx = np.repeat(np.arange(N), counts)
-
+            
                 cluster_size = max(1, len(expanded_idx) // self.n)
-
+            
+                # --- grid initialization for centroids ---
+                g = int(np.ceil(np.sqrt(self.n)))
+                grid = np.linspace(coords.min(), coords.max(), g)
+            
+                gx, gy = np.meshgrid(grid, grid)
+                grid_centers = np.column_stack([gx.ravel(), gy.ravel()])
+                init_centers = grid_centers[:self.n]
+                # -----------------------------------------
+            
                 kmeans = KMeansConstrained(
                     n_clusters=self.n,
                     size_min=cluster_size,
                     size_max=cluster_size + 1 if self.n > 1 else cluster_size,
+                    init=init_centers,
+                    n_init=1,
                     random_state=42,
                     n_jobs=-1
                 )
-
+            
                 extended_labels = kmeans.fit_predict(expanded_coords)
-
+            
                 membership_counts = np.zeros((N, self.n), dtype=int)
                 np.add.at(membership_counts, (expanded_idx, extended_labels), 1)
-
+            
                 labels = np.argmax(membership_counts, axis=1)
-
+            
                 centroids = np.array([
                     coords[labels == i].mean(axis=0) if np.any(labels == i)
                     else np.nan * coords[:1].mean(axis=0)
                     for i in range(self.n)
                 ])
-
+            
                 return labels, centroids
+
 
     def _generate_exact_clusters(
             self, order: np.ndarray, labels: np.ndarray,
