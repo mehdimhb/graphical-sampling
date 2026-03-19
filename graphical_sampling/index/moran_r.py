@@ -31,9 +31,16 @@ class Moran_r:
 
             # Precompute W once
             ro.r("""
-                    W0 <- wpik(coords, probs)
-                    W <- W0 - diag(diag(W0))
-                    diag(W) <- 0
+# detect certainty units
+certainty <- probs >= 1 - 1e-5
+
+coords_sub <- coords[!certainty, ]
+probs_sub  <- probs[!certainty]
+
+W0 <- wpik(coords_sub, probs_sub)
+W <- W0 - diag(diag(W0))
+diag(W) <- 0
+
                 """)
             ro.globalenv['samples'] = r_sample_list
 
