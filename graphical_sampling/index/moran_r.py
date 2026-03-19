@@ -26,7 +26,7 @@ class Moran_r:
             library(Matrix)
             library(WaveSampling)
             library(sampling)
-            library(BalancedSampling)      
+            library(BalancedSampling)
             """)
 
             # Precompute W once
@@ -57,7 +57,7 @@ diag(W) <- 0
 
                         IBs[i]   <- tryCatch(IB(W, mask), error = function(e) Inf)
                       }
-    
+
                       cbind(IB = IBs)
                     }
                 """)

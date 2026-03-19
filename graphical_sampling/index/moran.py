@@ -5,135 +5,182 @@ from ..population import Population
 
 
 class Moran:
-    def __init__(self, population: Population):
+    def __init__(self, population: Population, method: str = "tille"):
         self.population = population
         self.coords = self.population.coords
         self.inclusion_probs = self.population.inclusions
+        self.method = method.lower()
 
     @staticmethod
-    def _calculate_spatial_weights(coords: np.ndarray, inclusion_probs: np.ndarray,
-                                   bound: float = 1.0) -> np.ndarray:
-        """
-        Generates the stratification weight matrix W0.
-        Optimized by pre-computing and pre-sorting all spatial distances simultaneously.
-        """
-        population_size = len(inclusion_probs)
-        spatial_weights = np.zeros((population_size, population_size))
-        epsilon = 1e-7
+    def _weights_tille(coords, inclusion_probs):
+        N = len(inclusion_probs)
+        W = np.zeros((N, N))
+        eps = 1e-12
 
-        # Pre-compute all distances and sort them at the C-level (Massive $O(N^2 \log N)$ speedup)
-        dist_matrix = cdist(coords, coords, metric='euclidean')
-        sorted_indices_matrix = np.argsort(dist_matrix, axis=1, kind='stable')
+        D = cdist(coords, coords)
 
-        for current_unit in range(population_size):
-            distances = dist_matrix[current_unit]
-            sorted_indices = sorted_indices_matrix[current_unit]
+        for i in range(N):
+            pi_i = inclusion_probs[i]
 
-            cumulative_prob = 0.0
+            if pi_i >= 1 - eps:
+                continue
+
+            h = min(1.0 / pi_i - 1.0, N - 1)
+            k = int(np.floor(h))
+            frac = h - k
+
+            order = np.argsort(D[i])
+            order = order[order != i]
+
+            if k > 0:
+                W[i, order[:k]] = 1.0
+
+            if k < (N - 1):
+                W[i, order[k]] = frac
+
+            s = W[i].sum()
+            if s > eps:
+                W[i] /= s
+
+        return W
+
+    @staticmethod
+    def _weights_robertson(coords, inclusion_probs):
+        N = len(inclusion_probs)
+        W = np.zeros((N, N))
+        eps = 1e-12
+
+        D = cdist(coords, coords)
+
+        for i in range(N):
+            pi_i = inclusion_probs[i]
+
+            if pi_i >= 1 - eps:
+                continue
+
+            h = min(1.0 / pi_i, N - 1)
+            k = int(np.floor(h))
+            frac = h - k
+
+            order = np.argsort(D[i])
+            order = order[order != i]
+
+            if k > 0:
+                W[i, order[:k]] = 1.0
+
+            if k < (N - 1):
+                W[i, order[k]] = frac
+
+            s = W[i].sum()
+            if s > eps:
+                W[i] /= s
+
+        return W
+
+    @staticmethod
+    def _weights_raphael(coords, inclusion_probs, bound=1.0):
+        N = len(inclusion_probs)
+        W = np.zeros((N, N))
+        eps = 1e-7
+
+        D = cdist(coords, coords)
+        sorted_idx = np.argsort(D, axis=1)
+
+        for i in range(N):
+
+            cumulative = 0.0
             j = 0
 
-            # Find the inclusion probability cutoff bound
             while True:
-                cumulative_prob += inclusion_probs[sorted_indices[j]]
+                cumulative += inclusion_probs[sorted_idx[i, j]]
                 j += 1
-                if (bound - cumulative_prob) <= epsilon or j >= population_size:
+                if (bound - cumulative) <= eps or j >= N:
                     break
 
-            last_added_idx = j - 1
-            cutoff_distance = distances[sorted_indices[last_added_idx]]
+            last = j - 1
+            cutoff_dist = D[i, sorted_idx[i, last]]
 
-            # Find all units that lie exactly on the cutoff distance
-            tied_distance_indices = np.where(distances == cutoff_distance)[0]
+            tied = np.where(D[i] == cutoff_dist)[0]
 
-            # Calculate the lower probability bound
-            lower_bound_prob = cumulative_prob
-            s = last_added_idx
-            if sorted_indices[0] not in tied_distance_indices:
-                while s >= 0 and sorted_indices[s] in tied_distance_indices:
-                    lower_bound_prob -= inclusion_probs[sorted_indices[s]]
+            lower = cumulative
+            s = last
+
+            if sorted_idx[i, 0] not in tied:
+                while s >= 0 and sorted_idx[i, s] in tied:
+                    lower -= inclusion_probs[sorted_idx[i, s]]
                     s -= 1
 
-            # Calculate the upper probability bound
-            upper_bound_prob = lower_bound_prob + np.sum(inclusion_probs[tied_distance_indices])
+            upper = lower + np.sum(inclusion_probs[tied])
 
-            # Apply proportional weights to units tied at the boundary
-            unit_weights = np.zeros(population_size)
-            if upper_bound_prob - lower_bound_prob > epsilon:
-                proportion = (bound - lower_bound_prob) / (upper_bound_prob - lower_bound_prob)
-                unit_weights[tied_distance_indices] = inclusion_probs[tied_distance_indices] * proportion
+            weights = np.zeros(N)
 
-            # Keep exact inclusion probabilities for all units safely inside the bound
-            for tt in range(s + 1):
-                unit_weights[sorted_indices[tt]] = inclusion_probs[sorted_indices[tt]]
+            if upper - lower > eps:
+                prop = (bound - lower) / (upper - lower)
+                weights[tied] = inclusion_probs[tied] * prop
 
-            spatial_weights[current_unit, :] = unit_weights
+            for t in range(s + 1):
+                weights[sorted_idx[i, t]] = inclusion_probs[sorted_idx[i, t]]
 
-        return spatial_weights
+            W[i] = weights
+
+        return W
 
     @staticmethod
-    def _calculate_batch_moran(spatial_weights: np.ndarray, sample_indicators: np.ndarray) -> np.ndarray:
-        """
-        Calculates Moran's I for ALL samples simultaneously using pure matrix operations.
-        sample_indicators: 2D array of shape (Population_Size, Number_of_Samples)
-        """
-        # Shape reference: N = pop size, S = number of samples
-        row_weight_sums = np.sum(spatial_weights, axis=1, keepdims=True)  # Shape: (N, 1)
-        total_weight = np.sum(spatial_weights)  # Scalar
+    def _calculate_batch_moran(W: np.ndarray, indicators: np.ndarray) -> np.ndarray:
+        row_sums = np.sum(W, axis=1, keepdims=True)
+        total_w = np.sum(W)
 
-        # 1. Weighted Mean _Sample -> Shape: (1, S)
-        weighted_sample_means = np.sum(row_weight_sums * sample_indicators, axis=0, keepdims=True) / total_weight
+        weighted_means = np.sum(row_sums * indicators, axis=0, keepdims=True) / total_w
+        Z = indicators - weighted_means
+        WZ = W @ Z
 
-        # 2. Centered _Sample Data -> Shape: (N, S)
-        centered_samples = sample_indicators - weighted_sample_means
+        numerator = np.sum(Z * WZ, axis=0)
+        var1 = np.sum(row_sums * (Z ** 2), axis=0)
 
-        # 3. Core Matrix Multiplication (W @ z) -> Shape: (N, S)
-        # This single operation replaces the need to loop through samples
-        weighted_centered_sums = spatial_weights @ centered_samples
-
-        # Numerator calculation -> Shape: (S,)
-        numerator = np.sum(centered_samples * weighted_centered_sums, axis=0)
-
-        # Denominator 1 (Variance of the samples) -> Shape: (S,)
-        variance_samples = np.sum(row_weight_sums * (centered_samples ** 2), axis=0)
-
-        # Denominator 2 (Variance of the spatial weights) -> Shape: (S,)
         with np.errstate(divide='ignore', invalid='ignore'):
-            term1_matrix = (weighted_centered_sums ** 2) / row_weight_sums
-            term1_matrix[row_weight_sums[:, 0] == 0, :] = 0  # Safe handling of zero-weight rows
-            term1 = np.sum(term1_matrix, axis=0)
+            tmp = (WZ ** 2) / row_sums
+            tmp[row_sums[:, 0] == 0, :] = 0
+            t1 = np.sum(tmp, axis=0)
 
-        term2 = (np.sum(weighted_centered_sums, axis=0) ** 2) / total_weight
-        variance_weights = term1 - term2
+        t2 = (np.sum(WZ, axis=0) ** 2) / total_w
+        var2 = t1 - t2
 
-        # Final calculation, preventing division by zero -> Shape: (S,)
-        denominator = np.sqrt(variance_samples * variance_weights)
+        denom = np.sqrt(var1 * var2)
 
-        scores = np.divide(numerator, denominator, out=np.full_like(numerator, np.inf), where=(denominator != 0))
+        scores = np.divide(
+            numerator,
+            denom,
+            out=np.full_like(numerator, np.inf),
+            where=(denom != 0)
+        )
+
         return scores
 
     def score(self, samples: np.ndarray) -> np.ndarray:
-        """
-        Calculates Moran's I Index for a given array of samples.
-        samples: 2D array where each row represents the selected unit indices for a single sample.
-        """
-        population_size = len(self.inclusion_probs)
-        num_samples = len(samples)
-        sample_size = samples.shape[1] if samples.ndim > 1 else len(samples)
 
-        # 1. Precompute and format the spatial weight matrix W
-        weight_matrix_w0 = self._calculate_spatial_weights(self.coords, self.inclusion_probs)
-        spatial_weights = weight_matrix_w0.copy()
-        np.fill_diagonal(spatial_weights, 0)
+        N = len(self.inclusion_probs)
+        S = len(samples)
+        sample_size = samples.shape[1]
 
-        # 2. Construct a 2D Indicator Matrix (One-Hot Encoding for all samples at once)
-        # This replaces the Python `for` loop used to create masks.
-        sample_indicators = np.zeros((population_size, num_samples))
+        if self.method == "tille":
+            W = self._weights_tille(self.coords, self.inclusion_probs)
 
-        row_indices = samples.astype(int).flatten()
-        col_indices = np.repeat(np.arange(num_samples), sample_size)
-        sample_indicators[row_indices, col_indices] = 1
+        elif self.method == "raphael":
+            W = self._weights_raphael(self.coords, self.inclusion_probs)
 
-        # 3. Process all samples simultaneously
-        moran_scores = self._calculate_batch_moran(spatial_weights, sample_indicators)
+        elif self.method == "robertson":
+            W = self._weights_robertson(self.coords, self.inclusion_probs)
 
-        return moran_scores
+        else:
+            raise ValueError("method must be 'tille', 'raphael', or 'robertson'")
+
+        np.fill_diagonal(W, 0)
+
+        indicators = np.zeros((N, S))
+
+        r = samples.astype(int).flatten()
+        c = np.repeat(np.arange(S), sample_size)
+
+        indicators[r, c] = 1
+
+        return self._calculate_batch_moran(W, indicators)
