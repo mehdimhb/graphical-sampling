@@ -1,0 +1,25 @@
+Pik,Metric,Method,n,Value,Simulated,Abs_Error
+Equal,B (Voronoi),Lopi,15,0.119,0.158,0.039
+Equal,B (Voronoi),Scps,15,0.125,0.16,0.035
+Equal,B (Voronoi),Lopi,30,0.118,0.142,0.024
+Equal,B (Voronoi),Scps,30,0.123,0.118,0.005
+Equal,B (Voronoi),Lopi,50,0.139,0.144,0.005
+Equal,B (Voronoi),Scps,50,0.132,0.134,0.002
+Unequal,B (Voronoi),Lopi,15,0.115,0.151,0.036
+Unequal,B (Voronoi),Scps,15,0.121,0.106,0.015
+Unequal,B (Voronoi),Lopi,30,0.12,0.132,0.012
+Unequal,B (Voronoi),Scps,30,0.121,0.114,0.007
+Unequal,B (Voronoi),Lopi,50,0.138,0.143,0.005
+Unequal,B (Voronoi),Scps,50,0.133,0.148,0.015
+Equal,IB (Moran),Lopi,15,-0.518,-0.294,0.224
+Equal,IB (Moran),Scps,15,-0.338,-0.379,0.041
+Equal,IB (Moran),Lopi,30,-0.664,-0.375,0.289
+Equal,IB (Moran),Scps,30,-0.427,-0.407,0.02
+Equal,IB (Moran),Lopi,50,-0.796,-0.437,0.359
+Equal,IB (Moran),Scps,50,-0.519,-0.513,0.006
+Unequal,IB (Moran),Lopi,15,-0.354,-0.192,0.162
+Unequal,IB (Moran),Scps,15,-0.244,-0.252,0.008
+Unequal,IB (Moran),Lopi,30,-0.427,-0.285,0.142
+Unequal,IB (Moran),Scps,30,-0.29,-0.248,0.042
+Unequal,IB (Moran),Lopi,50,-0.455,-0.259,0.196
+Unequal,IB (Moran),Scps,50,-0.305,-0.286,0.019
