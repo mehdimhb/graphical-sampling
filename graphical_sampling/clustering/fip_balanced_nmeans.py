@@ -182,7 +182,7 @@ class OpenTSPSolver:
 
 class FIPBalancedNMeans:
     def __init__(self, n: int, n_init=50, tol=1e-9, max_iter=100, split_size=0.001,
-                init_clust_method: Literal['weighted', 'expanded'] = 'weighted',
+                init_clust_method: Literal['weighted', 'expanded'] = 'expanded',
                 ) -> None:
         self.n = n
         self.pop: Population | None = None

@@ -68,6 +68,7 @@ class DensityDisparity:
             n=self.pop.n,
             tol=self.clustering_tol,
             max_iter=self.clustering_max_iter,
+            init_clust_method = 'expanded'
         )
         fbn.fit(self.pop, init_centroids=raw_sample)
         labels = fbn.labels
