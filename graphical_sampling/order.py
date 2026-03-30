@@ -180,64 +180,59 @@ class Order:
         self._fixed_ids = fixed_ids
 
     def change(self, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int):
-        """
-        Randomly changes the position of indices inside the zones, AND/OR
-        changes the order of the zones themselves within the clusters.
-        """
-        if not self.clusters:
-            raise ValueError("Order must be initialized with from_clusters to use the change method.")
-
-        rng = np.random.default_rng()
-
-        # --- Phase 1: Item-level changes inside zones ---
-        if num_changes > 0:
-            # Filter out clusters that have no zones to avoid indexing errors
-            valid_clusters_items = [c for c in self.clusters if len(c.zones) > 0]
-            if valid_clusters_items:
-                # Select random clusters safely
-                c_idxs_items = rng.choice(len(valid_clusters_items),
-                                          size=min(num_clusters, len(valid_clusters_items)),
-                                          replace=False)
-                selected_clusters_items = [valid_clusters_items[i] for i in c_idxs_items]
-
-                for cluster in selected_clusters_items:
-                    # We need at least 2 items in a zone to actually "change position"
-                    valid_zones = [z for z in cluster.zones if len(z.sort) > 1]
-                    if not valid_zones:
-                        continue
-
-                    z_idxs = rng.choice(len(valid_zones), size=min(num_zones, len(valid_zones)), replace=False)
-                    selected_zones = [valid_zones[i] for i in z_idxs]
-
-                    for zone in selected_zones:
-                        for _ in range(num_changes):
-                            old_idx = int(rng.integers(0, len(zone.sort)))
-                            item = zone.sort.pop(old_idx)
-                            new_idx = int(rng.integers(0, len(zone.sort) + 1))
-                            zone.sort.insert(new_idx, item)
-
-        # --- Phase 2: Zone-level changes inside clusters ---
-        if num_zone_changes > 0:
-            # We need at least 2 zones in a cluster to change their order
-            valid_clusters_zones = [c for c in self.clusters if len(c.zones) > 1]
-            if valid_clusters_zones:
-                # Select a potentially different set of random clusters for zone moving
-                c_idxs_zones = rng.choice(len(valid_clusters_zones),
-                                          size=min(num_clusters, len(valid_clusters_zones)),
-                                          replace=False)
-                selected_clusters_zones = [valid_clusters_zones[i] for i in c_idxs_zones]
-
-                for cluster in selected_clusters_zones:
-                    for _ in range(num_zone_changes):
-                        # Pick a zone, remove it, and insert it at a new random index
-                        old_idx = int(rng.integers(0, len(cluster.zones)))
-                        moved_zone = cluster.zones.pop(old_idx)
-
-                        new_idx = int(rng.integers(0, len(cluster.zones) + 1))
-                        cluster.zones.insert(new_idx, moved_zone)
-
-        # Rebuild the _order array to reflect all new states
-        self._build_order(self.num_splits)
+            """
+            Randomly changes the position of indices inside the zones, AND/OR
+            changes the order of the zones themselves within the clusters.
+            """
+            if not self.clusters:
+                raise ValueError("Order must be initialized with from_clusters to use the change method.")
+    
+            rng = np.random.default_rng()
+    
+            # --- Phase 1: Item-level changes inside zones ---
+            if num_changes > 0:
+                # Filter out clusters that have no zones to avoid indexing errors
+                valid_clusters_items = [c for c in self.clusters if len(c.zones) > 0]
+                if valid_clusters_items:
+                    # Select random clusters safely
+                    c_idxs_items = rng.choice(len(valid_clusters_items),
+                                              size=min(num_clusters, len(valid_clusters_items)),
+                                              replace=False)
+                    selected_clusters_items = [valid_clusters_items[i] for i in c_idxs_items]
+    
+                    for cluster in selected_clusters_items:
+                        # We need at least 2 items in a zone to actually "change position"
+                        valid_zones = [z for z in cluster.zones if len(z.sort) > 1]
+                        if not valid_zones:
+                            continue
+    
+                        z_idxs = rng.choice(len(valid_zones), size=min(num_zones, len(valid_zones)), replace=False)
+                        selected_zones = [valid_zones[i] for i in z_idxs]
+    
+                        for zone in selected_zones:
+                            for _ in range(num_changes):
+                                i, j = rng.choice(len(zone.sort), size=2, replace=False)
+                                zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
+                                
+    
+            # --- Phase 2: Zone-level changes inside clusters ---
+            if num_zone_changes > 0:
+                # We need at least 2 zones in a cluster to change their order
+                valid_clusters_zones = [c for c in self.clusters if len(c.zones) > 1]
+                if valid_clusters_zones:
+                    # Select a potentially different set of random clusters for zone moving
+                    c_idxs_zones = rng.choice(len(valid_clusters_zones),
+                                              size=min(num_clusters, len(valid_clusters_zones)),
+                                              replace=False)
+                    selected_clusters_zones = [valid_clusters_zones[i] for i in c_idxs_zones]
+    
+                    for cluster in selected_clusters_zones:
+                        for _ in range(num_zone_changes):
+                            i, j = rng.choice(len(cluster.zones), size=2, replace=False)
+                            cluster.zones[i], cluster.zones[j] = cluster.zones[j], cluster.zones[i]
+    
+            # Rebuild the _order array to reflect all new states
+            self._build_order(self.num_splits)
 
     def get(self) -> np.ndarray:
         return self._order

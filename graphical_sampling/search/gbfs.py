@@ -107,6 +107,7 @@ class GreedyBestFirstSearch:
         open_set = []  # Min-heap of (criteria_value, counter, type_str, design)
 
         log_interval = max(1, max_iterations // 10)
+        log_interval = 1
         print(
             f"--- Starting Parallel GBFS: Max Iterations={max_iterations}, Batch Size={num_explore}, Workers={n_jobs} ---")
 
@@ -128,7 +129,7 @@ class GreedyBestFirstSearch:
 
             if iteration % log_interval == 0:
                 print(
-                    f"Iter {iteration:5d}/{max_iterations} | Best: {self.best_criteria_value:.4f} | Open: {len(open_set):5d} | Closed: {len(closed_set):5d}")
+                    f"Iter {iteration:5d}/{max_iterations} | Best: {self.best_criteria_value:.4f} | Open: {len(open_set):5d} | Closed: {len(closed_set):5d} | moran: {val:.4f}")
 
             # 1. Batch Extraction: Pop up to `num_explore` nodes
             nodes_to_explore = []
@@ -184,6 +185,7 @@ class GreedyBestFirstSearch:
                 continue
 
             designs_to_eval = list(unique_neighbors.keys())
+    
 
             # 4. Parallel Criteria Evaluation
             criteria_values = Parallel(n_jobs=n_jobs)(
@@ -192,6 +194,7 @@ class GreedyBestFirstSearch:
 
             # 5. Process Results
             for new_design, new_val in zip(designs_to_eval, criteria_values):
+                # new_design.plot(mode='hard')
                 new_type = unique_neighbors[new_design]
                 # for new_design, new_val in zip(designs_to_eval, criteria_values):
                 #     # new_type = unique_neighbors[new_design]
@@ -208,6 +211,7 @@ class GreedyBestFirstSearch:
                 #         print("---------------------------\n")
 
                 # Update Global Best
+                # print("Morani = ", new_val)
                 if new_val < self.best_criteria_value:
                     print(
                         f"{iteration}: {new_val:.7f},  "

@@ -556,7 +556,7 @@ class FIPBalancedNMeans:
             g = int(np.ceil(np.sqrt(self.n)))
             grid = np.linspace(coords.min(), coords.max(), g)
         
-            gx, gy = np.meshgrid(grid, grid)
+            gy, gx = np.meshgrid(grid, grid)
             grid_centers = np.column_stack([gx.ravel(), gy.ravel()])
             init_centers = grid_centers[:self.n]
                 # -----------------------------------------
