@@ -107,7 +107,7 @@ class GreedyBestFirstSearch:
         open_set = []  # Min-heap of (criteria_value, counter, type_str, design)
 
         log_interval = max(1, max_iterations // 10)
-        log_interval = 1
+        # log_interval = 1
         print(
             f"--- Starting Parallel GBFS: Max Iterations={max_iterations}, Batch Size={num_explore}, Workers={n_jobs} ---")
 

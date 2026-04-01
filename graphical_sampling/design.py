@@ -131,7 +131,7 @@ class Design:
             if event_type == "start":
                 active.add(int(bar_index))
             elif event_type == "end":
-                active.remove(int(bar_index))
+                active.discard(int(bar_index))
 
             last_point = point
 
