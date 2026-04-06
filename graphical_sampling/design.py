@@ -297,8 +297,15 @@ class Design:
         all_prob = []
 
         for sample in self:
+            # ids = list(sample.ids)
+
+            # if len(ids) != self.pop.n:
+            #     print("BAD SAMPLE SIZE:", len(ids))
+
             all_samples.append(list(sample.ids))
             all_prob.append(sample.prob)
+        # sizes = [len(s) for s in all_samples]
+        # print("Unique sample sizes:", set(sizes))
 
         samples_array = np.array(all_samples, dtype=np.int64)
         probs_array = np.array(all_prob, dtype=np.float32)

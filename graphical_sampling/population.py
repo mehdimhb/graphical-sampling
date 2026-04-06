@@ -21,7 +21,8 @@ class Population:
         _indices (np.ndarray): A 1D array of original pop indices (shape (N,)).
     """
 
-    __slots__ = ("_ids", "_coords", "_inclusions", "_variable", "_indices", "_n")
+    __slots__ = ("_ids", "_coords", "_inclusions", "_variable", "_indices", "_n", "__weakref__")
+
 
     def __init__(
             self,
@@ -141,7 +142,7 @@ class Population:
                 inclusions[mask] = 0.0
 
             inclusions[is_at_max] = 1.0
-
+        # print('samiiii', inclusions.sum())
         return inclusions
 
     @staticmethod

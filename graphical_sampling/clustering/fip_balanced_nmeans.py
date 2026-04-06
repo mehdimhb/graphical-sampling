@@ -310,10 +310,14 @@ class _Clustering:
         return self
         
 class FIPBalancedNMeans:
-    def __init__(self, n: int, n_init=50, tol=1e-9, max_iter=100, split_size=0.001,
+    def __init__(self, n: int, r_sample_per_cluster: int = 1, n_init=50, tol=1e-9, max_iter=100, split_size=0.001,
                 init_clust_method: Literal['weighted', 'expanded', 'ot'] = 'expanded',
                 ) -> None:
         self.n = n
+        assert n % r_sample_per_cluster == 0, "n must be divisible by r_sample_per_cluster"
+        self.r = r_sample_per_cluster
+        self.K = n // r_sample_per_cluster
+        
         self.pop: Population | None = None
         self.labels: np.ndarray | None = None
         self.centroids: np.ndarray | None = None
@@ -353,7 +357,7 @@ class FIPBalancedNMeans:
         # Recalculate centroids based on final hard labels
         self.centroids = np.array([
             coords[self.labels == i].mean(axis=0) if np.any(self.labels == i)
-            else np.zeros(coords.shape[1]) for i in range(self.n)
+            else np.zeros(coords.shape[1]) for i in range(self.K)
         ])
 
     def _get_labels_centroids_ot_kmeans(
@@ -364,7 +368,7 @@ class FIPBalancedNMeans:
     ):
     
         clustering = _Clustering(
-            n_clusters=self.n,
+            n_clusters=self.K,
             epsilon=0.01,
             max_iter=100,
             sinkhorn_iter=100,
@@ -553,12 +557,12 @@ class FIPBalancedNMeans:
             warnings.filterwarnings("ignore", message=".*invalid value.*")
 
          # --- grid initialization for centroids ---
-            g = int(np.ceil(np.sqrt(self.n)))
+            g = int(np.ceil(np.sqrt(self.K)))
             grid = np.linspace(coords.min(), coords.max(), g)
         
             gx, gy = np.meshgrid(grid, grid)
             grid_centers = np.column_stack([gx.ravel(), gy.ravel()])
-            init_centers = grid_centers[:self.n]
+            init_centers = grid_centers[:self.K]
                 # -----------------------------------------
             # --------------------------------------------------
             # Weighted KMeans
@@ -569,7 +573,7 @@ class FIPBalancedNMeans:
 
                 if init_centroids is not None:
                     k_means = KMeans(
-                        n_clusters=self.n,
+                        n_clusters=self.K,
                         init=init_centroids,
                         tol=self.tol,
                         max_iter=self.max_iter,
@@ -587,7 +591,7 @@ class FIPBalancedNMeans:
                 for _ in range(self.n_init):
 
                     k_means = KMeans(
-                        n_clusters=self.n,
+                        n_clusters=self.K,
                         n_init=1,
                         tol=self.tol,
                         max_iter=self.max_iter
@@ -596,8 +600,8 @@ class FIPBalancedNMeans:
                     raw_labels = k_means.fit_predict(coords, sample_weight=probs_normalized)
                     raw_centroids = k_means.cluster_centers_
 
-                    sums = np.array([probs[raw_labels == i].sum() for i in range(self.n)])
-                    mean_abs_error = np.abs(sums - 1).sum()
+                    sums = np.array([probs[raw_labels == i].sum() for i in range(self.K)])
+                    mean_abs_error = np.abs(sums - self.r).sum()
 
                     if mean_abs_error < best_error:
                         best_error = mean_abs_error
@@ -620,12 +624,12 @@ class FIPBalancedNMeans:
                 expanded_coords = np.repeat(coords, counts, axis=0)
                 expanded_idx = np.repeat(np.arange(N), counts)
             
-                cluster_size = max(1, len(expanded_idx) // self.n)
+                cluster_size = max(1, len(expanded_idx) // self.K)
             
                 kmeans = KMeansConstrained(
-                    n_clusters=self.n,
+                    n_clusters=self.K,
                     size_min=cluster_size,
-                    size_max=cluster_size + 1 if self.n > 1 else cluster_size,
+                    size_max=cluster_size + 1 if self.K > 1 else cluster_size,
                     init=init_centers,
                     n_init=1,
                     random_state=42,
@@ -634,7 +638,7 @@ class FIPBalancedNMeans:
             
                 extended_labels = kmeans.fit_predict(expanded_coords)
             
-                membership_counts = np.zeros((N, self.n), dtype=int)
+                membership_counts = np.zeros((N, self.K), dtype=int)
                 np.add.at(membership_counts, (expanded_idx, extended_labels), 1)
             
                 labels = np.argmax(membership_counts, axis=1)
@@ -642,7 +646,7 @@ class FIPBalancedNMeans:
                 centroids = np.array([
                     coords[labels == i].mean(axis=0) if np.any(labels == i)
                     else np.nan * coords[:1].mean(axis=0)
-                    for i in range(self.n)
+                    for i in range(self.K)
                 ])
             
                 return labels, centroids
@@ -696,7 +700,7 @@ class FIPBalancedNMeans:
                     key += d_prev
 
             # Distance to NEXT cluster
-            if i < self.n - 1:
+            if i < self.K - 1:
                 next_idx = clusters_idx.get(order[i + 1], np.array([], dtype=int))
                 if next_idx.size > 0:
                     d_next = cdist(coords[curr_idx], coords[next_idx]).min(axis=1)
@@ -713,8 +717,8 @@ class FIPBalancedNMeans:
         ordered_probs = probs[full_indices]
         cum_probs = np.cumsum(ordered_probs)
         total_mass = cum_probs[-1]
-        target_mass = total_mass / self.n
-        thresholds = np.arange(1, self.n) * target_mass
+        target_mass = self.r
+        thresholds = np.arange(1, self.K) * target_mass
 
         # Find split points
         split_indices = np.array(np.searchsorted(cum_probs, thresholds, side='left'))
@@ -730,9 +734,9 @@ class FIPBalancedNMeans:
         prev_border_remainder = 0.0
         prev_border_idx = -1
 
-        for i in range(self.n):
+        for i in range(self.K):
             # Determine boundaries and fractional border ownership
-            if i < self.n - 1:
+            if i < self.K - 1:
                 split_idx = split_indices[i]
 
                 mass_at_split = cum_probs[split_idx]
@@ -787,7 +791,7 @@ class FIPBalancedNMeans:
 
     def _generate_membership(self, clusters: list[Cluster], N: int,
                              pop_indices: np.ndarray | None = None) -> np.ndarray:
-        membership = np.zeros((N, self.n), dtype=float)
+        membership = np.zeros((N, self.K), dtype=float)
 
         # If we are working on a subset, the clusters store global indices.
         # We must reverse-map them to local indices (0 to N-1) to safely build this array.
@@ -862,7 +866,7 @@ class FIPBalancedNMeans:
 
         if mode == 'hard':
             if self.labels is None: raise ValueError("Model not fitted yet.")
-            for i in range(self.n):
+            for i in range(self.K):
                 idx = np.where(self.labels == i)[0]
                 formatted_cluster_data.append({
                     'parent_color': None,  # assigned later

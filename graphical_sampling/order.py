@@ -178,6 +178,10 @@ class Order:
 
         self._order = np.column_stack([indices_list, shares_list])
         self._fixed_ids = fixed_ids
+        # print("POP SIZE:", len(self.pop.indices))
+        # print("ORDER SIZE:", len(indices_list))
+
+        
 
     def change(self, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int):
             """
