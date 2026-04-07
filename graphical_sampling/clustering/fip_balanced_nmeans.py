@@ -310,13 +310,14 @@ class _Clustering:
         return self
         
 class FIPBalancedNMeans:
-    def __init__(self, n: int, r_sample_per_cluster: int = 1, n_init=50, tol=1e-9, max_iter=100, split_size=0.001,
+    def __init__(self, n: int, r_sample_per_cluster: int = 1, centroid_grid_x: int = None, n_init=50, tol=1e-9, max_iter=100, split_size=0.001,
                 init_clust_method: Literal['weighted', 'expanded', 'ot'] = 'expanded',
                 ) -> None:
         self.n = n
         assert n % r_sample_per_cluster == 0, "n must be divisible by r_sample_per_cluster"
         self.r = r_sample_per_cluster
         self.K = n // r_sample_per_cluster
+        self.centroid_grid_x = centroid_grid_x 
         
         self.pop: Population | None = None
         self.labels: np.ndarray | None = None
@@ -557,10 +558,13 @@ class FIPBalancedNMeans:
             warnings.filterwarnings("ignore", message=".*invalid value.*")
 
          # --- grid initialization for centroids ---
-            g = int(np.ceil(np.sqrt(self.K)))
-            grid = np.linspace(coords.min(), coords.max(), g)
-        
-            gx, gy = np.meshgrid(grid, grid)
+            if self.centroid_grid_x is None:
+                centroid_grid_x = int(np.ceil(np.sqrt(self.K)))
+            else:
+                centroid_grid_x = self.centroid_grid_x
+            grid_x = np.linspace(coords.min(), coords.max(), centroid_grid_x)
+            grid_y = np.linspace(coords.min(), coords.max(), int(self.K/centroid_grid_x))
+            gx, gy = np.meshgrid(grid_x, grid_y)
             grid_centers = np.column_stack([gx.ravel(), gy.ravel()])
             init_centers = grid_centers[:self.K]
                 # -----------------------------------------
