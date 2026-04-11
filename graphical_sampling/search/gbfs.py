@@ -196,22 +196,6 @@ class GreedyBestFirstSearch:
             for new_design, new_val in zip(designs_to_eval, criteria_values):
                 # new_design.plot(mode='hard')
                 new_type = unique_neighbors[new_design]
-                # for new_design, new_val in zip(designs_to_eval, criteria_values):
-                #     # new_type = unique_neighbors[new_design]
-
-                #     if new_type == "order_change":
-                #         p1 = sorted(current_design.all_samples_and_probs[1])
-                #         p2 = sorted(new_design.all_samples_and_probs[1])
-
-                #         print("\n--- DEBUG REORDER CHECK ---")
-                #         print("Parent_probs   |   Child_probs")
-                #         for a, b in zip(p1, p2):
-                #             print(f"{a:.6f}   |   {b:.6f}")
-                #             print(sum(p1), sum(p2))
-                #         print("---------------------------\n")
-
-                # Update Global Best
-                # print("Morani = ", new_val)
                 if new_val < self.best_criteria_value:
                     print(
                         f"{iteration}: {new_val:.7f},  "
