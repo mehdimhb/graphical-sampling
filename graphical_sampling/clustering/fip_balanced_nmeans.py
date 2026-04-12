@@ -453,6 +453,8 @@ class FIPBalancedNMeans:
             shares: np.ndarray,
             probs: np.ndarray
     ) -> list[tuple[np.ndarray, np.ndarray]]:
+        if num_zones == 1:
+            return [(indices, shares)]
         cum_probs = np.cumsum(probs)
         total_mass = cum_probs[-1]
         target_mass = total_mass / num_zones
