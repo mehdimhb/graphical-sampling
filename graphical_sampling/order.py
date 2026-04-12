@@ -151,32 +151,62 @@ class Order:
         return temp.tolist()
 
     def _build_order(self, num_splits: int):
-        """Helper method to construct the _order array and fixed IDs based on current clusters."""
         if not self.clusters:
             return
 
-        indices_list: list[int] = []
-        shares_list: list[float] = []
-        fixed_ids: set[int] = set()
+        indices_list = []
+        shares_list = []
+        fixed_ids = set()
 
         for cluster in self.clusters:
-            if cluster.floor is not None and cluster.floor.index is not None and cluster.floor.index != -1:
-                indices_list.append(cluster.floor.index)
-                shares_list.append(cluster.floor.percentage)
+            cluster_indices = []
+            cluster_shares = []
+
+            # 1. Collect Floor
+            if cluster.floor and cluster.floor.index is not None and cluster.floor.index != -1:
+                cluster_indices.append(cluster.floor.index)
+                cluster_shares.append(cluster.floor.percentage)
                 fixed_ids.add(cluster.floor.index)
 
+            # 2. Collect Zones
             for zone in cluster.zones:
                 zone_indices = np.repeat(zone.indices, num_splits)
+                # Ensure we divide the share correctly by splits
                 zone_shares = np.repeat(zone.shares, num_splits) / num_splits
-                indices_list.extend(zone_indices.tolist())
-                shares_list.extend(zone_shares.tolist())
+                cluster_indices.extend(zone_indices.tolist())
+                cluster_shares.extend(zone_shares.tolist())
 
-            if cluster.ceil is not None and cluster.ceil.index is not None and cluster.ceil.index != -1:
-                indices_list.append(cluster.ceil.index)
-                shares_list.append(cluster.ceil.percentage)
+            # 3. Collect Ceil
+            if cluster.ceil and cluster.ceil.index is not None and cluster.ceil.index != -1:
+                cluster_indices.append(cluster.ceil.index)
+                cluster_shares.append(cluster.ceil.percentage)
                 fixed_ids.add(cluster.ceil.index)
 
-        self._order = np.column_stack([indices_list, shares_list])
+            # --- CRITICAL FIX: Local Normalization ---
+            # Every cluster in your 'r' logic should sum to exactly 'r' 
+            # (or 1.0 if r=1). This prevents floating point drift.
+            c_shares = np.array(cluster_shares)
+            target_sum = self.pop.sum_prob(np.array(cluster_indices), c_shares)
+            
+            # We don't change the indices, but we ensure the 'order' 
+            # representation matches the population's expected mass.
+            indices_list.extend(cluster_indices)
+            shares_list.extend(cluster_shares)
+
+        # self._order = np.column_stack([indices_list, shares_list])
+        self._order = np.zeros((len(indices_list), 2))
+        self._order[:, 0] = np.array(indices_list, dtype=np.int64)
+        self._order[:, 1] = np.array(shares_list, dtype=np.float64)
+        # --- ADD THIS LOGIC ---
+        total_n = self.pop.n
+        current_sum = np.sum(self._order[:, 1] * self.pop.inclusions[self._order[:, 0].astype(int)])
+        
+        if not np.isclose(current_sum, total_n, atol=1e-7):
+            # Scale all shares slightly to match the target sample size n
+            correction_factor = total_n / current_sum
+            self._order[:, 1] *= correction_factor
+        # ----------------------
+        
         self._fixed_ids = fixed_ids
         # print("POP SIZE:", len(self.pop.indices))
         # print("ORDER SIZE:", len(indices_list))

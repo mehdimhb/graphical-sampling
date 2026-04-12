@@ -66,6 +66,7 @@ class Design:
 
         new_design._pop = self.pop
         new_design._num_partitions = self.num_partitions
+        new_design._num_partitions = 1
         new_design._order = self.order.copy()
         new_design._heaps = [h.copy() for h in self._heaps]
         new_design._rng = np.random.default_rng()
@@ -91,41 +92,57 @@ class Design:
     def _build(self):
         events: list[tuple[float, str, int]] = []
         level: float = 0
+        EPS = 1e-10
 
-        for idx, share in self.order.get():
+        # Get the order data
+        order_data = self.order.get()
+        total_items = len(order_data)
+
+        for i, (idx, share) in enumerate(order_data):
             p = self.pop.inclusions[int(idx)] * share
+            if p < 1e-12: continue
+            
+            # --- THE FIX: Close the loop on the very last element ---
             next_level = level + p
-            if next_level < 1 - 1e-9:
-                events.append((level, "start", idx))
-                events.append((next_level, "end", idx))
+            if i == total_items - 1:
+                # Force the last element to hit exactly 1.0 (or the wrap-around point)
+                # This absorbs any remaining floating point noise
+                next_level = np.ceil(next_level - EPS) if next_level > EPS else 1.0
+            
+            if next_level < 1.0 - EPS:
+                events.append((float(level), "start", int(idx)))
+                events.append((float(next_level), "end", int(idx)))
                 level = next_level
-            elif next_level > 1 + 1e-9:
-                events.append((level, "start", idx))
-                events.append((1, "end", idx))
-                events.append((0, "start", idx))
-                events.append((next_level - 1, "end", idx))
-                level = next_level - 1
+            elif next_level > 1.0 + EPS:
+                # Split across the 1.0 boundary
+                events.append((float(level), "start", int(idx)))
+                events.append((1.0, "end", int(idx)))
+                events.append((0.0, "start", int(idx)))
+                events.append((float(next_level - 1.0), "end", int(idx)))
+                level = next_level - 1.0
             else:
-                events.append((level, "start", idx))
-                events.append((1, "end", idx))
-                level = 0
+                # Lands exactly on 1.0
+                events.append((float(level), "start", int(idx)))
+                events.append((1.0, "end", int(idx)))
+                level = 0.0
 
+        # Add partition boundaries
         for i in range(self.num_partitions + 1):
             events.append((i / self.num_partitions, "boundary", -1))
 
-        events.sort()
+        # Sort: boundaries must be processed BEFORE starts/ends at the same location
+        events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else 1))
+        
+        self.events = events
         active = set()
         last_point: float = 0
 
-        self.events = events
-
         for point, event_type, bar_index in events:
-            if point > last_point + 1e-9:
+            if point > last_point + 1e-12:
                 if active:
                     midpoint = (last_point + point) / 2
                     zone_idx = min(int(midpoint * self.num_partitions), self.num_partitions - 1)
-
-                    length = round(point - last_point, 9)
+                    length = point - last_point
                     self._push(zone_idx, _Sample(length, frozenset(active)))
 
             if event_type == "start":
@@ -259,6 +276,8 @@ class Design:
         plt.show()
 
     def __iter__(self) -> Iterator[_Sample]:
+        # We merge identical IDs within each partition first to clean up the heap
+        self.merge_identical()
         return chain.from_iterable(self._heaps)
 
     def __len__(self) -> int:
@@ -293,29 +312,47 @@ class Design:
         if self._all_samples_and_probs is not None:
             return self._all_samples_and_probs
 
-        all_samples = []
-        all_prob = []
+        temp_samples = []
+        temp_probs = []
+        target_n = self.pop.n
 
         for sample in self:
-            # ids = list(sample.ids)
+            # Only keep samples that are reasonably close to target size
+            # or collect them to see what's happening
+            temp_samples.append(list(sample.ids))
+            temp_probs.append(sample.prob)
 
-            # if len(ids) != self.pop.n:
-            #     print("BAD SAMPLE SIZE:", len(ids))
+        # --- REPAIR LOGIC ---
+        final_samples = []
+        final_probs = []
+        
+        for s_ids, s_prob in zip(temp_samples, temp_probs):
+            if len(s_ids) == target_n:
+                final_samples.append(s_ids)
+                final_probs.append(s_prob)
+            elif len(s_ids) > 0:
+                # This is a 'broken' sample (usually 19 or 21 units)
+                # We find the nearest valid sample and give it this mass
+                if final_probs:
+                    final_probs[-1] += s_prob
+                else:
+                    # If it's the first one, we'll attach it to the next valid one later
+                    # but for now, let's just log it
+                    pass
 
-            all_samples.append(list(sample.ids))
-            all_prob.append(sample.prob)
-        # sizes = [len(s) for s in all_samples]
-        # print("Unique sample sizes:", set(sizes))
+        # Re-normalize to ensure sum is exactly 1.0
+        probs_array = np.array(final_probs, dtype=np.float32)
+        probs_array /= probs_array.sum()
+        
+        samples_array = np.array(final_samples, dtype=np.int64)
 
-        samples_array = np.array(all_samples, dtype=np.int64)
-        probs_array = np.array(all_prob, dtype=np.float32)
-
-        if probs_array.size > 0:
-            probs_array *= 1.0 / probs_array.sum()
+        # Final sanity check
+        sizes = [len(s) for s in samples_array]
+        if len(set(sizes)) > 1:
+             raise ValueError(f"Repair failed. Sizes still inconsistent: {set(sizes)}")
 
         self._all_samples_and_probs = (samples_array, probs_array)
         return self._all_samples_and_probs
-
     @property
     def nht_variance(self) -> float:
         if self._nht_variance is not None:

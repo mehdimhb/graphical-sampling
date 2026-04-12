@@ -461,51 +461,56 @@ class FIPBalancedNMeans:
 
         zones = []
         start_idx = 0
-        split_idx = -1
         prev_border_remainder = 0.0
         prev_border_idx = -1
 
         for i in range(num_zones):
             if i < num_zones - 1:
                 split_idx = split_indices[i]
-
                 mass_at_split = cum_probs[split_idx]
                 mass_before = mass_at_split - probs[split_idx]
                 needed = thresholds[i] - mass_before
                 available = probs[split_idx]
 
                 frac_curr = np.clip(needed / available, 0.0, 1.0)
-
                 curr_border_idx = indices[split_idx]
                 end_idx = split_idx
             else:
+                # --- FIX: Ensure the last zone takes exactly what is left ---
                 end_idx = len(indices)
                 frac_curr = 0.0
                 curr_border_idx = -1
 
             free_ids = indices[start_idx: end_idx]
-            floor_id = prev_border_idx
-            floor_share = prev_border_remainder
-            ceil_id = curr_border_idx
-            ceil_share = frac_curr
-
+            
             zone_indices = []
             zone_share = []
-            if floor_id != -1:
-                zone_indices.append(floor_id)
-                zone_share.append(floor_share)
+            
+            if prev_border_idx != -1:
+                zone_indices.append(prev_border_idx)
+                zone_share.append(prev_border_remainder)
+            
             zone_indices.extend(free_ids.tolist())
-            zone_share.extend(np.ones_like(free_ids).tolist())
-            if ceil_id != -1:
-                zone_indices.append(ceil_id)
-                zone_share.append(ceil_share)
-            zones.append((np.array(zone_indices), np.array(zone_share) * shares[zone_indices]))
+            zone_share.extend(np.ones(len(free_ids)).tolist())
+            
+            if curr_border_idx != -1:
+                zone_indices.append(curr_border_idx)
+                zone_share.append(frac_curr)
+            
+            # Convert to numpy and apply original weights
+            z_idx_arr = np.array(zone_indices, dtype=np.int64)
+            z_share_arr = np.array(zone_share, dtype=np.float64)
+            
+            # Re-scale shares by the incoming 'shares' vector 
+            # (crucial for nested sweeping)
+            final_shares = z_share_arr * shares[z_idx_arr]
+            zones.append((z_idx_arr, final_shares))
 
             start_idx = split_idx + 1
             if curr_border_idx != -1:
                 prev_border_idx = curr_border_idx
                 prev_border_remainder = 1.0 - frac_curr
-                if np.isclose(frac_curr, 1.0):
+                if np.isclose(frac_curr, 1.0, atol=1e-12):
                     prev_border_remainder = 0.0
                     prev_border_idx = -1
             else:
