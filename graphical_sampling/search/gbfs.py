@@ -86,6 +86,36 @@ class GreedyBestFirstSearch:
     #     else:
     #         return arg
 
+    def debug_neighbor_generation(design):
+        print("--- Debugging Neighbor Generation ---")
+        new_order = design.order.copy()
+        
+        # Test 1: Can the order be copied?
+        print(f"Original ID: {id(design.order)}, Copy ID: {id(new_order)}")
+        
+        # Test 2: Does .change() actually modify the sequence?
+        # Force a change: 1 cluster, 2 zones, 0 unit swaps, 1 zone shuffle
+        new_order.change(num_clusters=1, num_zones=2, num_changes=0, num_zone_changes=1)
+        
+        orig_seq = list(design.order._order if hasattr(design.order, '_order') else design.order.order)
+        new_seq = list(new_order._order if hasattr(new_order, '_order') else new_order.order)
+        
+        if orig_seq == new_seq:
+            print("❌ ERROR: .change() produced an identical sequence!")
+            print("Check if num_zones_range > 1 and if your clusters actually have zones.")
+        else:
+            print("✅ SUCCESS: .change() modified the sequence.")
+        
+        # Test 3: Design creation
+        try:
+            new_design = design.from_order(design.pop, new_order)
+            print(f"✅ SUCCESS: New design created with type {type(new_design)}")
+        except Exception as e:
+            print(f"❌ ERROR: design.from_order failed: {e}")
+
+    # Call this with your initial best design
+    # debug_neighbor_generation(initial_design)
+
 
     def run(
             self,
@@ -120,9 +150,9 @@ class GreedyBestFirstSearch:
         print(f"Initial best criteria value: {self.best_criteria_value:.4f}")
 
         for iteration in range(max_iterations):
-            num_changes = random.randint(num_changes_range[0],num_changes_range[0])
-            num_clusters = random.randint(num_clusters_range[0],num_clusters_range[0])
-            num_zones = random.randint(num_zones_range[0],num_zones_range[0])
+            num_changes = random.randint(num_changes_range[0],num_changes_range[1])
+            num_clusters = random.randint(num_clusters_range[0],num_clusters_range[1])
+            num_zones = random.randint(num_zones_range[0],num_zones_range[1])
             if not open_set:
                 print(f"Search exhausted at iteration {iteration}: Open set is empty.")
                 break
