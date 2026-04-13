@@ -12,7 +12,8 @@ class Zone:
     _shares: np.ndarray = field(default_factory=np.ndarray)
     _indices: np.ndarray = field(default_factory=np.ndarray)
     sort: list[int] = field(default_factory=list)
-
+    virtual_centroid: np.ndarray | None = None
+    
     @property
     def shares(self) -> np.ndarray:
         return self._shares[self.sort]
@@ -79,39 +80,92 @@ class Order:
             clusters: list[Cluster],
             zone_strategy: str | None = None,
             point_strategy: str | None = None,
-            num_splits: int = 1
+            num_splits: int = 1,
+            topological: bool = True,  # Added to enable Virtual Grid logic
+            shift_jump = 2,
+            shuffle=False
     ) -> Order:
+        """
+        Builds an Order object from pre-calculated clusters and zones.
+        
+        Args:
+            population: The Population object.
+            clusters: List of Cluster objects (from FIPBalancedNMeans).
+            zone_strategy: Sorter for the order of zones (e.g., 'spiral', 'projection').
+            point_strategy: Sorter for units within each zone.
+            num_splits: Number of random splits for the sampling line.
+            topological: If True, uses perfect integer grid coordinates for zone sorting.
+        """
+        # Validate consistency across clusters
         num_zones = len(clusters[0].zones)
         for cluster in clusters:
-            assert len(cluster.zones) == num_zones, 'Number of zones must be the same across all clusters.'
+            assert len(cluster.zones) == num_zones, \
+                'Number of zones must be the same across all clusters.'
 
         instance = cls(population)
+        
+        # Check if we need to apply re-ordering strategies
         if zone_strategy is not None or point_strategy is not None:
-            instance.clusters = instance._modify_clusters(population, clusters, zone_strategy, point_strategy)
+            # Pass the topological flag down to _modify_clusters
+            instance.clusters = instance._modify_clusters(
+                population, 
+                clusters, 
+                zone_strategy, 
+                point_strategy, 
+                topological,
+                shift_jump,
+                shuffle
+            )
         else:
             instance.clusters = clusters
+            
+        # Finalize the 1D systematic order
         instance._build_order(num_splits)
         instance.num_zones = num_zones
         instance.num_splits = num_splits
+        
         return instance
 
-    def _modify_clusters(
-            self, pop: Population, clusters: list[Cluster], zone_strategy: str | None, point_strategy: str | None
-    ) -> list[Cluster]:
-        clusters_copy = copy.deepcopy(clusters)
-        for cluster in clusters_copy:
-            zone_centroids = []
-            for zone in cluster.zones:
-                coords = pop.coords[zone.indices]
-                zone_centroids.append(coords.mean(axis=0))
-                if point_strategy is not None:
-                    point_sorting = self._sort_points(coords, point_strategy)
-                    zone.sort = self._apply_sorting_to_list(zone.sort, point_sorting)
-            if zone_strategy is not None:
-                zone_centroids = np.array(zone_centroids)
-                zone_sorting = self._sort_points(zone_centroids, zone_strategy)
-                cluster.zones = self._apply_sorting_to_list(cluster.zones, zone_sorting)
-        return clusters_copy
+    def _modify_clusters(self, population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle=False):
+        new_clusters = []
+        
+        # Get grid dimensions (assuming your clusters form a grid, e.g., 5x4)
+        # We use this to calculate a 'Global' Latin Shift
+        for c_idx, cluster in enumerate(clusters):
+            zone_centroids = self._get_zone_centroids(cluster, population, topological)
+            
+            # 1. Get the base order (Lexico YX is usually best for the base)
+            new_zone_order = self._get_strategy_order(zone_centroids, 'lexico_yx').tolist()
+            num_z = len(new_zone_order)
+            
+            # --- THE LATIN PHASE SHIFT ---
+            # Instead of a random shuffle, we use a 'Prime Jump'
+            # This ensures that Cluster 1 is offset from Cluster 0 in a way
+            # that perfectly 'interleaves' the points.
+            if shuffle:
+                # Use a prime number jump for the phase shift
+                # 7 or 11 are usually great for breaking grid symmetries
+                prime_jump = 7 
+                step = (c_idx * prime_jump) % num_z
+                new_zone_order = new_zone_order[step:] + new_zone_order[:step]
+            else:
+                # Your standard jump logic
+                step = (c_idx * shift_jump) % num_z
+                new_zone_order = new_zone_order[step:] + new_zone_order[:step]
+
+            modified_zones = [cluster.zones[idx] for idx in new_zone_order]
+
+            # 2. Point Strategy (CRITICAL: USE lexico_yx FOR POINTS)
+            if point_strategy is not None:
+                for zone in modified_zones:
+                    zone_coords = population.coords[zone.indices]
+                    zone.sort = self._get_strategy_order(zone_coords, point_strategy).tolist()
+
+            new_cluster = copy.copy(cluster)
+            new_cluster.zones = modified_zones
+            new_clusters.append(new_cluster)
+            
+        return new_clusters
 
     @staticmethod
     def _sort_points(points: np.ndarray, strategy: str) -> np.ndarray:
@@ -293,3 +347,46 @@ class Order:
         new_instance.num_splits = self.num_splits
 
         return new_instance
+    
+    def _get_strategy_order(self, points: np.ndarray, strategy: str) -> np.ndarray:
+        """
+        Takes a set of points (Centroids) and returns the order of indices 
+        based on the requested spatial strategy.
+        """
+        match strategy:
+            case 'lexico_xy':
+                return np.lexsort((points[:, 1], points[:, 0]))
+            case 'lexico_yx':
+                return np.lexsort((points[:, 0], points[:, 1]))
+            case 'angle':
+                angles = np.mod(np.arctan2(points[:, 1], points[:, 0]), 2 * np.pi)
+                return np.argsort(angles)
+            case 'dist_from_origin':
+                distances = np.linalg.norm(points, axis=1)
+                return np.argsort(distances)
+            case 'projection':
+                projections = points[:, 0] + points[:, 1]
+                return np.argsort(projections)
+            case 'dist_from_centroids':
+                centroid = points.mean(axis=0)
+                distances = np.linalg.norm(points - centroid, axis=1)
+                return np.argsort(distances)
+            case 'max_coord':
+                max_coords = np.max(points, axis=1)
+                return np.argsort(max_coords)
+            case 'spiral':
+                centroid = points.mean(axis=0)
+                translated_points = points - centroid
+                angles = np.mod(np.arctan2(translated_points[:, 1], translated_points[:, 0]), 2 * np.pi)
+                distances = np.linalg.norm(translated_points, axis=1)
+                # Sort by distance first, then angle for a spiral effect
+                return np.lexsort((angles, distances))
+        
+        # Default: return items in their current order if strategy not found
+        return np.arange(points.shape[0])
+
+    @staticmethod
+    def _apply_sorting_to_list(lst, sorting):
+        """Helper to physically reorder a list based on an index array."""
+        temp = np.array(lst, dtype=object)
+        return temp[sorting].tolist()

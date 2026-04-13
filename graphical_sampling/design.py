@@ -120,9 +120,9 @@ class Design:
             # --- FIX: Look up from the class instead of pop ---
             true_c, true_z = getattr(self.__class__, 'debug_cz_map', {}).get(int(idx), (-1, -1))
             
-            print(f"Clust {true_c:2d} | Zone {true_z:2d} | Unit {int(idx):3d} | "
-                  f"1D Interval: [{level:.3f} -> {next_level:.3f}] | "
-                  f"Hits Sys Partition: {sys_part}")
+            # print(f"Clust {true_c:2d} | Zone {true_z:2d} | Unit {int(idx):3d} | "
+            #       f"1D Interval: [{level:.3f} -> {next_level:.3f}] | "
+            #       f"Hits Sys Partition: {sys_part}")
             # --------------------------------------------------
             if i == total_items - 1:
                 # Force the last element to hit exactly 1.0 (or the wrap-around point)

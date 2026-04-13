@@ -535,16 +535,16 @@ class FIPBalancedNMeans:
     ) -> list[Zone]:
         sort = np.argsort(sp.coords[:, 0]) if x_first else np.argsort(sp.coords[:, 1])
 
-        # Apply the fractional shares from the parent cluster
         initial_zones = self._get_zones_indices_share(
             num_zones=num_zones[0] if x_first else num_zones[1],
             indices=sort,
             shares=c_shares[sort],
             probs=sp.inclusions[sort] * c_shares[sort],
         )
-        
+
         final_zones = []
-        for zone_indices, zone_share in initial_zones:
+        # --- FIX: Add `enumerate(initial_zones)` to get the "i" grid coordinate ---
+        for i, (zone_indices, zone_share) in enumerate(initial_zones):
             sort = np.argsort(sp.coords[zone_indices][:, 1]) if x_first else np.argsort(sp.coords[zone_indices][:, 0])
             secondary_zones = self._get_zones_indices_share(
                 num_zones=num_zones[1] if x_first else num_zones[0],
@@ -552,14 +552,23 @@ class FIPBalancedNMeans:
                 shares=zone_share,
                 probs=sp.inclusions[zone_indices][sort] * zone_share[sort],
             )
-            for sec_zone_indices, sec_zone_share in secondary_zones:
-                final_zones.append(
-                    Zone(
-                        _indices=sp.indices[zone_indices][sec_zone_indices],
-                        _shares=sec_zone_share,
-                        sort=np.arange(len(sec_zone_share)).tolist(),
-                    )
+            
+            # --- FIX: Add `enumerate(secondary_zones)` to get the "j" grid coordinate ---
+            for j, (sec_zone_indices, sec_zone_share) in enumerate(secondary_zones):
+                new_zone = Zone(
+                    _indices=sp.indices[zone_indices][sec_zone_indices],
+                    _shares=sec_zone_share,
+                    sort=np.arange(len(sec_zone_share)).tolist(),
                 )
+                
+                # --- NEW LOGIC: Assign the perfect mathematical coordinate! ---
+                vx = float(i) if x_first else float(j)
+                vy = float(j) if x_first else float(i)
+                new_zone.virtual_centroid = np.array([vx, vy])
+                # -------------------------------------------------------------
+                
+                final_zones.append(new_zone)
+                
         return final_zones
 
     def _get_labels_centroids(
@@ -676,14 +685,6 @@ class FIPBalancedNMeans:
             # Sinkhorn + constrained KMeans
             # --------------------------------------------------
             elif self.init_clust_method == "ot":
-                print("sinkhorn")
-                #  # --- grid initialization for centroids ---
-                # g = int(np.ceil(np.sqrt(self.n)))
-                # grid = np.linspace(coords.min(), coords.max(), g)
-            
-                # gx, gy = np.meshgrid(grid, grid)
-                # grid_centers = np.column_stack([gx.ravel(), gy.ravel()])
-                # init_centers = grid_centers[:self.n]
                 
                 labels_init, centroids_init = self._get_labels_centroids_ot_kmeans(
                     coords,
@@ -842,7 +843,7 @@ class FIPBalancedNMeans:
                     membership[cluster.ceil.index, cluster.label] += cluster.ceil.percentage
 
         return membership
-        
+
     def plot(
             self,
             mode: Literal['soft', 'hard'],
