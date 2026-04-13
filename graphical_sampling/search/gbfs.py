@@ -150,6 +150,12 @@ class GreedyBestFirstSearch:
         print(f"Initial best criteria value: {self.best_criteria_value:.4f}")
 
         for iteration in range(max_iterations):
+            if iteration % 1000 == 0 and iteration > 0:
+            # We keep the current designs being explored to avoid immediate loops
+            # but clear the rest to free up memory/hashing time
+                current_designs = {node[3] for node in nodes_to_explore} if 'nodes_to_explore' in locals() else set()
+                closed_set = current_designs 
+
             num_changes = random.randint(num_changes_range[0],num_changes_range[1])
             num_clusters = random.randint(num_clusters_range[0],num_clusters_range[1])
             num_zones = random.randint(num_zones_range[0],num_zones_range[1])
@@ -204,8 +210,18 @@ class GreedyBestFirstSearch:
             # Skip the rest of the loop if all popped nodes were already closed
             if not valid_expansion:
                 continue
-
             # 3. Deduplication: Prevent redundant evaluations in the same batch
+            # --- STEP 3: DEDUPLICATION ---
+            # Put it right here!
+            unique_neighbors = {}
+            for new_type, new_design in all_neighbors:
+                # This check uses the fast hashing we just set up
+                if new_design not in closed_set and new_design not in unique_neighbors:
+                    unique_neighbors[new_design] = new_type
+
+            if not unique_neighbors:
+                continue
+            
             unique_neighbors = {}
             for new_type, new_design in all_neighbors:
                 if new_design not in closed_set and new_design not in unique_neighbors:

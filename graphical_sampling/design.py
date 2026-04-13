@@ -97,13 +97,33 @@ class Design:
         # Get the order data
         order_data = self.order.get()
         total_items = len(order_data)
+        
+        
+        # cumulative_mass = 0.0
+        
+        # # --- SET YOUR TEST PARAMETERS HERE ---
+        # r_per_cluster = 5.0         # How much total mass per cluster
+        # zones_per_cluster = 25.0    # How many zones inside one cluster
+        # mass_per_zone = r_per_cluster / zones_per_cluster
 
         for i, (idx, share) in enumerate(order_data):
             p = self.pop.inclusions[int(idx)] * share
             if p < 1e-12: continue
             
-            # --- THE FIX: Close the loop on the very last element ---
+           # THE FIX: Close the loop on the very last element
             next_level = level + p
+            if i == total_items - 1:
+                next_level = np.ceil(next_level - EPS) if next_level > EPS else 1.0
+            
+            sys_part = int(level * self.num_partitions) + 1
+            
+            # --- FIX: Look up from the class instead of pop ---
+            true_c, true_z = getattr(self.__class__, 'debug_cz_map', {}).get(int(idx), (-1, -1))
+            
+            print(f"Clust {true_c:2d} | Zone {true_z:2d} | Unit {int(idx):3d} | "
+                  f"1D Interval: [{level:.3f} -> {next_level:.3f}] | "
+                  f"Hits Sys Partition: {sys_part}")
+            # --------------------------------------------------
             if i == total_items - 1:
                 # Force the last element to hit exactly 1.0 (or the wrap-around point)
                 # This absorbs any remaining floating point noise

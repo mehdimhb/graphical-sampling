@@ -382,35 +382,50 @@ class FIPBalancedNMeans:
         return clustering.labels, clustering.centroids
 
     def fit_zones(self, num_zones: int | tuple[int, int], mode: Literal['cluster', 'sweep_xy', 'sweep_yx']) -> None:
-        """
-        Splits each existing cluster's pop into `num_partitions` sub-zones.
-        'num_partitions' should be int in case of 'cluster' mode. in case of 'sweep_xy' or 'sweep_yx' mode,
-        it can be a tuple with first indicating number of zones in x-axis and second indicating number of zones in
-        y-axis. if it is a int then will be interpreted as (num_partitions, num_partitions).
-        """
         if self.clusters is None:
             raise ValueError("The main clusters have not been fitted yet. Call .fit() first.")
 
         for i, cluster in enumerate(self.clusters):
-            # Create subpopulation subset using your sharing logic
-            sp = self.pop.subset(cluster.zones[0].indices)
+            # --- 1. GATHER ALL INDICES AND FRACTIONAL SHARES ---
+            c_indices = list(cluster.zones[0].indices)
+            c_shares = list(cluster.zones[0].shares)
+
+            if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
+                c_indices.append(cluster.floor.index)
+                c_shares.append(cluster.floor.percentage)
+
+            if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
+                c_indices.append(cluster.ceil.index)
+                c_shares.append(cluster.ceil.percentage)
+
+            c_indices_arr = np.array(c_indices, dtype=np.int64)
+            c_shares_arr = np.array(c_shares, dtype=np.float64)
+
+            sp = self.pop.subset(c_indices_arr)
 
             if isinstance(num_zones, tuple) and mode == 'cluster':
                 raise ValueError(f"num_partitions must be a 'int' in the mode of cluster, not {type(num_zones)}")
             elif isinstance(num_zones, int) and mode != 'cluster':
                 num_zones = (num_zones, num_zones)
 
-            # Replace the parent's single zone with the new partitioned zones
             if mode == 'cluster':
-                self.clusters[i].zones = self._get_zones_from_fbn(sp, num_zones)
+                self.clusters[i].zones = self._get_zones_from_fbn(sp, c_shares_arr, num_zones)
             elif mode == 'sweep_xy':
-                self.clusters[i].zones = self._get_zones_from_sweeping(sp, num_zones, x_first=True)
+                self.clusters[i].zones = self._get_zones_from_sweeping(sp, c_shares_arr, num_zones, x_first=True)
             elif mode == 'sweep_yx':
-                self.clusters[i].zones = self._get_zones_from_sweeping(sp, num_zones, x_first=False)
+                self.clusters[i].zones = self._get_zones_from_sweeping(sp, c_shares_arr, num_zones, x_first=False)
             else:
                 raise ValueError(f"Unknown mode '{mode}'. Must be 'cluster' or 'sweep'.")
 
-    def _get_zones_from_fbn(self, subpopulation: Population, num_zones: int) -> list[Zone]:
+            # --- FIX: CLEAR THE BORDERS SO THEY ARE NOT DOUBLE COUNTED ---
+            self.clusters[i].floor = Floor(index=-1, percentage=0.0)
+            self.clusters[i].ceil = Ceil(index=-1, percentage=0.0)
+
+    def _get_zones_from_fbn(self, subpopulation: Population, c_shares: np.ndarray, num_zones: int) -> list[Zone]:
+        
+        # Pre-scale the subpopulation's inclusions before recursive clustering
+        subpopulation.inclusions = subpopulation.inclusions * c_shares
+
         zones_fbn = FIPBalancedNMeans(
             n=num_zones,
             n_init=self.n_init,
@@ -455,84 +470,79 @@ class FIPBalancedNMeans:
     ) -> list[tuple[np.ndarray, np.ndarray]]:
         if num_zones == 1:
             return [(indices, shares)]
-        cum_probs = np.cumsum(probs)
-        total_mass = cum_probs[-1]
-        target_mass = total_mass / num_zones
-        thresholds = np.arange(1, num_zones) * target_mass
-        split_indices = np.array(np.searchsorted(cum_probs, thresholds, side='left'))
-
+            
+        target_mass = np.sum(probs) / num_zones
+        N = len(indices)
+        
         zones = []
-        start_idx = 0
-        prev_border_remainder = 0.0
-        prev_border_idx = -1
-
+        curr_idx = 0
+        
+        if N == 0:
+            return []
+            
+        unit_rem_prob = probs[0]
+        
         for i in range(num_zones):
-            if i < num_zones - 1:
-                split_idx = split_indices[i]
-                mass_at_split = cum_probs[split_idx]
-                mass_before = mass_at_split - probs[split_idx]
-                needed = thresholds[i] - mass_before
-                available = probs[split_idx]
-
-                frac_curr = np.clip(needed / available, 0.0, 1.0)
-                curr_border_idx = indices[split_idx]
-                end_idx = split_idx
-            else:
-                # --- FIX: Ensure the last zone takes exactly what is left ---
-                end_idx = len(indices)
-                frac_curr = 0.0
-                curr_border_idx = -1
-
-            free_ids = indices[start_idx: end_idx]
-            
             zone_indices = []
-            zone_share = []
+            zone_shares_local = []
             
-            if prev_border_idx != -1:
-                zone_indices.append(prev_border_idx)
-                zone_share.append(prev_border_remainder)
+            mass_needed = target_mass
             
-            zone_indices.extend(free_ids.tolist())
-            zone_share.extend(np.ones(len(free_ids)).tolist())
-            
-            if curr_border_idx != -1:
-                zone_indices.append(curr_border_idx)
-                zone_share.append(frac_curr)
-            
-            # Convert to numpy and apply original weights
-            z_idx_arr = np.array(zone_indices, dtype=np.int64)
-            z_share_arr = np.array(zone_share, dtype=np.float64)
-            
-            # Re-scale shares by the incoming 'shares' vector 
-            # (crucial for nested sweeping)
-            final_shares = z_share_arr * shares[z_idx_arr]
-            zones.append((z_idx_arr, final_shares))
-
-            start_idx = split_idx + 1
-            if curr_border_idx != -1:
-                prev_border_idx = curr_border_idx
-                prev_border_remainder = 1.0 - frac_curr
-                if np.isclose(frac_curr, 1.0, atol=1e-12):
-                    prev_border_remainder = 0.0
-                    prev_border_idx = -1
+            if i == num_zones - 1:
+                # Last zone takes all remaining fragments (prevents float rounding leftovers)
+                while curr_idx < N:
+                    if unit_rem_prob > 1e-12:
+                        zone_indices.append(indices[curr_idx])
+                        frac = unit_rem_prob / probs[curr_idx]
+                        zone_shares_local.append(frac * shares[curr_idx])
+                    curr_idx += 1
+                    if curr_idx < N:
+                        unit_rem_prob = probs[curr_idx]
             else:
-                prev_border_idx = -1
-                prev_border_remainder = 0.0
-
+                while mass_needed > 1e-12 and curr_idx < N:
+                    if unit_rem_prob <= mass_needed + 1e-12:
+                        # Consume remaining part of this unit
+                        if unit_rem_prob > 1e-12:
+                            zone_indices.append(indices[curr_idx])
+                            frac = unit_rem_prob / probs[curr_idx]
+                            zone_shares_local.append(frac * shares[curr_idx])
+                        
+                        mass_needed -= unit_rem_prob
+                        curr_idx += 1
+                        if curr_idx < N:
+                            unit_rem_prob = probs[curr_idx]
+                        else:
+                            unit_rem_prob = 0.0
+                    else:
+                        # Consume exactly mass_needed, unit still has leftovers for the next zone
+                        zone_indices.append(indices[curr_idx])
+                        frac = mass_needed / probs[curr_idx]
+                        zone_shares_local.append(frac * shares[curr_idx])
+                        
+                        unit_rem_prob -= mass_needed
+                        mass_needed = 0.0
+                        
+            zones.append((
+                np.array(zone_indices, dtype=np.int64),
+                np.array(zone_shares_local, dtype=np.float64)
+            ))
+            
         return zones
 
 
     def _get_zones_from_sweeping(
-            self, sp: Population, num_zones: tuple[int, int], x_first: bool
+            self, sp: Population, c_shares: np.ndarray, num_zones: tuple[int, int], x_first: bool
     ) -> list[Zone]:
         sort = np.argsort(sp.coords[:, 0]) if x_first else np.argsort(sp.coords[:, 1])
 
+        # Apply the fractional shares from the parent cluster
         initial_zones = self._get_zones_indices_share(
             num_zones=num_zones[0] if x_first else num_zones[1],
             indices=sort,
-            shares=np.ones(len(sort)),
-            probs=sp.inclusions[sort],
+            shares=c_shares[sort],
+            probs=sp.inclusions[sort] * c_shares[sort],
         )
+        
         final_zones = []
         for zone_indices, zone_share in initial_zones:
             sort = np.argsort(sp.coords[zone_indices][:, 1]) if x_first else np.argsort(sp.coords[zone_indices][:, 0])
@@ -804,8 +814,6 @@ class FIPBalancedNMeans:
                              pop_indices: np.ndarray | None = None) -> np.ndarray:
         membership = np.zeros((N, self.K), dtype=float)
 
-        # If we are working on a subset, the clusters store global indices.
-        # We must reverse-map them to local indices (0 to N-1) to safely build this array.
         if pop_indices is not None:
             g2l = {global_idx: local_idx for local_idx, global_idx in enumerate(pop_indices)}
 
@@ -813,24 +821,28 @@ class FIPBalancedNMeans:
                 for zone in cluster.zones:
                     if len(zone.indices) > 0:
                         local_ids = [g2l[i] for i in zone.indices]
-                        membership[local_ids, cluster.label] = 1.0
+                        # Safely accumulate the exact fractional shares
+                        np.add.at(membership[:, cluster.label], local_ids, zone.shares)
+                
+                # These will only add anything if fit_zones hasn't cleared them yet
                 if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
                     membership[g2l[cluster.floor.index], cluster.label] += cluster.floor.percentage
                 if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
                     membership[g2l[cluster.ceil.index], cluster.label] += cluster.ceil.percentage
         else:
-            # Standard execution for the main pop (no mapping needed)
             for cluster in clusters:
                 for zone in cluster.zones:
                     if len(zone.indices) > 0:
-                        membership[zone.indices, cluster.label] = 1.0
+                        # Safely accumulate the exact fractional shares
+                        np.add.at(membership[:, cluster.label], zone.indices, zone.shares)
+                
                 if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
                     membership[cluster.floor.index, cluster.label] += cluster.floor.percentage
                 if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
                     membership[cluster.ceil.index, cluster.label] += cluster.ceil.percentage
 
         return membership
-
+        
     def plot(
             self,
             mode: Literal['soft', 'hard'],
