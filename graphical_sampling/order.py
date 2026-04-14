@@ -1,19 +1,16 @@
 from __future__ import annotations
 import copy
 from dataclasses import dataclass, field
-
 import numpy as np
-
 from .population import Population
-
 
 @dataclass
 class Zone:
-    _shares: np.ndarray = field(default_factory=np.ndarray)
-    _indices: np.ndarray = field(default_factory=np.ndarray)
+    _shares: np.ndarray = field(default_factory=lambda: np.array([], dtype=float))
+    _indices: np.ndarray = field(default_factory=lambda: np.array([], dtype=int))
     sort: list[int] = field(default_factory=list)
     virtual_centroid: np.ndarray | None = None
-    
+
     @property
     def shares(self) -> np.ndarray:
         return self._shares[self.sort]
@@ -22,18 +19,15 @@ class Zone:
     def indices(self) -> np.ndarray:
         return self._indices[self.sort]
 
-
 @dataclass
 class Floor:
     index: int | None = None
     percentage: float | None = None
 
-
 @dataclass
 class Ceil:
     index: int | None = None
     percentage: float | None = None
-
 
 @dataclass
 class Cluster:
@@ -42,15 +36,10 @@ class Cluster:
     floor: Floor | None = None
     ceil: Ceil | None = None
 
-
 class Order:
     def __init__(self, population: Population):
-        """
-        Base constructor. Use the class methods `from_indices` or `from_clusters`
-        to properly instantiate and build the order.
-        """
         self.pop = population
-        self._order: np.ndarray = np.array([], dtype=float)
+        self._order: np.ndarray = np.empty((0, 2))
         self._fixed_ids: set[int] = set()
         self.clusters: list[Cluster] | None = None
         self.num_zones: int = 0
@@ -59,7 +48,6 @@ class Order:
     @classmethod
     def from_indices(cls, population: Population, permutation: bool = False, num_splits: int = 1) -> Order:
         instance = cls(population)
-
         if permutation:
             rng = np.random.default_rng()
             indices = np.repeat(rng.permutation(population.indices), num_splits)
@@ -67,7 +55,6 @@ class Order:
             indices = np.repeat(np.copy(population.indices), num_splits)
 
         shares = np.repeat(np.ones_like(population.indices), num_splits) / num_splits
-
         instance._order = np.column_stack([indices, shares])
         instance.num_zones = 1
         instance.num_splits = num_splits
@@ -75,318 +62,153 @@ class Order:
 
     @classmethod
     def from_clusters(
-            cls,
-            population: Population,
-            clusters: list[Cluster],
-            zone_strategy: str | None = None,
-            point_strategy: str | None = None,
-            num_splits: int = 1,
-            topological: bool = True,  # Added to enable Virtual Grid logic
-            shift_jump = 2,
-            shuffle=False
+        cls,
+        population: Population,
+        clusters: list[Cluster],
+        zone_strategy: str | None = None,
+        point_strategy: str | None = None,
+        num_splits: int = 1,
+        topological: bool = True,
+        shift_jump: int = 0,
+        shuffle: bool = False
     ) -> Order:
-        """
-        Builds an Order object from pre-calculated clusters and zones.
-        
-        Args:
-            population: The Population object.
-            clusters: List of Cluster objects (from FIPBalancedNMeans).
-            zone_strategy: Sorter for the order of zones (e.g., 'spiral', 'projection').
-            point_strategy: Sorter for units within each zone.
-            num_splits: Number of random splits for the sampling line.
-            topological: If True, uses perfect integer grid coordinates for zone sorting.
-        """
-        # Validate consistency across clusters
-        num_zones = len(clusters[0].zones)
-        for cluster in clusters:
-            assert len(cluster.zones) == num_zones, \
-                'Number of zones must be the same across all clusters.'
-
         instance = cls(population)
+        num_zones = len(clusters[0].zones)
         
-        # Check if we need to apply re-ordering strategies
-        if zone_strategy is not None or point_strategy is not None:
-            # Pass the topological flag down to _modify_clusters
-            instance.clusters = instance._modify_clusters(
-                population, 
-                clusters, 
-                zone_strategy, 
-                point_strategy, 
-                topological,
-                shift_jump,
-                shuffle
-            )
-        else:
-            instance.clusters = clusters
-            
-        # Finalize the 1D systematic order
+        # Apply spatial sorting and the Phase Shift (Jump) logic
+        instance.clusters = instance._modify_clusters(
+            population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle
+        )
+
         instance._build_order(num_splits)
         instance.num_zones = num_zones
         instance.num_splits = num_splits
-        
         return instance
 
-    def _modify_clusters(self, population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle=False):
+    def _modify_clusters(self, population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle):
         new_clusters = []
-        
-        # Get grid dimensions (assuming your clusters form a grid, e.g., 5x4)
-        # We use this to calculate a 'Global' Latin Shift
         for c_idx, cluster in enumerate(clusters):
-            zone_centroids = self._get_zone_centroids(cluster, population, topological)
-            
-            # 1. Get the base order (Lexico YX is usually best for the base)
-            new_zone_order = self._get_strategy_order(zone_centroids, 'lexico_yx').tolist()
-            num_z = len(new_zone_order)
-            
-            # --- THE LATIN PHASE SHIFT ---
-            # Instead of a random shuffle, we use a 'Prime Jump'
-            # This ensures that Cluster 1 is offset from Cluster 0 in a way
-            # that perfectly 'interleaves' the points.
-            if shuffle:
-                # Use a prime number jump for the phase shift
-                # 7 or 11 are usually great for breaking grid symmetries
-                prime_jump = 7 
-                step = (c_idx * prime_jump) % num_z
-                new_zone_order = new_zone_order[step:] + new_zone_order[:step]
-            else:
-                # Your standard jump logic
-                step = (c_idx * shift_jump) % num_z
-                new_zone_order = new_zone_order[step:] + new_zone_order[:step]
+            # 1. Calculate Zone Centroids
+            zone_coords = []
+            for z in cluster.zones:
+                if len(z.indices) > 0:
+                    zone_coords.append(population.coords[z.indices].mean(axis=0))
+                else:
+                    zone_coords.append(np.array([0.5, 0.5]))
+            zone_centroids = np.array(zone_coords)
 
-            modified_zones = [cluster.zones[idx] for idx in new_zone_order]
+            # 2. Get Base Order (Stable base for jumping)
+            strategy = zone_strategy if zone_strategy is not None else 'lexico_yx'
+            base_order = self._get_strategy_order(zone_centroids, strategy).tolist()
+            
+            # 3. Apply the Phase Shift
+            num_z = len(base_order)
+            jump_val = (c_idx * 7) % num_z if shuffle else (c_idx * shift_jump) % num_z
+            shifted_order = base_order[jump_val:] + base_order[:jump_val]
+            
+            # Reconstruct zones list for this cluster
+            modified_zones = [copy.deepcopy(cluster.zones[idx]) for idx in shifted_order]
 
-            # 2. Point Strategy (CRITICAL: USE lexico_yx FOR POINTS)
+            # 4. Apply Point-Level strategy within each zone
             if point_strategy is not None:
                 for zone in modified_zones:
-                    zone_coords = population.coords[zone.indices]
-                    zone.sort = self._get_strategy_order(zone_coords, point_strategy).tolist()
+                    if len(zone.indices) > 1:
+                        pts = population.coords[zone.indices]
+                        zone.sort = self._get_strategy_order(pts, point_strategy).tolist()
+                    else:
+                        zone.sort = [0] if len(zone.indices) == 1 else []
 
             new_cluster = copy.copy(cluster)
             new_cluster.zones = modified_zones
             new_clusters.append(new_cluster)
-            
         return new_clusters
 
-    @staticmethod
-    def _sort_points(points: np.ndarray, strategy: str) -> np.ndarray:
+    def _get_strategy_order(self, points: np.ndarray, strategy: str) -> np.ndarray:
+        if points.shape[0] == 0: return np.array([], dtype=int)
+        if points.ndim == 1: points = points.reshape(1, -1)
+            
         match strategy:
-            case 'lexico_xy':
-                return np.lexsort((points[:, 1], points[:, 0]))
-            case 'lexico_yx':
-                return np.lexsort((points[:, 0], points[:, 1]))
+            case 'lexico_xy': return np.lexsort((points[:, 1], points[:, 0]))
+            case 'lexico_yx': return np.lexsort((points[:, 0], points[:, 1]))
+            case 'projection': return np.argsort(points[:, 0] + points[:, 1])
+            case 'dist_from_origin': return np.argsort(np.linalg.norm(points, axis=1))
             case 'angle':
-                angles = np.mod(np.arctan2(points[:, 1], points[:, 0]), 2 * np.pi)
-                return np.argsort(angles)
-            case 'dist_from_origin':
-                distances = np.linalg.norm(points, axis=1)
-                return np.argsort(distances)
-            case 'projection':
-                projections = points[:, 0] + points[:, 1]
-                return np.argsort(projections)
-            case 'dist_from_centroids':
-                centroid = points.mean(axis=0)
-                distances = np.linalg.norm(points - centroid, axis=1)
-                return np.argsort(distances)
-            case 'max_coord':
-                max_coords = np.max(points, axis=1)
-                return np.argsort(max_coords)
+                center = points.mean(axis=0)
+                return np.argsort(np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0]))
             case 'spiral':
-                centroid = points.mean(axis=0)
-                translated_points = points - centroid
-                angles = np.mod(np.arctan2(translated_points[:, 1], translated_points[:, 0]), 2 * np.pi)
-                distances = np.linalg.norm(translated_points, axis=1)
-                return np.lexsort((distances, angles))
-        return np.arange(points.shape[0])
-
-    @staticmethod
-    def _apply_sorting_to_list(lst, sorting):
-        temp = np.array(lst)
-        temp = temp[sorting]
-        return temp.tolist()
+                center = points.mean(axis=0)
+                dists = np.linalg.norm(points - center, axis=1)
+                angles = np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0])
+                return np.lexsort((angles, dists))
+            case _: return np.arange(len(points))
 
     def _build_order(self, num_splits: int):
-        if not self.clusters:
-            return
-
-        indices_list = []
-        shares_list = []
+        indices_list, shares_list = [], []
         fixed_ids = set()
 
         for cluster in self.clusters:
-            cluster_indices = []
-            cluster_shares = []
-
-            # 1. Collect Floor
             if cluster.floor and cluster.floor.index is not None and cluster.floor.index != -1:
-                cluster_indices.append(cluster.floor.index)
-                cluster_shares.append(cluster.floor.percentage)
+                indices_list.append(cluster.floor.index)
+                shares_list.append(cluster.floor.percentage)
                 fixed_ids.add(cluster.floor.index)
 
-            # 2. Collect Zones
             for zone in cluster.zones:
-                zone_indices = np.repeat(zone.indices, num_splits)
-                # Ensure we divide the share correctly by splits
-                zone_shares = np.repeat(zone.shares, num_splits) / num_splits
-                cluster_indices.extend(zone_indices.tolist())
-                cluster_shares.extend(zone_shares.tolist())
+                if len(zone.indices) > 0:
+                    indices_list.extend(np.repeat(zone.indices, num_splits).tolist())
+                    shares_list.extend((np.repeat(zone.shares, num_splits) / num_splits).tolist())
 
-            # 3. Collect Ceil
             if cluster.ceil and cluster.ceil.index is not None and cluster.ceil.index != -1:
-                cluster_indices.append(cluster.ceil.index)
-                cluster_shares.append(cluster.ceil.percentage)
+                indices_list.append(cluster.ceil.index)
+                shares_list.append(cluster.ceil.percentage)
                 fixed_ids.add(cluster.ceil.index)
 
-            # --- CRITICAL FIX: Local Normalization ---
-            # Every cluster in your 'r' logic should sum to exactly 'r' 
-            # (or 1.0 if r=1). This prevents floating point drift.
-            c_shares = np.array(cluster_shares)
-            target_sum = self.pop.sum_prob(np.array(cluster_indices), c_shares)
-            
-            # We don't change the indices, but we ensure the 'order' 
-            # representation matches the population's expected mass.
-            indices_list.extend(cluster_indices)
-            shares_list.extend(cluster_shares)
-
-        # self._order = np.column_stack([indices_list, shares_list])
-        self._order = np.zeros((len(indices_list), 2))
-        self._order[:, 0] = np.array(indices_list, dtype=np.int64)
-        self._order[:, 1] = np.array(shares_list, dtype=np.float64)
-        # --- ADD THIS LOGIC ---
+        self._order = np.column_stack([np.array(indices_list, dtype=int), np.array(shares_list, dtype=float)])
+        
+        # Final Quota Normalization to ensure exactly 'n' units are sampled
         total_n = self.pop.n
         current_sum = np.sum(self._order[:, 1] * self.pop.inclusions[self._order[:, 0].astype(int)])
-        
-        if not np.isclose(current_sum, total_n, atol=1e-7):
-            # Scale all shares slightly to match the target sample size n
-            correction_factor = total_n / current_sum
-            self._order[:, 1] *= correction_factor
-        # ----------------------
+        if not np.isclose(current_sum, total_n, atol=1e-8):
+            self._order[:, 1] *= (total_n / current_sum)
         
         self._fixed_ids = fixed_ids
-        # print("POP SIZE:", len(self.pop.indices))
-        # print("ORDER SIZE:", len(indices_list))
-
-        
 
     def change(self, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int):
-            """
-            Randomly changes the position of indices inside the zones, AND/OR
-            changes the order of the zones themselves within the clusters.
-            """
-            if not self.clusters:
-                raise ValueError("Order must be initialized with from_clusters to use the change method.")
-    
-            rng = np.random.default_rng()
-    
-            # --- Phase 1: Item-level changes inside zones ---
-            if num_changes > 0:
-                # Filter out clusters that have no zones to avoid indexing errors
-                valid_clusters_items = [c for c in self.clusters if len(c.zones) > 0]
-                if valid_clusters_items:
-                    # Select random clusters safely
-                    c_idxs_items = rng.choice(len(valid_clusters_items),
-                                              size=min(num_clusters, len(valid_clusters_items)),
-                                              replace=False)
-                    selected_clusters_items = [valid_clusters_items[i] for i in c_idxs_items]
-    
-                    for cluster in selected_clusters_items:
-                        # We need at least 2 items in a zone to actually "change position"
-                        valid_zones = [z for z in cluster.zones if len(z.sort) > 1]
-                        if not valid_zones:
-                            continue
-    
-                        z_idxs = rng.choice(len(valid_zones), size=min(num_zones, len(valid_zones)), replace=False)
-                        selected_zones = [valid_zones[i] for i in z_idxs]
-    
-                        for zone in selected_zones:
-                            for _ in range(num_changes):
-                                i, j = rng.choice(len(zone.sort), size=2, replace=False)
-                                zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
-                                
-    
-            # --- Phase 2: Zone-level changes inside clusters ---
-            if num_zone_changes > 0:
-                # We need at least 2 zones in a cluster to change their order
-                valid_clusters_zones = [c for c in self.clusters if len(c.zones) > 1]
-                if valid_clusters_zones:
-                    # Select a potentially different set of random clusters for zone moving
-                    c_idxs_zones = rng.choice(len(valid_clusters_zones),
-                                              size=min(num_clusters, len(valid_clusters_zones)),
-                                              replace=False)
-                    selected_clusters_zones = [valid_clusters_zones[i] for i in c_idxs_zones]
-    
-                    for cluster in selected_clusters_zones:
-                        for _ in range(num_zone_changes):
-                            i, j = rng.choice(len(cluster.zones), size=2, replace=False)
-                            cluster.zones[i], cluster.zones[j] = cluster.zones[j], cluster.zones[i]
-    
-            # Rebuild the _order array to reflect all new states
-            self._build_order(self.num_splits)
+        rng = np.random.default_rng()
+        if num_changes > 0:
+            c_idxs = rng.choice(len(self.clusters), size=min(num_clusters, len(self.clusters)), replace=False)
+            for idx in c_idxs:
+                cluster = self.clusters[idx]
+                z_idxs = rng.choice(len(cluster.zones), size=min(num_zones, len(cluster.zones)), replace=False)
+                for z_idx in z_idxs:
+                    zone = cluster.zones[z_idx]
+                    if len(zone.sort) > 1:
+                        for _ in range(num_changes):
+                            i, j = rng.choice(len(zone.sort), size=2, replace=False)
+                            zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
+
+        if num_zone_changes > 0:
+            c_idxs = rng.choice(len(self.clusters), size=min(num_clusters, len(self.clusters)), replace=False)
+            for idx in c_idxs:
+                cluster = self.clusters[idx]
+                if len(cluster.zones) > 1:
+                    for _ in range(num_zone_changes):
+                        i, j = rng.choice(len(cluster.zones), size=2, replace=False)
+                        cluster.zones[i], cluster.zones[j] = cluster.zones[j], cluster.zones[i]
+        
+        self._build_order(self.num_splits)
 
     def get(self) -> np.ndarray:
         return self._order
 
+    def copy(self) -> Order:
+        new_instance = Order(self.pop)
+        new_instance._order = np.copy(self._order)
+        new_instance._fixed_ids = self._fixed_ids.copy()
+        new_instance.clusters = copy.deepcopy(self.clusters)
+        new_instance.num_zones = self.num_zones
+        new_instance.num_splits = self.num_splits
+        return new_instance
+
     @property
     def fixed_ids(self) -> set[int]:
         return self._fixed_ids
-
-    def copy(self) -> Order:
-        """
-        Creates an independent duplicate of the Order.
-        Mutating the copy will not affect the original Order's clusters, zones, or arrays.
-        """
-        # Create a fresh instance. We pass the same pop reference
-        # since the pop itself isn't what we are mutating.
-        new_instance = Order(self.pop)
-
-        # Copy the numpy array and the set of fixed IDs
-        new_instance._order = np.copy(self._order)
-        new_instance._fixed_ids = self._fixed_ids.copy()
-        new_instance.clusters = copy.deepcopy(self.clusters) if self.clusters is not None else None
-
-        new_instance.num_zones = self.num_zones
-        new_instance.num_splits = self.num_splits
-
-        return new_instance
-    
-    def _get_strategy_order(self, points: np.ndarray, strategy: str) -> np.ndarray:
-        """
-        Takes a set of points (Centroids) and returns the order of indices 
-        based on the requested spatial strategy.
-        """
-        match strategy:
-            case 'lexico_xy':
-                return np.lexsort((points[:, 1], points[:, 0]))
-            case 'lexico_yx':
-                return np.lexsort((points[:, 0], points[:, 1]))
-            case 'angle':
-                angles = np.mod(np.arctan2(points[:, 1], points[:, 0]), 2 * np.pi)
-                return np.argsort(angles)
-            case 'dist_from_origin':
-                distances = np.linalg.norm(points, axis=1)
-                return np.argsort(distances)
-            case 'projection':
-                projections = points[:, 0] + points[:, 1]
-                return np.argsort(projections)
-            case 'dist_from_centroids':
-                centroid = points.mean(axis=0)
-                distances = np.linalg.norm(points - centroid, axis=1)
-                return np.argsort(distances)
-            case 'max_coord':
-                max_coords = np.max(points, axis=1)
-                return np.argsort(max_coords)
-            case 'spiral':
-                centroid = points.mean(axis=0)
-                translated_points = points - centroid
-                angles = np.mod(np.arctan2(translated_points[:, 1], translated_points[:, 0]), 2 * np.pi)
-                distances = np.linalg.norm(translated_points, axis=1)
-                # Sort by distance first, then angle for a spiral effect
-                return np.lexsort((angles, distances))
-        
-        # Default: return items in their current order if strategy not found
-        return np.arange(points.shape[0])
-
-    @staticmethod
-    def _apply_sorting_to_list(lst, sorting):
-        """Helper to physically reorder a list based on an index array."""
-        temp = np.array(lst, dtype=object)
-        return temp[sorting].tolist()
