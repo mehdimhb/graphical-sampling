@@ -316,7 +316,7 @@ class FIPBalancedNMeans:
         self.n = n
         assert n % r_sample_per_cluster == 0, "n must be divisible by r_sample_per_cluster"
         self.r = r_sample_per_cluster
-        self.K = n // r_sample_per_cluster
+        self.K = int(n // r_sample_per_cluster)
         self.centroid_grid_x = centroid_grid_x 
         
         self.pop: Population | None = None

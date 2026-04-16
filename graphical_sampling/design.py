@@ -88,6 +88,16 @@ class Design:
         design._fip = None
         design._indicator_matrix = None
         design._sip = None
+    def __hash__(self):
+        # Sort samples to ensure the hash is "Order Agnostic"
+        samples, _ = self.all_samples_and_probs
+        # Convert to a sorted tuple of frozensets for a stable signature
+        return hash(tuple(sorted(frozenset(s) for s in samples)))
+    
+    def __eq__(self, other):
+        if not isinstance(other, Design): return False
+        return hash(self) == hash(other)
+
 
     def _build(self):
         events: list[tuple[float, str, int]] = []
