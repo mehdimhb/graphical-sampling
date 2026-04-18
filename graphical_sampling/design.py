@@ -88,16 +88,15 @@ class Design:
         design._fip = None
         design._indicator_matrix = None
         design._sip = None
-    def __hash__(self):
-        # Sort samples to ensure the hash is "Order Agnostic"
-        samples, _ = self.all_samples_and_probs
-        # Convert to a sorted tuple of frozensets for a stable signature
-        return hash(tuple(sorted(frozenset(s) for s in samples)))
-    
-    def __eq__(self, other):
-        if not isinstance(other, Design): return False
-        return hash(self) == hash(other)
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Design):
+            return NotImplemented
+        # Designs are equal if their internal heap structures are identical
+        return self._heaps == other._heaps
 
+    def __hash__(self) -> int:
+        # A stable hash based on the current state of all partitions
+        return hash(tuple(self._heaps))
 
     def _build(self):
         events: list[tuple[float, str, int]] = []
