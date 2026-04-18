@@ -66,7 +66,7 @@ class Design:
 
         new_design._pop = self.pop
         new_design._num_partitions = self.num_partitions
-        new_design._num_partitions = 1
+        # new_design._num_partitions = 1
         new_design._order = self.order.copy()
         new_design._heaps = [h.copy() for h in self._heaps]
         new_design._rng = np.random.default_rng()
