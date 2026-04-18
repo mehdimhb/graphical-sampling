@@ -97,24 +97,25 @@ class Order:
                     zone_coords.append(np.array([0.5, 0.5]))
             zone_centroids = np.array(zone_coords)
 
-            # 2. Get Base Order (Stable base for jumping)
+            # 2. Zone-Level Sorting
+            # We pass 'topological' here to allow rounding/binning for the big grid
             strategy = zone_strategy if zone_strategy is not None else 'lexico_yx'
-            base_order = self._get_strategy_order(zone_centroids, strategy).tolist()
+            base_order = self._get_strategy_order(zone_centroids, strategy, topological=topological).tolist()
             
-            # 3. Apply the Phase Shift
+            # 3. Apply the Phase Shift (Jump)
             num_z = len(base_order)
             jump_val = (c_idx * 7) % num_z if shuffle else (c_idx * shift_jump) % num_z
             shifted_order = base_order[jump_val:] + base_order[:jump_val]
             
-            # Reconstruct zones list for this cluster
             modified_zones = [copy.deepcopy(cluster.zones[idx]) for idx in shifted_order]
 
-            # 4. Apply Point-Level strategy within each zone
+            # 4. Point-Level Sorting
             if point_strategy is not None:
                 for zone in modified_zones:
                     if len(zone.indices) > 1:
-                        pts = population.coords[zone.indices]
-                        zone.sort = self._get_strategy_order(pts, point_strategy).tolist()
+                        pts_coords = population.coords[zone.indices]
+                        # We force topological=False here to use EXACT coordinates within the zone
+                        zone.sort = self._get_strategy_order(pts_coords, point_strategy, topological=False).tolist()
                     else:
                         zone.sort = [0] if len(zone.indices) == 1 else []
 
@@ -123,24 +124,89 @@ class Order:
             new_clusters.append(new_cluster)
         return new_clusters
 
-    def _get_strategy_order(self, points: np.ndarray, strategy: str) -> np.ndarray:
+    def _get_strategy_order(self, points: np.ndarray, strategy: str, topological: bool = False) -> np.ndarray:
         if points.shape[0] == 0: return np.array([], dtype=int)
         if points.ndim == 1: points = points.reshape(1, -1)
+        
+        # If topological is True, we round to 1 decimal to snap centroids to a grid.
+        # This prevents tiny float offsets from ruining the row/column order.
+        # --- QUANTILE TOPOLOGICAL BINNING ---
+        if topological:
+            num_pts = points.shape[0]
+            grid_size = int(np.sqrt(num_pts))
+            pts = points.copy()
+            
+            # 1. Sort by Y and group into N equal-sized "rows"
+            y_indices = np.argsort(points[:, 1])
+            # Assign each index a 'row ID' from 0 to grid_size-1
+            for row_id in range(grid_size):
+                start = row_id * grid_size
+                end = (row_id + 1) * grid_size
+                # Force all points in this group to have the exact same Y
+                pts[y_indices[start:end], 1] = row_id 
+                
+            # 2. Within those rows, bin the X coordinates similarly
+            # This handles the case where X is slightly staggered
+            x_indices = np.argsort(points[:, 0])
+            for col_id in range(grid_size):
+                start = col_id * grid_size
+                end = (col_id + 1) * grid_size
+                pts[x_indices[start:end], 0] = col_id
+        else:
+            pts = points
             
         match strategy:
-            case 'lexico_xy': return np.lexsort((points[:, 1], points[:, 0]))
-            case 'lexico_yx': return np.lexsort((points[:, 0], points[:, 1]))
-            case 'projection': return np.argsort(points[:, 0] + points[:, 1])
-            case 'dist_from_origin': return np.argsort(np.linalg.norm(points, axis=1))
+            case 'interleaved':
+                # Sort by grid, then take odd-indexed zones followed by even-indexed zones
+                base = np.lexsort((pts[:, 0], pts[:, 1])) 
+                return np.concatenate([base[0::2], base[1::2]])
+
+            case 'snake':
+                # Boustrophedon / Zigzag: flip every other row
+                num_pts = pts.shape[0]
+                num_rows = int(np.sqrt(num_pts))
+                y_sort_idx = np.argsort(pts[:, 1])
+                rows = np.array_split(y_sort_idx, num_rows)
+                
+                final_order = []
+                for i, row_indices in enumerate(rows):
+                    row_points = pts[row_indices]
+                    row_x_sort = np.argsort(row_points[:, 0])
+                    sorted_row = row_indices[row_x_sort]
+                    
+                    if i % 2 == 1: # Reverse every odd row
+                        sorted_row = sorted_row[::-1]
+                    final_order.extend(sorted_row.tolist())
+                # print(final_order)
+                return np.array(final_order)
+
+            case 'lexico_xy': 
+                # Primary sort on X, secondary on Y
+                # print(np.lexsort((pts[:, 1], pts[:, 0])))
+                return np.lexsort((pts[:, 1], pts[:, 0]))
+
+            case 'lexico_yx': 
+                # Primary sort on Y, secondary on X
+                return np.lexsort((pts[:, 0], pts[:, 1]))
+
+            case 'projection': 
+                return np.argsort(pts[:, 0] + pts[:, 1])
+
+            case 'dist_from_origin': 
+                return np.argsort(np.linalg.norm(pts, axis=1))
+
             case 'angle':
-                center = points.mean(axis=0)
-                return np.argsort(np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0]))
+                center = pts.mean(axis=0)
+                return np.argsort(np.arctan2(pts[:, 1] - center[1], pts[:, 0] - center[0]))
+
             case 'spiral':
-                center = points.mean(axis=0)
-                dists = np.linalg.norm(points - center, axis=1)
-                angles = np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0])
+                center = pts.mean(axis=0)
+                dists = np.linalg.norm(pts - center, axis=1)
+                angles = np.arctan2(pts[:, 1] - center[1], pts[:, 0] - center[0])
                 return np.lexsort((angles, dists))
-            case _: return np.arange(len(points))
+
+            case _: 
+                return np.arange(len(pts))
 
     def _build_order(self, num_splits: int):
         indices_list, shares_list = [], []
