@@ -208,7 +208,7 @@ class Order:
                                     break
 
                 # Verification output
-                print(f"Final Path (1-indexed): {np.array(final_order) + 1}")
+                # print(f"Final Path (1-indexed): {np.array(final_order) + 1}")
                 return np.array(final_order)
                 
             
