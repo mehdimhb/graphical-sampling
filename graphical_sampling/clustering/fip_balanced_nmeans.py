@@ -381,7 +381,12 @@ class FIPBalancedNMeans:
     
         return clustering.labels, clustering.centroids
 
-    def fit_zones(self, num_zones: int | tuple[int, int], mode: Literal['cluster', 'sweep_xy', 'sweep_yx']) -> None:
+    def fit_zones(
+            self, 
+            num_zones: int | tuple[int, int], 
+            mode: Literal['cluster', 'sweep_xy', 'sweep_yx'],
+            centroid_grid_x_zone: int | None = None  # <--- 1. NEW PARAMETER HERE
+    ) -> None:
         if self.clusters is None:
             raise ValueError("The main clusters have not been fitted yet. Call .fit() first.")
 
@@ -401,7 +406,7 @@ class FIPBalancedNMeans:
             c_indices_arr = np.array(c_indices, dtype=np.int64)
             c_shares_arr = np.array(c_shares, dtype=np.float64)
 
-            sp = self.pop.subset(c_indices_arr)
+            sp = self.pop.subset(c_indices_arr, share=c_shares_arr)
 
             if isinstance(num_zones, tuple) and mode == 'cluster':
                 raise ValueError(f"num_partitions must be a 'int' in the mode of cluster, not {type(num_zones)}")
@@ -409,7 +414,8 @@ class FIPBalancedNMeans:
                 num_zones = (num_zones, num_zones)
 
             if mode == 'cluster':
-                self.clusters[i].zones = self._get_zones_from_fbn(sp, c_shares_arr, num_zones)
+                # <--- 2. PASS PARAMETER DOWN TO RECURSIVE FUNCTION HERE --->
+                self.clusters[i].zones = self._get_zones_from_fbn(sp, c_shares_arr, num_zones, centroid_grid_x_zone)
             elif mode == 'sweep_xy':
                 self.clusters[i].zones = self._get_zones_from_sweeping(sp, c_shares_arr, num_zones, x_first=True)
             elif mode == 'sweep_yx':
@@ -421,23 +427,29 @@ class FIPBalancedNMeans:
             self.clusters[i].floor = Floor(index=-1, percentage=0.0)
             self.clusters[i].ceil = Ceil(index=-1, percentage=0.0)
 
-    def _get_zones_from_fbn(self, subpopulation: Population, c_shares: np.ndarray, num_zones: int) -> list[Zone]:
-        
-        # Pre-scale the subpopulation's inclusions before recursive clustering
-        subpopulation.inclusions = subpopulation.inclusions * c_shares
+    def _get_zones_from_fbn(
+            self, 
+            subpopulation: Population, 
+            c_shares: np.ndarray, 
+            num_zones: int,
+            centroid_grid_x_zone: int | None = None  # <--- 3. ADD TO SIGNATURE HERE
+    ) -> list[Zone]:
 
         zones_fbn = FIPBalancedNMeans(
             n=num_zones,
+            centroid_grid_x=centroid_grid_x_zone,  # <--- 4. INJECT INTO NEW INSTANCE HERE
             n_init=self.n_init,
             tol=self.tol,
             max_iter=self.max_iter
         )
+        zones_fbn.r = np.sum(subpopulation.inclusions) / num_zones
         zones_fbn.fit(subpopulation)
 
         zones = []
         for zone in zones_fbn.clusters:
             sc_indices = []
             sc_shares = []
+            
 
             if zone.floor.index != -1:
                 sc_indices.append(zone.floor.index)
@@ -587,11 +599,11 @@ class FIPBalancedNMeans:
             else:
                 centroid_grid_x = self.centroid_grid_x
             grid_x = np.linspace(coords.min(), coords.max(), centroid_grid_x)
-            grid_y = np.linspace(coords.min(), coords.max(), int(self.K/centroid_grid_x))
+            grid_y = np.linspace(coords.min(), coords.max(), int(np.ceil(self.K/centroid_grid_x)))
             gx, gy = np.meshgrid(grid_x, grid_y)
             grid_centers = np.column_stack([gx.ravel(), gy.ravel()])
             init_centers = grid_centers[:self.K]
-                # -----------------------------------------
+            # -----------------------------------------
             # --------------------------------------------------
             # Weighted KMeans
             # --------------------------------------------------
@@ -757,7 +769,8 @@ class FIPBalancedNMeans:
         for i in range(self.K):
             # Determine boundaries and fractional border ownership
             if i < self.K - 1:
-                split_idx = split_indices[i]
+                split_idx = min(split_indices[i], len(cum_probs) - 1)
+                # split_idx = split_indices[i]
 
                 mass_at_split = cum_probs[split_idx]
                 mass_before = mass_at_split - ordered_probs[split_idx]
