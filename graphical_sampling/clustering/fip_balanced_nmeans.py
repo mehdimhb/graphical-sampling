@@ -543,17 +543,15 @@ class FIPBalancedNMeans:
         )
 
         final_zones = []
-        # --- FIX: Add `enumerate(initial_zones)` to get the "i" grid coordinate ---
         for i, (zone_indices, zone_share) in enumerate(initial_zones):
             sort = np.argsort(sp.coords[zone_indices][:, 1]) if x_first else np.argsort(sp.coords[zone_indices][:, 0])
             secondary_zones = self._get_zones_indices_share(
                 num_zones=num_zones[1] if x_first else num_zones[0],
                 indices=sort,
-                shares=zone_share,
+                shares=zone_share[sort],  # <--- THE FIX: Add [sort] here!
                 probs=sp.inclusions[zone_indices][sort] * zone_share[sort],
             )
             
-            # --- FIX: Add `enumerate(secondary_zones)` to get the "j" grid coordinate ---
             for j, (sec_zone_indices, sec_zone_share) in enumerate(secondary_zones):
                 new_zone = Zone(
                     _indices=sp.indices[zone_indices][sec_zone_indices],

@@ -70,14 +70,15 @@ class Order:
         num_splits: int = 1,
         topological: bool = True,
         shift_jump: int = 0,
-        shuffle: bool = False
+        shuffle: bool = False,
+        grid_dims: tuple[int, int] | None = None
     ) -> Order:
         instance = cls(population)
         num_zones = len(clusters[0].zones)
         
         # Apply spatial sorting and the Phase Shift (Jump) logic
         instance.clusters = instance._modify_clusters(
-            population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle
+            population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle, grid_dims
         )
 
         instance._build_order(num_splits)
@@ -85,7 +86,7 @@ class Order:
         instance.num_splits = num_splits
         return instance
 
-    def _modify_clusters(self, population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle):
+    def _modify_clusters(self, population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle, grid_dims=None):
         new_clusters = []
         for c_idx, cluster in enumerate(clusters):
             # 1. Calculate Zone Centroids
@@ -97,24 +98,25 @@ class Order:
                     zone_coords.append(np.array([0.5, 0.5]))
             zone_centroids = np.array(zone_coords)
 
-            # 2. Get Base Order (Stable base for jumping)
+            # 2. Zone-Level Sorting
             strategy = zone_strategy if zone_strategy is not None else 'lexico_yx'
-            base_order = self._get_strategy_order(zone_centroids, strategy).tolist()
+            # PASS grid_dims HERE
+            base_order = self._get_strategy_order(zone_centroids, strategy, topological=topological, grid_dims=grid_dims).tolist()
             
-            # 3. Apply the Phase Shift
+            # 3. Apply the Phase Shift (Jump)
             num_z = len(base_order)
             jump_val = (c_idx * 7) % num_z if shuffle else (c_idx * shift_jump) % num_z
             shifted_order = base_order[jump_val:] + base_order[:jump_val]
             
-            # Reconstruct zones list for this cluster
             modified_zones = [copy.deepcopy(cluster.zones[idx]) for idx in shifted_order]
 
-            # 4. Apply Point-Level strategy within each zone
+            # 4. Point-Level Sorting
             if point_strategy is not None:
                 for zone in modified_zones:
                     if len(zone.indices) > 1:
-                        pts = population.coords[zone.indices]
-                        zone.sort = self._get_strategy_order(pts, point_strategy).tolist()
+                        pts_coords = population.coords[zone.indices]
+                        # Force topological=False for points
+                        zone.sort = self._get_strategy_order(pts_coords, point_strategy, topological=False).tolist()
                     else:
                         zone.sort = [0] if len(zone.indices) == 1 else []
 
@@ -123,26 +125,156 @@ class Order:
             new_clusters.append(new_cluster)
         return new_clusters
 
-    def _get_strategy_order(self, points: np.ndarray, strategy: str) -> np.ndarray:
+    def _get_strategy_order(self, points, strategy, topological=False, grid_dims=None):
         if points.shape[0] == 0: return np.array([], dtype=int)
-        if points.ndim == 1: points = points.reshape(1, -1)
+        
+        # Determine Grid Dimensions
+        if grid_dims is not None:
+            num_cols, num_rows = grid_dims
+        else:
+            num_rows = int(np.sqrt(points.shape[0]))
+            num_cols = points.shape[0] // num_rows
+
+        pts = points.copy()
+        if topological:
+            # 1. Group into exactly num_rows
+            y_indices = np.argsort(points[:, 1])
+            for row_id in range(num_rows):
+                start = row_id * num_cols
+                end = (row_id + 1) * num_cols
+                pts[y_indices[start:end], 1] = row_id 
+                
+            # 2. Group into exactly num_cols
+            x_indices = np.argsort(points[:, 0])
+            for col_id in range(num_cols):
+                start = col_id * num_rows
+                end = (col_id + 1) * num_rows
+                pts[x_indices[start:end], 0] = col_id
             
         match strategy:
-            case 'lexico_xy': return np.lexsort((points[:, 1], points[:, 0]))
-            case 'lexico_yx': return np.lexsort((points[:, 0], points[:, 1]))
-            case 'projection': return np.argsort(points[:, 0] + points[:, 1])
-            case 'dist_from_origin': return np.argsort(np.linalg.norm(points, axis=1))
+            case 'knight_move':
+                num_pts = pts.shape[0]
+                # Determine grid dimensions
+                if grid_dims is not None:
+                    num_cols, num_rows = grid_dims
+                else:
+                    num_rows = int(np.sqrt(num_pts))
+                    num_cols = num_pts // num_rows
+
+                # 1. Snap centroids to a clean grid to avoid float jitters
+                # We use the binned coordinates from the topological step
+                x_indices = np.argsort(pts[:, 0])
+                cols = np.array_split(x_indices, num_cols)
+                
+                # Re-map points to their "Column ID" and "Row ID" for logical sorting
+                logical_grid = np.zeros((num_pts, 2), dtype=int)
+                for c_id, col_indices in enumerate(cols):
+                    # Within each column, sort by Y to assign Row IDs
+                    row_sort = np.argsort(pts[col_indices, 1])
+                    for r_id, idx in enumerate(col_indices[row_sort]):
+                        logical_grid[idx] = [c_id, r_id]
+
+                final_order = []
+
+                # 2. Iterate through Column Pairs (0-1, 2-3, 4-5)
+                for pair_start in range(0, num_cols, 2):
+                    c1, c2 = pair_start, pair_start + 1
+                    
+                    # 3. Determine vertical direction for this column pair
+                    # Pair 0 (Left): Bottom to Top | Pair 1 (Middle): Top to Bottom | Pair 2: Bottom to Top
+                    is_descending = (pair_start // 2) % 2 == 1
+                    row_range = range(num_rows - 1, -1, -2) if is_descending else range(0, num_rows, 2)
+
+                    for r_start in row_range:
+                        # We are looking at a 2x2 square block
+                        # logical coords: (c1, r_start), (c2, r_start), (c1, r_start+1), (c2, r_start+1)
+                        # We want the path: 1 (BL) -> 2 (BR) -> 4 (TR) -> 3 (TL)
+                        
+                        # Find indices matching these logical coordinates
+                        # Pattern: [Bottom-Left, Bottom-Right, Top-Right, Top-Left]
+                        square_coords = [
+                            (c1, r_start), (c2, r_start), 
+                            (c2, r_start + 1), (c1, r_start + 1)
+                        ] if not is_descending else [
+                            (c1, r_start), (c2, r_start),
+                            (c2, r_start - 1), (c1, r_start - 1)
+                        ]
+
+                        for target_c, target_r in square_coords:
+                            # Find the original index that was assigned this logical (col, row)
+                            for idx in range(num_pts):
+                                if logical_grid[idx, 0] == target_c and logical_grid[idx, 1] == target_r:
+                                    final_order.append(idx)
+                                    break
+
+                # Verification output
+                # print(f"Final Path (1-indexed): {np.array(final_order) + 1}")
+                return np.array(final_order)
+                
+            
+            case 'snake':
+                # Use binned coordinates if topological, otherwise raw
+                y_coords = pts[:, 1]
+                unique_y = np.unique(y_coords)
+                # Sort by Y then X
+                base_idx = np.lexsort((pts[:, 0], pts[:, 1]))
+                
+                final_order = []
+                for i, y in enumerate(unique_y):
+                    row_indices = base_idx[pts[base_idx, 1] == y]
+                    if i % 2 == 1: # Reverse every odd row
+                        row_indices = row_indices[::-1]
+                    final_order.extend(row_indices.tolist())
+                return np.array(final_order)
+
+            case 'lexico_xy': 
+                return np.lexsort((pts[:, 1], pts[:, 0]))
+
+            case 'lexico_yx': 
+                return np.lexsort((pts[:, 0], pts[:, 1]))
+        
+
+            case 'lexico_xy': 
+                # Primary sort on X, secondary on Y
+                # print(np.lexsort((pts[:, 1], pts[:, 0])))
+                return np.lexsort((pts[:, 1], pts[:, 0]))
+
+            case 'lexico_yx': 
+                # Primary sort on Y, secondary on X
+                return np.lexsort((pts[:, 0], pts[:, 1]))
+
+            case 'projection': 
+                return np.argsort(pts[:, 0] + pts[:, 1])
+
+            case 'dist_from_origin': 
+                return np.argsort(np.linalg.norm(pts, axis=1))
+
             case 'angle':
-                center = points.mean(axis=0)
-                return np.argsort(np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0]))
+                center = pts.mean(axis=0)
+                return np.argsort(np.arctan2(pts[:, 1] - center[1], pts[:, 0] - center[0]))
+
             case 'spiral':
-                center = points.mean(axis=0)
-                dists = np.linalg.norm(points - center, axis=1)
-                angles = np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0])
+                center = pts.mean(axis=0)
+                dists = np.linalg.norm(pts - center, axis=1)
+                angles = np.arctan2(pts[:, 1] - center[1], pts[:, 0] - center[0])
                 return np.lexsort((angles, dists))
-            case _: return np.arange(len(points))
+            case 'pure_random':
+                # Completely random selection within the zone
+                rng = np.random.default_rng()
+                return rng.permutation(len(points))
+            case 'none_baseline':
+                # Returns indices in their original, un-sorted state
+                return np.arange(len(points))
+            case 'stratified_shuffle':
+                indices = np.arange(len(points))
+                np.random.shuffle(indices)
+                return indices
+
+            case _: 
+                return np.arange(len(pts))
 
     def _build_order(self, num_splits: int):
+        import warnings  # Ensure this is at the top of your file or here
         indices_list, shares_list = [], []
         fixed_ids = set()
 
@@ -164,11 +296,37 @@ class Order:
 
         self._order = np.column_stack([np.array(indices_list, dtype=int), np.array(shares_list, dtype=float)])
         
-        # Final Quota Normalization to ensure exactly 'n' units are sampled
+        # Final Quota Normalization to ensure exactly 'n' units are sampled safely
         total_n = self.pop.n
-        current_sum = np.sum(self._order[:, 1] * self.pop.inclusions[self._order[:, 0].astype(int)])
-        if not np.isclose(current_sum, total_n, atol=1e-8):
-            self._order[:, 1] *= (total_n / current_sum)
+        inclusions = self.pop.inclusions[self._order[:, 0].astype(int)]
+        current_sum = np.sum(self._order[:, 1] * inclusions)
+        
+        global_mass_error = total_n - current_sum
+
+        # --- 1. The Structural Alarm (Macro Error) ---
+        if abs(global_mass_error) > 1e-5:
+            warnings.warn(
+                f"Structural gap detected in probability mass (Error: {global_mass_error:.4f}). "
+                f"The chosen spatial strategy (e.g., knight_move) is geometrically "
+                f"incompatible with the current number of zones/clusters. "
+                f"This specific design will NOT preserve inclusion probabilities.",
+                UserWarning
+            )
+
+        # --- 2. The Micro-Corrector (Floating Point Drift) ---
+        if abs(global_mass_error) > 1e-12:
+            # Identify ONLY the border units (shares strictly less than 1.0)
+            frac_mask = self._order[:, 1] < (1.0 - 1e-9)
+            
+            if np.any(frac_mask):
+                frac_mass = np.sum(self._order[frac_mask, 1] * inclusions[frac_mask])
+                if frac_mass > 0:
+                    # Apply the floating-point correction exclusively to fractional shares
+                    scale = (frac_mass + global_mass_error) / frac_mass
+                    self._order[frac_mask, 1] *= scale
+                    
+                    # Hard cap at 1.0 to guarantee no unit exceeds 100% probability
+                    np.clip(self._order[:, 1], 0.0, 1.0, out=self._order[:, 1])
         
         self._fixed_ids = fixed_ids
 

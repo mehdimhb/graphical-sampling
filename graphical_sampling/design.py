@@ -100,67 +100,61 @@ class Design:
 
     def _build(self):
         events: list[tuple[float, str, int]] = []
-        level: float = 0
-        EPS = 1e-10
+        
+        # 1. Add partition boundaries FIRST
+        for i in range(self.num_partitions + 1):
+            events.append((i / self.num_partitions, "boundary", -1))
 
         # Get the order data
         order_data = self.order.get()
         total_items = len(order_data)
+        total_n = self.pop.n
         
-        
-        # cumulative_mass = 0.0
-        
-        # # --- SET YOUR TEST PARAMETERS HERE ---
-        # r_per_cluster = 5.0         # How much total mass per cluster
-        # zones_per_cluster = 25.0    # How many zones inside one cluster
-        # mass_per_zone = r_per_cluster / zones_per_cluster
+        cumulative_mass = 0.0
 
         for i, (idx, share) in enumerate(order_data):
             p = self.pop.inclusions[int(idx)] * share
             if p < 1e-12: continue
             
-           # THE FIX: Close the loop on the very last element
-            next_level = level + p
+            start_abs = cumulative_mass
+            end_abs = start_abs + p
+            
+            # THE FIX: Snap the absolute final unit exactly to total_n
             if i == total_items - 1:
-                next_level = np.ceil(next_level - EPS) if next_level > EPS else 1.0
+                end_abs = float(total_n)
+
+            # Safely extract the integer component (which "wrap" we are in)
+            start_int = int(np.round(start_abs)) if np.isclose(start_abs, np.round(start_abs), atol=1e-10) else int(np.floor(start_abs))
+            end_int = int(np.round(end_abs)) if np.isclose(end_abs, np.round(end_abs), atol=1e-10) else int(np.floor(end_abs))
+
+            # Calculate the remainder (where it lands on the 0.0 to 1.0 line)
+            start_rem = start_abs - start_int
+            end_rem = end_abs - end_int
             
-            sys_part = int(level * self.num_partitions) + 1
-            
-            # --- FIX: Look up from the class instead of pop ---
-            true_c, true_z = getattr(self.__class__, 'debug_cz_map', {}).get(int(idx), (-1, -1))
-            
-            # print(f"Clust {true_c:2d} | Zone {true_z:2d} | Unit {int(idx):3d} | "
-            #       f"1D Interval: [{level:.3f} -> {next_level:.3f}] | "
-            #       f"Hits Sys Partition: {sys_part}")
-            # --------------------------------------------------
-            if i == total_items - 1:
-                # Force the last element to hit exactly 1.0 (or the wrap-around point)
-                # This absorbs any remaining floating point noise
-                next_level = np.ceil(next_level - EPS) if next_level > EPS else 1.0
-            
-            if next_level < 1.0 - EPS:
-                events.append((float(level), "start", int(idx)))
-                events.append((float(next_level), "end", int(idx)))
-                level = next_level
-            elif next_level > 1.0 + EPS:
-                # Split across the 1.0 boundary
-                events.append((float(level), "start", int(idx)))
+            # Clean tiny floating point noise exactly at the 0.0 / 1.0 boundaries
+            if np.isclose(start_rem, 0.0, atol=1e-10): start_rem = 0.0
+            if np.isclose(end_rem, 0.0, atol=1e-10): end_rem = 0.0
+
+            # Map the absolute interval to the wrapped [0.0, 1.0] interval
+            if start_int < end_int and end_rem > 0.0:
+                # Wraps across the 1.0 boundary into the next segment
+                events.append((start_rem, "start", int(idx)))
                 events.append((1.0, "end", int(idx)))
                 events.append((0.0, "start", int(idx)))
-                events.append((float(next_level - 1.0), "end", int(idx)))
-                level = next_level - 1.0
-            else:
-                # Lands exactly on 1.0
-                events.append((float(level), "start", int(idx)))
+                events.append((end_rem, "end", int(idx)))
+            elif start_int < end_int and end_rem == 0.0:
+                # Lands absolutely perfectly on the 1.0 boundary
+                events.append((start_rem, "start", int(idx)))
                 events.append((1.0, "end", int(idx)))
-                level = 0.0
+            else:
+                # Fully contained within a single 0.0 to 1.0 wrap
+                events.append((start_rem, "start", int(idx)))
+                events.append((end_rem, "end", int(idx)))
+                
+            cumulative_mass = end_abs
 
-        # Add partition boundaries
-        for i in range(self.num_partitions + 1):
-            events.append((i / self.num_partitions, "boundary", -1))
-
-        # Sort: boundaries must be processed BEFORE starts/ends at the same location
-        events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else 1))
+        # Strict Sort: Boundaries FIRST(0), then Ends(1), then Starts(2)
+        events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else (1 if x[1] == "end" else 2)))
         
         self.events = events
         active = set()
