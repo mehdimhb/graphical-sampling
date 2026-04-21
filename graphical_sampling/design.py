@@ -390,6 +390,42 @@ class Design:
         expected_score = np.sum(scores * samples_probs)
         variance_score = (np.sum(((scores - expected_score) ** 2) * samples_probs))**.5
         return expected_score.item(), variance_score.item()
+    
+    def flatten(self) -> Design:
+        """
+        Creates a new single-partition version of this design for global polishing.
+        """
+        new_order = self.order.copy()
+        # This triggers the minimal border logic in the constructor
+        new_order.num_zones = 1 
+        
+        flat_design = Design.from_order(self.pop, new_order)
+        return flat_design
+    
+    def release_design(restricted_design):
+        """
+        Converts a multi-zone design into a single-partition design.
+        This unlocks all units previously frozen by zone boundaries.
+        """
+        # 1. Extract the optimized sequence from the restricted design
+        optimized_order = restricted_design.order.copy()
+        
+        # 2. Re-initialize a new Design with only ONE partition
+        # This automatically recalculates the minimal set of 'fixed_ids'
+        flat_design = Design.from_order(
+            population=restricted_design.pop, 
+            order=optimized_order
+        )
+        
+        # Ensure num_partitions is 1 to allow global swaps
+        flat_design._num_partitions = 1 
+        flat_design._heaps = [_MaxHeap()] # Reset to a single global heap
+        flat_design._build() # Rebuild the probability mass line
+        
+        print(f"Released! Frozen units reduced from {len(restricted_design.order.fixed_ids)} "
+            f"to {len(flat_design.order.fixed_ids)}.")
+        
+        return flat_design
 
     @property
     def density_disparity(self) -> tuple[float, float]:
