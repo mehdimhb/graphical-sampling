@@ -342,16 +342,6 @@ class Order:
         self._build_order(self.num_splits)
 
     def get(self) -> np.ndarray:
-        point_to_track = 0  # Pick any valid point index from your population
-
-        print(f"--- Tracking Point {point_to_track} ---")
-        # FIX: Changed 'order_array' to 'self._order'
-        point_data = self._order[self._order[:, 0] == point_to_track]
-
-        print("Shares assigned to this point:")
-        print(point_data[:, 1])
-        print(f"Total Probability for Point {point_to_track}: {np.sum(point_data[:, 1]):.6f}")
-        
         return self._order
 
     def copy(self) -> Order:

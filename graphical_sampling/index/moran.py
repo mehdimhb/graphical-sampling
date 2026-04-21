@@ -49,21 +49,20 @@ class Moran:
         N = len(inclusion_probs)
         W = np.zeros((N, N))
         eps = 1e-12
-
-        D = cdist(coords, coords)
+        D_mat = cdist(coords, coords) # renaming to avoid confusion with matrix D
 
         for i in range(N):
             pi_i = inclusion_probs[i]
-
             if pi_i >= 1 - eps:
                 continue
 
-            h = min(1.0 / pi_i, N - 1)
+            # CORRECT FORMULA: h = min(1/pi - 1, N - 1) 
+            h = min(1.0 / pi_i - 1.0, N - 1)
             k = int(np.floor(h))
             frac = h - k
 
-            order = np.argsort(D[i])
-            order = order[order != i]
+            order = np.argsort(D_mat[i])
+            order = order[order != i] # Exclude self [cite: 83, 87]
 
             if k > 0:
                 W[i, order[:k]] = 1.0
@@ -71,9 +70,10 @@ class Moran:
             if k < (N - 1):
                 W[i, order[k]] = frac
 
-            s = W[i].sum()
-            if s > eps:
-                W[i] /= s
+            # REMOVED: Row Normalization Block
+            # s = W[i].sum()
+            # if s > eps:
+            #     W[i] /= s
 
         return W
 
