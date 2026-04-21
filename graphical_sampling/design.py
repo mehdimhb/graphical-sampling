@@ -105,23 +105,25 @@ class Design:
         for i in range(self.num_partitions + 1):
             events.append((i / self.num_partitions, "boundary", -1))
 
-        # Get the order data
         order_data = self.order.get()
-        total_items = len(order_data)
         total_n = self.pop.n
         
-        cumulative_mass = 0.0
+        # THE EXACT CUMULATIVE MASS FIX
+        # Use vectorized cumsum to prevent floating-point drift over 1000 items
+        ids = order_data[:, 0].astype(int)
+        shares = order_data[:, 1]
+        p_array = self.pop.inclusions[ids] * shares
+        
+        cum_mass = np.zeros(len(p_array) + 1, dtype=np.float64)
+        cum_mass[1:] = np.cumsum(p_array)
+        cum_mass[-1] = float(total_n) # Snap absolute final boundary
 
-        for i, (idx, share) in enumerate(order_data):
-            p = self.pop.inclusions[int(idx)] * share
-            if p < 1e-12: continue
+        for i in range(len(order_data)):
+            idx = int(ids[i])
+            start_abs = cum_mass[i]
+            end_abs = cum_mass[i+1]
             
-            start_abs = cumulative_mass
-            end_abs = start_abs + p
-            
-            # THE FIX: Snap the absolute final unit exactly to total_n
-            if i == total_items - 1:
-                end_abs = float(total_n)
+            if end_abs - start_abs < 1e-12: continue
 
             # Safely extract the integer component (which "wrap" we are in)
             start_int = int(np.round(start_abs)) if np.isclose(start_abs, np.round(start_abs), atol=1e-10) else int(np.floor(start_abs))
@@ -131,34 +133,29 @@ class Design:
             start_rem = start_abs - start_int
             end_rem = end_abs - end_int
             
-            # Clean tiny floating point noise exactly at the 0.0 / 1.0 boundaries
+            # Clean tiny floating point noise
             if np.isclose(start_rem, 0.0, atol=1e-10): start_rem = 0.0
             if np.isclose(end_rem, 0.0, atol=1e-10): end_rem = 0.0
+            if np.isclose(start_rem, 1.0, atol=1e-10): start_rem = 0.0; start_int += 1
+            if np.isclose(end_rem, 1.0, atol=1e-10): end_rem = 0.0; end_int += 1
 
-            # Map the absolute interval to the wrapped [0.0, 1.0] interval
             if start_int < end_int and end_rem > 0.0:
-                # Wraps across the 1.0 boundary into the next segment
-                events.append((start_rem, "start", int(idx)))
-                events.append((1.0, "end", int(idx)))
-                events.append((0.0, "start", int(idx)))
-                events.append((end_rem, "end", int(idx)))
+                events.append((start_rem, "start", idx))
+                events.append((1.0, "end", idx))
+                events.append((0.0, "start", idx))
+                events.append((end_rem, "end", idx))
             elif start_int < end_int and end_rem == 0.0:
-                # Lands absolutely perfectly on the 1.0 boundary
-                events.append((start_rem, "start", int(idx)))
-                events.append((1.0, "end", int(idx)))
+                events.append((start_rem, "start", idx))
+                events.append((1.0, "end", idx))
             else:
-                # Fully contained within a single 0.0 to 1.0 wrap
-                events.append((start_rem, "start", int(idx)))
-                events.append((end_rem, "end", int(idx)))
-                
-            cumulative_mass = end_abs
+                events.append((start_rem, "start", idx))
+                events.append((end_rem, "end", idx))
 
-        # Strict Sort: Boundaries FIRST(0), then Ends(1), then Starts(2)
         events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else (1 if x[1] == "end" else 2)))
         
         self.events = events
         active = set()
-        last_point: float = 0
+        last_point: float = 0.0
 
         for point, event_type, bar_index in events:
             if point > last_point + 1e-12:
@@ -174,7 +171,6 @@ class Design:
                 active.discard(int(bar_index))
 
             last_point = point
-
     # ======================================== Sampling ========================================
 
     def sample(self, num_samples: int) -> np.ndarray:

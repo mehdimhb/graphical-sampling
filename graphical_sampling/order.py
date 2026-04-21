@@ -274,60 +274,46 @@ class Order:
                 return np.arange(len(pts))
 
     def _build_order(self, num_splits: int):
-        import warnings  # Ensure this is at the top of your file or here
-        indices_list, shares_list = [], []
+        indices_list = []
         fixed_ids = set()
 
         for cluster in self.clusters:
             if cluster.floor and cluster.floor.index is not None and cluster.floor.index != -1:
                 indices_list.append(cluster.floor.index)
-                shares_list.append(cluster.floor.percentage)
                 fixed_ids.add(cluster.floor.index)
 
             for zone in cluster.zones:
                 if len(zone.indices) > 0:
-                    indices_list.extend(np.repeat(zone.indices, num_splits).tolist())
-                    shares_list.extend((np.repeat(zone.shares, num_splits) / num_splits).tolist())
+                    # We don't care about shares here, just get the spatial sequence
+                    indices_list.extend(zone.indices)
 
             if cluster.ceil and cluster.ceil.index is not None and cluster.ceil.index != -1:
                 indices_list.append(cluster.ceil.index)
-                shares_list.append(cluster.ceil.percentage)
                 fixed_ids.add(cluster.ceil.index)
 
-        self._order = np.column_stack([np.array(indices_list, dtype=int), np.array(shares_list, dtype=float)])
+        raw_ids = np.array(indices_list, dtype=int)
         
-        # Final Quota Normalization to ensure exactly 'n' units are sampled safely
-        total_n = self.pop.n
-        inclusions = self.pop.inclusions[self._order[:, 0].astype(int)]
-        current_sum = np.sum(self._order[:, 1] * inclusions)
+        # =====================================================================
+        # THE CONTIGUOUS COLLAPSE
+        # =====================================================================
+        # 1. Find the FIRST appearance of every unit to keep the spatial path intact
+        _, idx_first_appearance = np.unique(raw_ids, return_index=True)
+        appearance_order = np.sort(idx_first_appearance)
+        final_ids = raw_ids[appearance_order]
         
-        global_mass_error = total_n - current_sum
-
-        # --- 1. The Structural Alarm (Macro Error) ---
-        if abs(global_mass_error) > 1e-5:
-            warnings.warn(
-                f"Structural gap detected in probability mass (Error: {global_mass_error:.4f}). "
-                f"The chosen spatial strategy (e.g., knight_move) is geometrically "
-                f"incompatible with the current number of zones/clusters. "
-                f"This specific design will NOT preserve inclusion probabilities.",
-                UserWarning
-            )
-
-        # --- 2. The Micro-Corrector (Floating Point Drift) ---
-        if abs(global_mass_error) > 1e-12:
-            # Identify ONLY the border units (shares strictly less than 1.0)
-            frac_mask = self._order[:, 1] < (1.0 - 1e-9)
+        # 2. Catch any units totally dropped by the 9x9 float rounding
+        missing_ids = np.setdiff1d(np.arange(self.pop.N), final_ids)
+        if len(missing_ids) > 0:
+            final_ids = np.concatenate([final_ids, missing_ids])
             
-            if np.any(frac_mask):
-                frac_mass = np.sum(self._order[frac_mask, 1] * inclusions[frac_mask])
-                if frac_mass > 0:
-                    # Apply the floating-point correction exclusively to fractional shares
-                    scale = (frac_mass + global_mass_error) / frac_mass
-                    self._order[frac_mask, 1] *= scale
-                    
-                    # Hard cap at 1.0 to guarantee no unit exceeds 100% probability
-                    np.clip(self._order[:, 1], 0.0, 1.0, out=self._order[:, 1])
-        
+        # 3. Handle num_splits cleanly without shattering units across the map
+        if num_splits > 1:
+            final_ids = np.tile(final_ids, num_splits)
+            final_shares = np.full_like(final_ids, 1.0 / num_splits, dtype=float)
+        else:
+            final_shares = np.ones_like(final_ids, dtype=float)
+
+        self._order = np.column_stack([final_ids, final_shares])
         self._fixed_ids = fixed_ids
 
     def change(self, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int):
@@ -356,6 +342,16 @@ class Order:
         self._build_order(self.num_splits)
 
     def get(self) -> np.ndarray:
+        point_to_track = 0  # Pick any valid point index from your population
+
+        print(f"--- Tracking Point {point_to_track} ---")
+        # FIX: Changed 'order_array' to 'self._order'
+        point_data = self._order[self._order[:, 0] == point_to_track]
+
+        print("Shares assigned to this point:")
+        print(point_data[:, 1])
+        print(f"Total Probability for Point {point_to_track}: {np.sum(point_data[:, 1]):.6f}")
+        
         return self._order
 
     def copy(self) -> Order:

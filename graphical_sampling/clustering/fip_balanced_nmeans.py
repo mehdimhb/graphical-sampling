@@ -427,51 +427,51 @@ class FIPBalancedNMeans:
             self.clusters[i].floor = Floor(index=-1, percentage=0.0)
             self.clusters[i].ceil = Ceil(index=-1, percentage=0.0)
 
-    def _get_zones_from_fbn(
-            self, 
-            subpopulation: Population, 
-            c_shares: np.ndarray, 
-            num_zones: int,
-            centroid_grid_x_zone: int | None = None  # <--- 3. ADD TO SIGNATURE HERE
-    ) -> list[Zone]:
+    # def _get_zones_from_fbn(
+    #         self, 
+    #         subpopulation: Population, 
+    #         c_shares: np.ndarray, 
+    #         num_zones: int,
+    #         centroid_grid_x_zone: int | None = None  # <--- 3. ADD TO SIGNATURE HERE
+    # ) -> list[Zone]:
 
-        zones_fbn = FIPBalancedNMeans(
-            n=num_zones,
-            centroid_grid_x=centroid_grid_x_zone,  # <--- 4. INJECT INTO NEW INSTANCE HERE
-            n_init=self.n_init,
-            tol=self.tol,
-            max_iter=self.max_iter
-        )
-        zones_fbn.r = np.sum(subpopulation.inclusions) / num_zones
-        zones_fbn.fit(subpopulation)
+    #     zones_fbn = FIPBalancedNMeans(
+    #         n=num_zones,
+    #         centroid_grid_x=centroid_grid_x_zone,  # <--- 4. INJECT INTO NEW INSTANCE HERE
+    #         n_init=self.n_init,
+    #         tol=self.tol,
+    #         max_iter=self.max_iter
+    #     )
+    #     zones_fbn.r = np.sum(subpopulation.inclusions) / num_zones
+    #     zones_fbn.fit(subpopulation)
 
-        zones = []
-        for zone in zones_fbn.clusters:
-            sc_indices = []
-            sc_shares = []
+    #     zones = []
+    #     for zone in zones_fbn.clusters:
+    #         sc_indices = []
+    #         sc_shares = []
             
 
-            if zone.floor.index != -1:
-                sc_indices.append(zone.floor.index)
-                sc_shares.append(zone.floor.percentage)
+    #         if zone.floor.index != -1:
+    #             sc_indices.append(zone.floor.index)
+    #             sc_shares.append(zone.floor.percentage)
 
-            for z in zone.zones:
-                for idx, share in zip(z.indices, z.shares):
-                    sc_indices.append(idx)
-                    sc_shares.append(share)
-            if zone.ceil.index != -1:
-                sc_indices.append(zone.ceil.index)
-                sc_shares.append(zone.ceil.percentage)
+    #         for z in zone.zones:
+    #             for idx, share in zip(z.indices, z.shares):
+    #                 sc_indices.append(idx)
+    #                 sc_shares.append(share)
+    #         if zone.ceil.index != -1:
+    #             sc_indices.append(zone.ceil.index)
+    #             sc_shares.append(zone.ceil.percentage)
 
-            zones.append(
-                Zone(
-                    _indices=np.array(sc_indices),
-                    _shares=np.array(sc_shares),
-                    sort=np.arange(len(sc_indices)).tolist()
-                )
-            )
+    #         zones.append(
+    #             Zone(
+    #                 _indices=np.array(sc_indices),
+    #                 _shares=np.array(sc_shares),
+    #                 sort=np.arange(len(sc_indices)).tolist()
+    #             )
+    #         )
 
-        return zones
+    #     return zones
 
     @staticmethod
     def _get_zones_indices_share(
@@ -505,30 +505,35 @@ class FIPBalancedNMeans:
                 while curr_idx < N:
                     if unit_rem_prob > 1e-12:
                         zone_indices.append(indices[curr_idx])
-                        frac = unit_rem_prob / probs[curr_idx]
+                        # FIX: Hard clip to ensure share never exceeds 1.0 due to float drift
+                        frac = np.clip(unit_rem_prob / probs[curr_idx], 0.0, 1.0)
                         zone_shares_local.append(frac * shares[curr_idx])
                     curr_idx += 1
                     if curr_idx < N:
                         unit_rem_prob = probs[curr_idx]
             else:
                 while mass_needed > 1e-12 and curr_idx < N:
-                    if unit_rem_prob <= mass_needed + 1e-12:
-                        # Consume remaining part of this unit
+                    # FIX: slightly wider tolerance (1e-10) to catch float overshoots
+                    if unit_rem_prob <= mass_needed + 1e-10: 
                         if unit_rem_prob > 1e-12:
                             zone_indices.append(indices[curr_idx])
-                            frac = unit_rem_prob / probs[curr_idx]
+                            frac = np.clip(unit_rem_prob / probs[curr_idx], 0.0, 1.0)
                             zone_shares_local.append(frac * shares[curr_idx])
                         
                         mass_needed -= unit_rem_prob
+                        # FIX: Prevent negative mass_needed from breaking the next loop
+                        if mass_needed < 0: 
+                            mass_needed = 0.0 
+                            
                         curr_idx += 1
                         if curr_idx < N:
                             unit_rem_prob = probs[curr_idx]
                         else:
                             unit_rem_prob = 0.0
                     else:
-                        # Consume exactly mass_needed, unit still has leftovers for the next zone
+                        # Consume exactly mass_needed, unit still has leftovers
                         zone_indices.append(indices[curr_idx])
-                        frac = mass_needed / probs[curr_idx]
+                        frac = np.clip(mass_needed / probs[curr_idx], 0.0, 1.0)
                         zone_shares_local.append(frac * shares[curr_idx])
                         
                         unit_rem_prob -= mass_needed
@@ -541,27 +546,32 @@ class FIPBalancedNMeans:
             
         return zones
 
-
     def _get_zones_from_sweeping(
             self, sp: Population, c_shares: np.ndarray, num_zones: tuple[int, int], x_first: bool
     ) -> list[Zone]:
+        # THE FIX: Fetch raw un-multiplied inclusions from parent population
+        raw_probs = self.pop.inclusions[sp.indices]
+
         sort = np.argsort(sp.coords[:, 0]) if x_first else np.argsort(sp.coords[:, 1])
 
         initial_zones = self._get_zones_indices_share(
             num_zones=num_zones[0] if x_first else num_zones[1],
             indices=sort,
             shares=c_shares[sort],
-            probs=sp.inclusions[sort] * c_shares[sort],
+            # Target probability is raw inclusion * absolute share (No double multiply!)
+            probs=raw_probs[sort] * c_shares[sort],
         )
 
         final_zones = []
         for i, (zone_indices, zone_share) in enumerate(initial_zones):
             sort = np.argsort(sp.coords[zone_indices][:, 1]) if x_first else np.argsort(sp.coords[zone_indices][:, 0])
+            
             secondary_zones = self._get_zones_indices_share(
                 num_zones=num_zones[1] if x_first else num_zones[0],
                 indices=sort,
-                shares=zone_share[sort],  # <--- THE FIX: Add [sort] here!
-                probs=sp.inclusions[zone_indices][sort] * zone_share[sort],
+                shares=zone_share[sort],
+                # Target probability is raw inclusion * the newly calculated absolute share
+                probs=raw_probs[zone_indices][sort] * zone_share[sort],
             )
             
             for j, (sec_zone_indices, sec_zone_share) in enumerate(secondary_zones):
@@ -570,17 +580,47 @@ class FIPBalancedNMeans:
                     _shares=sec_zone_share,
                     sort=np.arange(len(sec_zone_share)).tolist(),
                 )
-                
-                # --- NEW LOGIC: Assign the perfect mathematical coordinate! ---
                 vx = float(i) if x_first else float(j)
                 vy = float(j) if x_first else float(i)
                 new_zone.virtual_centroid = np.array([vx, vy])
-                # -------------------------------------------------------------
-                
                 final_zones.append(new_zone)
                 
         return final_zones
 
+    def _get_zones_from_fbn(
+            self, subpopulation: Population, c_shares: np.ndarray, num_zones: int, centroid_grid_x_zone: int | None = None
+    ) -> list[Zone]:
+
+        zones_fbn = FIPBalancedNMeans(
+            n=num_zones, centroid_grid_x=centroid_grid_x_zone, 
+            n_init=self.n_init, tol=self.tol, max_iter=self.max_iter
+        )
+        zones_fbn.r = np.sum(subpopulation.inclusions) / num_zones
+        zones_fbn.fit(subpopulation)
+
+        # Map local subpopulation index to its global share
+        g2share = {idx: share for idx, share in zip(subpopulation.indices, c_shares)}
+
+        zones = []
+        for zone in zones_fbn.clusters:
+            sc_indices, sc_shares = [], []
+
+            if zone.floor.index != -1:
+                sc_indices.append(zone.floor.index)
+                sc_shares.append(zone.floor.percentage * g2share[zone.floor.index]) # Multiply absolute
+
+            for z in zone.zones:
+                for idx, share in zip(z.indices, z.shares):
+                    sc_indices.append(idx)
+                    sc_shares.append(share * g2share[idx])
+
+            if zone.ceil.index != -1:
+                sc_indices.append(zone.ceil.index)
+                sc_shares.append(zone.ceil.percentage * g2share[zone.ceil.index])
+
+            zones.append(Zone(_indices=np.array(sc_indices), _shares=np.array(sc_shares), sort=np.arange(len(sc_indices)).tolist()))
+
+        return zones
     def _get_labels_centroids(
     self,
     coords: np.ndarray,
