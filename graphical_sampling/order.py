@@ -128,30 +128,96 @@ class Order:
     def _get_strategy_order(self, points, strategy, topological=False, grid_dims=None):
         if points.shape[0] == 0: return np.array([], dtype=int)
         
-        # Determine Grid Dimensions
+        # --- IMPROVEMENT 1: ASPECT-RATIO-AWARE GRID DIMENSIONS ---
+        # Instead of a square root, we use the actual span of the coordinates
         if grid_dims is not None:
             num_cols, num_rows = grid_dims
         else:
-            num_rows = int(np.sqrt(points.shape[0]))
+            span = np.ptp(points, axis=0)
+            ratio = span[0] / (span[1] + 1e-12)
+            num_rows = int(np.sqrt(points.shape[0] / (ratio + 1e-12)))
+            num_rows = max(1, num_rows)
             num_cols = points.shape[0] // num_rows
 
+        # --- IMPROVEMENT 2: COORDINATE JITTER TO BREAK TIES ---
+        # Prevents deterministic Lexico artifacts in dense topological bins
         pts = points.copy()
         if topological:
-            # 1. Group into exactly num_rows
-            y_indices = np.argsort(points[:, 1])
+            pts += np.random.uniform(-1e-9, 1e-9, size=pts.shape)
+            
+            # Re-binning with jittered coordinates
+            y_indices = np.argsort(pts[:, 1])
             for row_id in range(num_rows):
-                start = row_id * num_cols
-                end = (row_id + 1) * num_cols
+                start, end = row_id * num_cols, (row_id + 1) * num_cols
                 pts[y_indices[start:end], 1] = row_id 
                 
-            # 2. Group into exactly num_cols
-            x_indices = np.argsort(points[:, 0])
+            x_indices = np.argsort(pts[:, 0])
             for col_id in range(num_cols):
-                start = col_id * num_rows
-                end = (col_id + 1) * num_rows
+                start, end = col_id * num_rows, (col_id + 1) * num_rows
                 pts[x_indices[start:end], 0] = col_id
             
         match strategy:
+            # --- IMPROVEMENT 3: HILBERT SPACE-FILLING CURVE ---
+            # Superior to Snake/Lexico for preserving 2D locality in 1D
+            case 'hilbert':
+                def d2xy(n, d):
+                    """Converts 1D Hilbert index to 2D coordinates."""
+                    t = d
+                    x = y = 0
+                    s = 1
+                    while s < n:
+                        rx = 1 & (t // 2)
+                        ry = 1 & (t ^ rx)
+                        # Rotate/Flip logic
+                        if ry == 0:
+                            if rx == 1:
+                                x, y = s - 1 - x, s - 1 - y
+                            x, y = y, x
+                        x += s * rx
+                        y += s * ry
+                        t //= 4
+                        s *= 2
+                    return x, y
+
+                def xy2d(n, x, y):
+                    """Converts 2D coordinates to 1D Hilbert index."""
+                    d = 0
+                    s = n // 2
+                    while s > 0:
+                        rx = (x & s) > 0
+                        ry = (y & s) > 0
+                        d += s * s * ((3 * rx) ^ ry)
+                        # Rotate/Flip logic
+                        if ry == 0:
+                            if rx == 1:
+                                x, y = s - 1 - x, s - 1 - y
+                            x, y = y, x
+                        s //= 2
+                    return d
+
+                # Find smallest power of 2 that covers the grid
+                n_hilbert = 2**int(np.ceil(np.log2(max(num_cols, num_rows))))
+                hilbert_indices = []
+                for i in range(pts.shape[0]):
+                    # Map topological bin to Hilbert index
+                    h_idx = xy2d(n_hilbert, int(pts[i, 0]), int(pts[i, 1]))
+                    hilbert_indices.append(h_idx)
+                return np.argsort(hilbert_indices)
+
+            # --- IMPROVEMENT 4: REFINED SNAKE (Aspect-Ratio Aware) ---
+            case 'snake_refined':
+                y_coords = pts[:, 1]
+                unique_y = np.unique(y_coords)
+                base_idx = np.lexsort((pts[:, 0], pts[:, 1]))
+                
+                final_order = []
+                for i, y in enumerate(unique_y):
+                    row_indices = base_idx[pts[base_idx, 1] == y]
+                    if i % 2 == 1: # Reverse every odd row to "snake"
+                        row_indices = row_indices[::-1]
+                    final_order.extend(row_indices.tolist())
+                return np.array(final_order)
+            
             case 'knight_move':
                 num_pts = pts.shape[0]
                 # Determine grid dimensions
