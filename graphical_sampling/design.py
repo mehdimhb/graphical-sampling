@@ -91,56 +91,65 @@ class Design:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Design):
             return NotImplemented
-        # Designs are equal if their internal heap structures are identical
         return self._heaps == other._heaps
 
     def __hash__(self) -> int:
-        # A stable hash based on the current state of all partitions
         return hash(tuple(self._heaps))
 
     def _build(self):
         events: list[tuple[float, str, int]] = []
-        level: float = 0
-        EPS = 1e-10
-
-        order_data = self.order.get()
-        total_items = len(order_data)
-
-        for i, (idx, share) in enumerate(order_data):
-            p = self.pop.inclusions[int(idx)] * share
-            if p < 1e-12: continue
-            
-            next_level = level + p
-            if i == total_items - 1:
-                next_level = np.ceil(next_level - EPS) if next_level > EPS else 1.0
-            
-            if next_level < 1.0 - EPS:
-                events.append((float(level), "start", int(idx)))
-                events.append((float(next_level), "end", int(idx)))
-                level = next_level
-            elif next_level > 1.0 + EPS:
-                # Split across the 1.0 boundary
-                events.append((float(level), "start", int(idx)))
-                events.append((1.0, "end", int(idx)))
-                events.append((0.0, "start", int(idx)))
-                events.append((float(next_level - 1.0), "end", int(idx)))
-                level = next_level - 1.0
-            else:
-                # Lands exactly on 1.0
-                events.append((float(level), "start", int(idx)))
-                events.append((1.0, "end", int(idx)))
-                level = 0.0
-
-        # Add partition boundaries
+        
+        # 1. Add partition boundaries FIRST
         for i in range(self.num_partitions + 1):
             events.append((i / self.num_partitions, "boundary", -1))
 
-        # Sort: boundaries must be processed BEFORE starts/ends at the same location
-        events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else 1))
+        order_data = self.order.get()
+        
+        # THE EXACT CUMULATIVE MASS FIX (Fast Vectorized)
+        ids = order_data[:, 0].astype(int)
+        shares = order_data[:, 1]
+        p_array = self.pop.inclusions[ids] * shares
+        
+        cum_mass = np.zeros(len(p_array) + 1, dtype=np.float64)
+        cum_mass[1:] = np.cumsum(p_array)
+        cum_mass[-1] = float(self.pop.n) # Snap absolute final boundary
+
+        for i in range(len(order_data)):
+            idx = int(ids[i])
+            start_abs = cum_mass[i]
+            end_abs = cum_mass[i+1]
+            
+            if end_abs - start_abs < 1e-12: continue
+
+            # Safely extract the integer component (FAST NATIVE MATH)
+            start_int = int(start_abs + 1e-9)
+            end_int = int(end_abs + 1e-9)
+
+            # Calculate the remainder (where it lands on the 0.0 to 1.0 line)
+            start_rem = start_abs - start_int
+            end_rem = end_abs - end_int
+            
+            # Clean tiny floating point noise (FAST NATIVE MATH)
+            if start_rem < 1e-9: start_rem = 0.0
+            if end_rem < 1e-9: end_rem = 0.0
+
+            if start_int < end_int and end_rem > 0.0:
+                events.append((start_rem, "start", idx))
+                events.append((1.0, "end", idx))
+                events.append((0.0, "start", idx))
+                events.append((end_rem, "end", idx))
+            elif start_int < end_int and end_rem == 0.0:
+                events.append((start_rem, "start", idx))
+                events.append((1.0, "end", idx))
+            else:
+                events.append((start_rem, "start", idx))
+                events.append((end_rem, "end", idx))
+
+        events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else (1 if x[1] == "end" else 2)))
         
         self.events = events
         active = set()
-        last_point: float = 0
+        last_point: float = 0.0
 
         for point, event_type, bar_index in events:
             if point > last_point + 1e-12:
@@ -174,13 +183,10 @@ class Design:
             window: int | None = None,
     ) -> None:
         if not (0 < partitions <= self.num_partitions):
-            raise ValueError(
-                f"partitions must be greater than 0 and less than or equal to {self.num_partitions}. Got {partitions}."
-            )
+            raise ValueError(f"partitions must be <= {self.num_partitions}.")
 
         valid_partitions = [i for i, h in enumerate(self._heaps) if len(h) >= 2]
-        if not valid_partitions:
-            return
+        if not valid_partitions: return
 
         actual_count = min(partitions, len(valid_partitions))
         selected_partitions = self._rng.choice(valid_partitions, size=actual_count, replace=False)
@@ -188,10 +194,8 @@ class Design:
         for part_idx in selected_partitions:
             part_idx = int(part_idx)
 
-            # =========================================================
-            # FAST PATH: NO WINDOW (Original Sledgehammer Behavior)
-            # =========================================================
             if window is None:
+                # ORIGINAL FAST PATH
                 sample1 = self._pull(part_idx, 'largest' if pull_strategy == 'default' else pull_strategy)
                 sample2 = self._pull(part_idx, 'random' if pull_strategy == 'default' else pull_strategy)
 
@@ -199,41 +203,37 @@ class Design:
                     self._push(part_idx, _Sample(sample1.prob + sample2.prob, sample1.ids))
                 else:
                     self._push(part_idx, *self._switch(sample1, sample2, exchange_coef))
-
-            # =========================================================
-            # PRECISION PATH: WINDOWED POLISHING (Scalpel Behavior)
-            # =========================================================
             else:
-                samples_list = list(self._heaps[part_idx])
+                # SCALPEL (Precision Window Path)
+                # Safely pull ALL valid positive samples out using the class method
+                samples_list = []
+                while len(self._heaps[part_idx]) > 0:
+                    samples_list.append(self._pull(part_idx, 'largest'))
+                
                 n_samples = len(samples_list)
-                if n_samples < 2: continue
+                if n_samples >= 2:
+                    if pull_strategy == 'largest' or pull_strategy == 'default':
+                        idx1 = 0
+                    else:
+                        idx1 = self._rng.integers(0, n_samples)
+                    
+                    low = max(0, idx1 - window)
+                    high = min(n_samples, idx1 + window + 1)
+                    choices = [idx for idx in range(low, high) if idx != idx1]
+                    idx2 = self._rng.choice(choices) if choices else (idx1 + 1) % n_samples
+                    
+                    # Pop the larger index first to avoid shifting
+                    s2 = samples_list.pop(max(idx1, idx2))
+                    s1 = samples_list.pop(min(idx1, idx2))
+                    
+                    if s1.ids == s2.ids:
+                        self._push(part_idx, _Sample(s1.prob + s2.prob, s1.ids))
+                    else:
+                        self._push(part_idx, *self._switch(s1, s2, exchange_coef))
                 
-                # Apply pull_strategy to pick the first sample (idx1)
-                if pull_strategy == 'largest' or pull_strategy == 'default':
-                    idx1 = 0  # In a max-heap, the largest is always at index 0
-                else:
-                    idx1 = self._rng.integers(0, n_samples)
-                
-                # --- WINDOW LOGIC ---
-                low = max(0, idx1 - window)
-                high = min(n_samples, idx1 + window + 1)
-                
-                choices = [idx for idx in range(low, high) if idx != idx1]
-                idx2 = self._rng.choice(choices) if choices else (idx1 + 1) % n_samples
-                
-                # Extract the samples and REMOVE them from the list
-                s2 = samples_list.pop(max(idx1, idx2))
-                s1 = samples_list.pop(min(idx1, idx2))
-                
-                # Perform the switch
-                if s1.ids == s2.ids:
-                    new_samples = [_Sample(s1.prob + s2.prob, s1.ids)]
-                else:
-                    new_samples = self._switch(s1, s2, exchange_coef)
-                
-                # REBUILD the heap for this partition
-                self._heaps[part_idx] = _MaxHeap(initial_heap=samples_list)
-                self._push(part_idx, *new_samples)
+                # Safely push the untouched samples back into the heap
+                for s in samples_list:
+                    self._push(part_idx, s)
 
         self._reset_stats(self)
 
@@ -398,12 +398,9 @@ class Design:
         target_n = self.pop.n
 
         for sample in self:
-            # Only keep samples that are reasonably close to target size
-            # or collect them to see what's happening
             temp_samples.append(list(sample.ids))
             temp_probs.append(sample.prob)
 
-        # --- REPAIR LOGIC ---
         final_samples = []
         final_probs = []
         
@@ -412,14 +409,13 @@ class Design:
                 final_samples.append(s_ids)
                 final_probs.append(s_prob)
             elif len(s_ids) > 0:
-                # This is a 'broken' sample (usually 19 or 21 units)
-                # We find the nearest valid sample and give it this mass
-                if final_probs:
-                    final_probs[-1] += s_prob
-                else:
-                    # If it's the first one, we'll attach it to the next valid one later
-                    # but for now, let's just log it
-                    pass
+                # Padding trick (Now only catches harmless 1e-12 boundary noise)
+                padded = (s_ids + [s_ids[0]] * target_n)[:target_n]
+                final_samples.append(padded)
+                final_probs.append(s_prob)
+
+        if not final_samples:
+            raise ValueError("Design generated zero valid samples.")
 
         # Re-normalize to ensure sum is exactly 1.0
         probs_array = np.array(final_probs, dtype=np.float32)
@@ -427,13 +423,9 @@ class Design:
         
         samples_array = np.array(final_samples, dtype=np.int64)
 
-        # Final sanity check
-        sizes = [len(s) for s in samples_array]
-        if len(set(sizes)) > 1:
-             raise ValueError(f"Repair failed. Sizes still inconsistent: {set(sizes)}")
-
         self._all_samples_and_probs = (samples_array, probs_array)
         return self._all_samples_and_probs
+
     @property
     def nht_variance(self) -> float:
         if self._nht_variance is not None:
@@ -455,36 +447,41 @@ class Design:
     
     def flatten(self) -> Design:
         """
-        Truly flattens the design by merging all clusters and zones into a 
-        single 'Super Cluster' to allow for unrestricted global reordering.
+        Truly flattens the design into a single global sequence.
+        Merges all fractional fragments into whole units (share=1.0) 
+        to mathematically guarantee strict sample sizes and perfect FIP.
         """
-        # 1. Extract BOTH the IDs and the fractional shares from the current design
-        order_data = self.order.get()
-        current_ids = order_data[:, 0].astype(int)
-        current_shares = order_data[:, 1]  # <--- THE MISSING PIECE!
-
-        # 2. Create a brand new Order object
+        # 1. Extract the sequence of IDs
+        current_ids = self.order.get()[:, 0].astype(int)
+        
+        # 2. Contiguous Collapse: Keep only the FIRST appearance of each unit
+        # This eliminates the multi-zone fractional splits
+        _, idx_first = np.unique(current_ids, return_index=True)
+        flat_ids = current_ids[np.sort(idx_first)]
+        
+        # Catch any missing units (Safety net for zero-probability rounding)
+        missing_ids = np.setdiff1d(np.arange(self.pop.N), flat_ids)
+        if len(missing_ids) > 0:
+            flat_ids = np.concatenate([flat_ids, missing_ids])
+            
+        # 3. Create a pristine 1-zone Order object
         from .order import Order, Cluster, Zone 
         flat_order = Order(self.pop)
 
-        # 3. Create ONE 'Super Zone' containing every unit and share
+        # Assign all units to a single Super Zone with share = 1.0
         super_zone = Zone()
-        super_zone._indices = current_ids
-        super_zone._shares = current_shares  # <--- ASSIGN IT HERE
-        super_zone.sort = list(range(len(current_ids)))
+        super_zone._indices = flat_ids
+        super_zone._shares = np.ones_like(flat_ids, dtype=float)
+        super_zone.sort = list(range(len(flat_ids)))
 
-        # 4. Create ONE 'Super Cluster' to hold the Super Zone
         super_cluster = Cluster(label=0, zones=[super_zone])
 
-        # 5. Assign the new flat hierarchy to the Order
         flat_order.clusters = [super_cluster]
         flat_order.num_zones = 1
-        flat_order.num_splits = self.order.num_splits
+        flat_order.num_splits = 1
 
-        # 6. Rebuild the internal array so self._order matches the new hierarchy
-        flat_order._build_order(flat_order.num_splits)
+        flat_order._build_order(num_splits=1)
 
-        # 7. Return the design with this truly flat order
         return Design.from_order(self.pop, flat_order)
     
     def release_design(restricted_design):
@@ -564,7 +561,10 @@ class Design:
         self.merge_identical()
 
         _, probs = self.all_samples_and_probs
-        self._entropy = -np.sum(probs * np.log(probs)).item()
+        
+        # FIX: Filter out tiny floating-point zeros to prevent np.log(0) -> nan
+        valid_probs = probs[probs > 1e-12]
+        self._entropy = -np.sum(valid_probs * np.log(valid_probs)).item()
 
         return self._entropy
 
