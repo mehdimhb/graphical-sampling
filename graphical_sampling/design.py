@@ -100,62 +100,47 @@ class Design:
 
     def _build(self):
         events: list[tuple[float, str, int]] = []
-        
-        # 1. Add partition boundaries FIRST
+        level: float = 0
+        EPS = 1e-10
+
+        order_data = self.order.get()
+        total_items = len(order_data)
+
+        for i, (idx, share) in enumerate(order_data):
+            p = self.pop.inclusions[int(idx)] * share
+            if p < 1e-12: continue
+            
+            next_level = level + p
+            if i == total_items - 1:
+                next_level = np.ceil(next_level - EPS) if next_level > EPS else 1.0
+            
+            if next_level < 1.0 - EPS:
+                events.append((float(level), "start", int(idx)))
+                events.append((float(next_level), "end", int(idx)))
+                level = next_level
+            elif next_level > 1.0 + EPS:
+                # Split across the 1.0 boundary
+                events.append((float(level), "start", int(idx)))
+                events.append((1.0, "end", int(idx)))
+                events.append((0.0, "start", int(idx)))
+                events.append((float(next_level - 1.0), "end", int(idx)))
+                level = next_level - 1.0
+            else:
+                # Lands exactly on 1.0
+                events.append((float(level), "start", int(idx)))
+                events.append((1.0, "end", int(idx)))
+                level = 0.0
+
+        # Add partition boundaries
         for i in range(self.num_partitions + 1):
             events.append((i / self.num_partitions, "boundary", -1))
 
-        order_data = self.order.get()
-        total_n = self.pop.n
-        
-        # THE EXACT CUMULATIVE MASS FIX
-        # Use vectorized cumsum to prevent floating-point drift over 1000 items
-        ids = order_data[:, 0].astype(int)
-        shares = order_data[:, 1]
-        p_array = self.pop.inclusions[ids] * shares
-        
-        cum_mass = np.zeros(len(p_array) + 1, dtype=np.float64)
-        cum_mass[1:] = np.cumsum(p_array)
-        cum_mass[-1] = float(total_n) # Snap absolute final boundary
-
-        for i in range(len(order_data)):
-            idx = int(ids[i])
-            start_abs = cum_mass[i]
-            end_abs = cum_mass[i+1]
-            
-            if end_abs - start_abs < 1e-12: continue
-
-            # Safely extract the integer component (which "wrap" we are in)
-            start_int = int(np.round(start_abs)) if np.isclose(start_abs, np.round(start_abs), atol=1e-10) else int(np.floor(start_abs))
-            end_int = int(np.round(end_abs)) if np.isclose(end_abs, np.round(end_abs), atol=1e-10) else int(np.floor(end_abs))
-
-            # Calculate the remainder (where it lands on the 0.0 to 1.0 line)
-            start_rem = start_abs - start_int
-            end_rem = end_abs - end_int
-            
-            # Clean tiny floating point noise
-            if np.isclose(start_rem, 0.0, atol=1e-10): start_rem = 0.0
-            if np.isclose(end_rem, 0.0, atol=1e-10): end_rem = 0.0
-            if np.isclose(start_rem, 1.0, atol=1e-10): start_rem = 0.0; start_int += 1
-            if np.isclose(end_rem, 1.0, atol=1e-10): end_rem = 0.0; end_int += 1
-
-            if start_int < end_int and end_rem > 0.0:
-                events.append((start_rem, "start", idx))
-                events.append((1.0, "end", idx))
-                events.append((0.0, "start", idx))
-                events.append((end_rem, "end", idx))
-            elif start_int < end_int and end_rem == 0.0:
-                events.append((start_rem, "start", idx))
-                events.append((1.0, "end", idx))
-            else:
-                events.append((start_rem, "start", idx))
-                events.append((end_rem, "end", idx))
-
-        events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else (1 if x[1] == "end" else 2)))
+        # Sort: boundaries must be processed BEFORE starts/ends at the same location
+        events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else 1))
         
         self.events = events
         active = set()
-        last_point: float = 0.0
+        last_point: float = 0
 
         for point, event_type, bar_index in events:
             if point > last_point + 1e-12:
@@ -355,7 +340,44 @@ class Design:
         return hash(tuple(self._heaps))
 
     # ======================================== getters for main properties ========================================
+    @property
+    def all_samples_and_probs(self) -> tuple[np.ndarray, np.ndarray]:
+        if self._all_samples_and_probs is not None:
+            return self._all_samples_and_probs
 
+        temp_samples = []
+        temp_probs = []
+        target_n = self.pop.n
+
+        for sample in self:
+            temp_samples.append(list(sample.ids))
+            temp_probs.append(sample.prob)
+
+        final_samples = []
+        final_probs = []
+        
+        for s_ids, s_prob in zip(temp_samples, temp_probs):
+            if len(s_ids) == target_n:
+                final_samples.append(s_ids)
+                final_probs.append(s_prob)
+            elif len(s_ids) > 0:
+                # YOUR FIX: Force correct shape to prevent IndexError in Moran
+                padded = (s_ids + [s_ids[0]] * target_n)[:target_n]
+                final_samples.append(padded)
+                final_probs.append(s_prob)
+
+        if not final_samples:
+            raise ValueError("Design generated zero samples. Check zone mass.")
+
+        # Re-normalize to ensure sum is exactly 1.0
+        probs_array = np.array(final_probs, dtype=np.float32)
+        probs_array /= probs_array.sum()
+        
+        samples_array = np.array(final_samples, dtype=np.int64)
+
+        self._all_samples_and_probs = (samples_array, probs_array)
+        return self._all_samples_and_probs
+    
     @property
     def pop(self) -> Population:
         return self._pop
