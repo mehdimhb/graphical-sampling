@@ -181,37 +181,81 @@ class Design:
         return samples[indices]
 
     # ======================================== Change ========================================
-
     def exchange(
             self,
             partitions: int = 1,
             pull_strategy: Literal['default', 'random', 'largest'] = 'default',
-            exchange_coef: float = 0.75
+            exchange_coef: float = 0.75,
+            window: int | None = None,
     ) -> None:
         if not (0 < partitions <= self.num_partitions):
-            raise ValueError(
-                f"partitions must be greater than 0 and less than or equal to {self.num_partitions}. Got {partitions}."
-            )
+            raise ValueError(f"partitions must be <= {self.num_partitions}.")
 
         valid_partitions = [i for i, h in enumerate(self._heaps) if len(h) >= 2]
-        if not valid_partitions:
-            return
+        if not valid_partitions: return
 
         actual_count = min(partitions, len(valid_partitions))
         selected_partitions = self._rng.choice(valid_partitions, size=actual_count, replace=False)
 
         for part_idx in selected_partitions:
-            part_idx = int(part_idx)
+            
+            # =========================================================
+            # FAST PATH: NO WINDOW (Original Sledgehammer Behavior)
+            # =========================================================
+            if window is None:
+                # self._pull natively handles the pull_strategy
+                pulled_samples = self._pull(part_idx, 2, pull_strategy)
+                
+                if len(pulled_samples) < 2:
+                    if pulled_samples: self._push(part_idx, *pulled_samples)
+                    continue
+                    
+                s1, s2 = pulled_samples[0], pulled_samples[1]
+                
+                if s1.ids == s2.ids:
+                    self._push(part_idx, _Sample(s1.prob + s2.prob, s1.ids))
+                else:
+                    self._push(part_idx, *self._switch(s1, s2, exchange_coef))
 
-            sample1 = self._pull(part_idx, 'largest' if pull_strategy == 'default' else pull_strategy)
-            sample2 = self._pull(part_idx, 'random' if pull_strategy == 'default' else pull_strategy)
-
-            if sample1.ids == sample2.ids:
-                self._push(part_idx, _Sample(sample1.prob + sample2.prob, sample1.ids))
+            # =========================================================
+            # PRECISION PATH: WINDOWED POLISHING (Scalpel Behavior)
+            # =========================================================
             else:
-                self._push(part_idx, *self._switch(sample1, sample2, exchange_coef))
+                samples_list = list(self._heaps[part_idx])
+                n_samples = len(samples_list)
+                if n_samples < 2: continue
+                
+                # Apply pull_strategy to pick the first sample (idx1)
+                if pull_strategy == 'largest':
+                    # In a max-heap, the largest probability is always at index 0
+                    idx1 = 0 
+                else:
+                    idx1 = self._rng.integers(0, n_samples)
+                
+                # --- WINDOW LOGIC ---
+                low = max(0, idx1 - window)
+                high = min(n_samples, idx1 + window + 1)
+                
+                choices = [idx for idx in range(low, high) if idx != idx1]
+                idx2 = self._rng.choice(choices) if choices else (idx1 + 1) % n_samples
+                
+                # Extract the samples and REMOVE them from the list
+                # Pop the larger index first to avoid shifting the smaller one!
+                s2 = samples_list.pop(max(idx1, idx2))
+                s1 = samples_list.pop(min(idx1, idx2))
+                
+                # Perform the switch
+                if s1.ids == s2.ids:
+                    new_samples = [_Sample(s1.prob + s2.prob, s1.ids)]
+                else:
+                    new_samples = self._switch(s1, s2, exchange_coef)
+                
+                # REBUILD the heap for this partition
+                self._heaps[part_idx] = _MaxHeap(initial_heap=samples_list)
+                self._push(part_idx, *new_samples)
 
         self._reset_stats(self)
+
 
     def _pull(self, part_idx: int, strategy: Literal['random', 'largest']) -> _Sample:
         if strategy == 'random':

@@ -32,38 +32,40 @@ class GreedyBestFirstSearch:
         return x
 
     @staticmethod
-    def _apply_exchange(
-            design: Design, num_zones: int, num_changes: int, pull_strategy: PullStrategy, exchange_coef: float
-    ) -> Design:
+    def _apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef, window):
         new_design = design.copy()
         for _ in range(num_changes):
-            new_design.exchange(partitions=num_zones, pull_strategy=pull_strategy, exchange_coef=exchange_coef)
+            # We pass the window here
+            new_design.exchange(partitions=num_zones, pull_strategy=pull_strategy, 
+                            exchange_coef=exchange_coef, window=window)
         return new_design
 
     @staticmethod
-    def _apply_order_change(
-            design: Design, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes
-    ) -> Design:
+    def _apply_order_change(design, num_clusters, num_zones, num_changes, num_zone_changes, window):
         new_order = design.order.copy()
-        new_order.change(num_clusters, num_zones, num_changes, num_zone_changes)
+        # We pass the window here
+        new_order.change(num_clusters, num_zones, num_changes, num_zone_changes, window=window)
         return design.from_order(design.pop, new_order)
-
+   
     def _order_neighbors(
             self, design: Design, num_new_nodes: int, num_clusters: int, num_zones: int, num_changes: int,
-            num_zone_changes: int
+            num_zone_changes: int,
+            window: int | None = None # <--- Added window here
     ) -> Generator[tuple[str, Design], None, None]:
         for _ in range(num_new_nodes):
             yield 'order_change', self._apply_order_change(
-                design, num_clusters, num_zones, num_changes, num_zone_changes
+                design, num_clusters, num_zones, num_changes, num_zone_changes, window
             )
 
     def _exchange_neighbors(
             self, design: Design, num_new_nodes: int, num_zones: int,
-            num_changes: int, pull_strategy: PullStrategy, exchange_coef: float
+            num_changes: int, pull_strategy: str, exchange_coef: float,
+            window: int | None = None # <--- Added window here
     ) -> Generator[tuple[str, Design], None, None]:
         for _ in range(num_new_nodes):
-            yield 'exchange', self._apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef)
-
+            yield 'exchange', self._apply_exchange(
+                design, num_zones, num_changes, pull_strategy, exchange_coef, window
+            )
     def _update_top_k(self, design: Design, criteria_value: float, k: int) -> None:
         """Maintains the top K best designs using a Min-Heap containing negative values."""
         heapq.heappush(self.top_k, (-criteria_value, next(self._counter), design))
@@ -131,6 +133,7 @@ class GreedyBestFirstSearch:
             pull_strategy: PullStrategy = 'default',
             exchange_coef: float = 0.75,
             num_explore: int = 1,
+            window: int | Callable[[int], int] | None = None,
             n_jobs: int = -1
     ) -> None:
         closed_set = set()
@@ -150,6 +153,7 @@ class GreedyBestFirstSearch:
         print(f"Initial best criteria value: {self.best_criteria_value:.4f}")
 
         for iteration in range(max_iterations):
+            current_window = self._get(window, iteration)
             if iteration % 1000 == 0 and iteration > 0:
             # We keep the current designs being explored to avoid immediate loops
             # but clear the rest to free up memory/hashing time
@@ -189,19 +193,22 @@ class GreedyBestFirstSearch:
                 neighbors = self._exchange_neighbors(
                     current_design,
                     self._get(num_new_exchange_nodes, iteration),
-                    self._get(num_zones, iteration),
-                    self._get(num_changes, iteration),
+                    num_zones,
+                    num_changes,
                     self._get(pull_strategy, iteration),
-                    self._get(exchange_coef, iteration))
+                    exchange_coef,
+                    current_window 
+                )
 
                 if node_type == 'order_change':
                     order_neighbors = self._order_neighbors(
                         current_design,
                         self._get(num_new_order_nodes, iteration),
-                        self._get(num_clusters, iteration),
-                        self._get(num_zones, iteration),
-                        self._get(num_changes, iteration),
+                        num_clusters,
+                        num_zones,
+                        num_changes,
                         self._get(num_zone_changes, iteration),
+                        current_window
                     )
                     neighbors = chain(neighbors, order_neighbors)
 

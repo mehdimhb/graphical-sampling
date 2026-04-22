@@ -30,37 +30,40 @@ class GreedyBestFirstSearchTabu:
         return x
 
     @staticmethod
-    def _apply_exchange(
-            design: Design, num_zones: int, num_changes: int, pull_strategy: PullStrategy, exchange_coef: float
-    ) -> Design:
+    def _apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef, window):
         new_design = design.copy()
         for _ in range(num_changes):
-            new_design.exchange(partitions=num_zones, pull_strategy=pull_strategy, exchange_coef=exchange_coef)
+            # We pass the window here
+            new_design.exchange(partitions=num_zones, pull_strategy=pull_strategy, 
+                            exchange_coef=exchange_coef, window=window)
         return new_design
 
     @staticmethod
-    def _apply_order_change(
-            design: Design, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int
-    ) -> Design:
+    def _apply_order_change(design, num_clusters, num_zones, num_changes, num_zone_changes, window):
         new_order = design.order.copy()
-        new_order.change(num_clusters, num_zones, num_changes, num_zone_changes)
+        # We pass the window here
+        new_order.change(num_clusters, num_zones, num_changes, num_zone_changes, window=window)
         return design.from_order(design.pop, new_order)
 
     def _order_neighbors(
             self, design: Design, num_new_nodes: int, num_clusters: int, num_zones: int, num_changes: int,
-            num_zone_changes: int
+            num_zone_changes: int,
+            window: int | None = None # <--- Added window here
     ) -> Generator[tuple[str, Design], None, None]:
         for _ in range(num_new_nodes):
             yield 'order_change', self._apply_order_change(
-                design, num_clusters, num_zones, num_changes, num_zone_changes
+                design, num_clusters, num_zones, num_changes, num_zone_changes, window
             )
 
     def _exchange_neighbors(
             self, design: Design, num_new_nodes: int, num_zones: int,
-            num_changes: int, pull_strategy: PullStrategy, exchange_coef: float
+            num_changes: int, pull_strategy: str, exchange_coef: float,
+            window: int | None = None # <--- Added window here
     ) -> Generator[tuple[str, Design], None, None]:
         for _ in range(num_new_nodes):
-            yield 'exchange', self._apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef)
+            yield 'exchange', self._apply_exchange(
+                design, num_zones, num_changes, pull_strategy, exchange_coef, window
+            )
 
     def _update_top_k(self, design: Design, criteria_value: float, k: int) -> None:
         heapq.heappush(self.top_k, (-criteria_value, next(self._counter), design))
@@ -85,6 +88,7 @@ class GreedyBestFirstSearchTabu:
             pull_strategy: PullStrategy = 'default',
             exchange_coef: float = 0.75,
             num_explore: int = 1,
+            window: int | Callable[[int], int] | None = None,
             n_jobs: int = -1,
             tabu_size: int = 10000 
     ) -> None:
@@ -104,6 +108,7 @@ class GreedyBestFirstSearchTabu:
             self._update_top_k(design, val, top_k)
 
         for iteration in range(max_iterations):
+            current_window = self._get(window, iteration)
             if not open_set:
                 break
 
@@ -140,7 +145,9 @@ class GreedyBestFirstSearchTabu:
                     num_zones,
                     num_changes,
                     self._get(pull_strategy, iteration),
-                    exchange_coef)
+                    exchange_coef,
+                    current_window 
+                )
 
                 if node_type == 'order_change':
                     order_neighbors = self._order_neighbors(
@@ -150,6 +157,7 @@ class GreedyBestFirstSearchTabu:
                         num_zones,
                         num_changes,
                         self._get(num_zone_changes, iteration),
+                        current_window
                     )
                     neighbors = chain(neighbors, order_neighbors)
 

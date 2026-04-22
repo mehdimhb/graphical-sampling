@@ -449,20 +449,43 @@ class Order:
         self._order = np.column_stack([final_ids, final_shares])
         self._fixed_ids = fixed_ids
 
-    def change(self, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int):
+    def change(self, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int, window: int | None = None):
         rng = np.random.default_rng()
+        
         if num_changes > 0:
             c_idxs = rng.choice(len(self.clusters), size=min(num_clusters, len(self.clusters)), replace=False)
             for idx in c_idxs:
                 cluster = self.clusters[idx]
                 z_idxs = rng.choice(len(cluster.zones), size=min(num_zones, len(cluster.zones)), replace=False)
+                
                 for z_idx in z_idxs:
                     zone = cluster.zones[z_idx]
-                    if len(zone.sort) > 1:
+                    n = len(zone.sort)
+                    
+                    if n > 1:
                         for _ in range(num_changes):
-                            i, j = rng.choice(len(zone.sort), size=2, replace=False)
-                            # print('cluster index:', idx, 'zone index:', z_idx, 'id units', i, j)
-                            zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
+                            # =========================================================
+                            # FAST PATH: ORIGINAL BEHAVIOR (Sledgehammer)
+                            # =========================================================
+                            if window is None:
+                                # This is the native, C-optimized NumPy call
+                                i, j = rng.choice(n, size=2, replace=False)
+                                zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
+                            
+                            # =========================================================
+                            # PRECISION PATH: WINDOWED POLISHING (Scalpel)
+                            # =========================================================
+                            else:
+                                i = rng.integers(0, n)
+                                low = max(0, i - window)
+                                high = min(n, i + window + 1)
+                                
+                                # This list comprehension is slightly slower, 
+                                # but we only use it during the final global polish
+                                choices = [idx for idx in range(low, high) if idx != i]
+                                if choices:
+                                    j = rng.choice(choices)
+                                    zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
 
         if num_zone_changes > 0:
             c_idxs = rng.choice(len(self.clusters), size=min(num_clusters, len(self.clusters)), replace=False)
