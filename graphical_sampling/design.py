@@ -393,14 +393,37 @@ class Design:
     
     def flatten(self) -> Design:
         """
-        Creates a new single-partition version of this design for global polishing.
+        Truly flattens the design by merging all clusters and zones into a 
+        single 'Super Cluster' to allow for unrestricted global reordering.
         """
-        new_order = self.order.copy()
-        # This triggers the minimal border logic in the constructor
-        new_order.num_zones = 1 
-        
-        flat_design = Design.from_order(self.pop, new_order)
-        return flat_design
+        # 1. Extract the optimized spatial sequence from the current design
+        # This is the 'Best ID' sequence found during the restricted phase
+        current_ids = self.order.get()[:, 0].astype(int)
+
+        # 2. Create a brand new Order object
+        # Note: We need the classes available to rebuild the hierarchy
+        from .order import Order, Cluster, Zone 
+        flat_order = Order(self.pop)
+
+        # 3. Create ONE 'Super Zone' containing every unit in the sequence
+        # We put the IDs into _indices and set sort to a simple range
+        super_zone = Zone()
+        super_zone._indices = current_ids
+        super_zone.sort = list(range(len(current_ids)))
+
+        # 4. Create ONE 'Super Cluster' to hold the Super Zone
+        super_cluster = Cluster(label=0, zones=[super_zone])
+
+        # 5. Assign the new flat hierarchy to the Order
+        flat_order.clusters = [super_cluster]
+        flat_order.num_zones = 1
+        flat_order.num_splits = self.order.num_splits
+
+        # 6. Rebuild the internal array so self._order matches the new hierarchy
+        flat_order._build_order(flat_order.num_splits)
+
+        # 7. Return the design with this truly flat order
+        return Design.from_order(self.pop, flat_order)
     
     def release_design(restricted_design):
         """

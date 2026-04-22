@@ -217,7 +217,74 @@ class Order:
                         row_indices = row_indices[::-1]
                     final_order.extend(row_indices.tolist())
                 return np.array(final_order)
-            
+            case 'hilbert_strong':
+                def rot(n, x, y, rx, ry):
+                    if ry == 0:
+                        if rx == 1:
+                            x, y = n-1 - x, n-1 - y
+                        return y, x
+                    return x, y
+
+                def xy2d(n, x, y):
+                    d = 0
+                    s = n // 2
+                    while s > 0:
+                        rx = 1 if (x & s) > 0 else 0
+                        ry = 1 if (y & s) > 0 else 0
+                        d += s * s * ((3 * rx) ^ ry)
+                        x, y = rot(s, x, y, rx, ry)
+                        s //= 2
+                    return d
+
+                n_size = 2**int(np.ceil(np.log2(max(num_cols, num_rows))))
+                # Apply a random flip/rotation seed to the coordinate space
+                seed = np.random.randint(0, 4)
+                hilbert_indices = []
+                for i in range(pts.shape[0]):
+                    ix, iy = int(pts[i, 0]), int(pts[i, 1])
+                    if seed == 1: ix, iy = iy, ix
+                    elif seed == 2: ix = n_size - 1 - ix
+                    h_idx = xy2d(n_size, ix, iy)
+                    hilbert_indices.append(h_idx)
+                return np.argsort(hilbert_indices)
+
+            # --- STRENGTH 2: MORTON WITH XOR MASK (GRTS STYLE) ---
+            # This is exactly how GRTS achieves spatial balance: bit-interleaving + randomization
+            case 'morton_grts':
+                def part1by1(x):
+                    x &= 0x0000ffff
+                    x = (x | (x << 8)) & 0x00ff00ff
+                    x = (x | (x << 4)) & 0x0f0f0f0f
+                    x = (x | (x << 2)) & 0x33333333
+                    x = (x | (x << 1)) & 0x55555555
+                    return x
+
+                xor_mask = np.random.randint(0, 0xFFFFFFFF)
+                morton_indices = []
+                for i in range(pts.shape[0]):
+                    # Interleave bits of X and Y
+                    m_idx = (part1by1(int(pts[i, 1])) << 1) | part1by1(int(pts[i, 0]))
+                    # XOR mask breaks deterministic clustering
+                    morton_indices.append(m_idx ^ xor_mask)
+                return np.argsort(morton_indices)
+
+            # --- STRENGTH 3: STAGGERED SNAKE (MAXIMIZES BOUNDARY SPREAD) ---
+            # Standard Snake has weak return-jumps; Staggered Snake offsets rows
+            case 'snake_staggered':
+                y_coords = pts[:, 1]
+                unique_y = np.unique(y_coords)
+                final_order = []
+                for i, y in enumerate(unique_y):
+                    row_indices = np.where(pts[:, 1] == y)[0]
+                    # Sort row by X
+                    row_indices = row_indices[np.argsort(pts[row_indices, 0])]
+                    # Every second row, apply a circular shift of half the row length
+                    if i % 2 == 1:
+                        row_indices = row_indices[::-1]
+                        shift = len(row_indices) // 2
+                        row_indices = np.roll(row_indices, shift)
+                    final_order.extend(row_indices.tolist())
+                return np.array(final_order)
             case 'knight_move':
                 num_pts = pts.shape[0]
                 # Determine grid dimensions
@@ -394,6 +461,7 @@ class Order:
                     if len(zone.sort) > 1:
                         for _ in range(num_changes):
                             i, j = rng.choice(len(zone.sort), size=2, replace=False)
+                            # print('cluster index:', idx, 'zone index:', z_idx, 'id units', i, j)
                             zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
 
         if num_zone_changes > 0:
