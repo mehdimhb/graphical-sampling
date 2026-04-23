@@ -100,76 +100,49 @@ class Design:
 
     def _build(self):
         events: list[tuple[float, str, int]] = []
-        
-        # 1. Add partition boundaries FIRST
         for i in range(self.num_partitions + 1):
             events.append((i / self.num_partitions, "boundary", -1))
 
         order_data = self.order.get()
-        total_n = self.pop.n
-        
-        # THE EXACT CUMULATIVE MASS FIX
-        # Use vectorized cumsum to prevent floating-point drift over 1000 items
         ids = order_data[:, 0].astype(int)
-        shares = order_data[:, 1]
-        p_array = self.pop.inclusions[ids] * shares
+        p_array = self.pop.inclusions[ids] * order_data[:, 1]
         
+        # Flawless cumulative mass
         cum_mass = np.zeros(len(p_array) + 1, dtype=np.float64)
         cum_mass[1:] = np.cumsum(p_array)
-        cum_mass[-1] = float(total_n) # Snap absolute final boundary
+        cum_mass[-1] = float(self.pop.n) 
 
         for i in range(len(order_data)):
-            idx = int(ids[i])
-            start_abs = cum_mass[i]
-            end_abs = cum_mass[i+1]
-            
+            idx, start_abs, end_abs = ids[i], cum_mass[i], cum_mass[i+1]
             if end_abs - start_abs < 1e-12: continue
 
-            # Safely extract the integer component (which "wrap" we are in)
-            start_int = int(np.round(start_abs)) if np.isclose(start_abs, np.round(start_abs), atol=1e-10) else int(np.floor(start_abs))
-            end_int = int(np.round(end_abs)) if np.isclose(end_abs, np.round(end_abs), atol=1e-10) else int(np.floor(end_abs))
-
-            # Calculate the remainder (where it lands on the 0.0 to 1.0 line)
-            start_rem = start_abs - start_int
-            end_rem = end_abs - end_int
+            # Fast Native Math (No np.isclose)
+            start_int = int(start_abs + 1e-10)
+            end_int = int(end_abs + 1e-10)
+            start_rem, end_rem = start_abs - start_int, end_abs - end_int
             
-            # Clean tiny floating point noise
-            if np.isclose(start_rem, 0.0, atol=1e-10): start_rem = 0.0
-            if np.isclose(end_rem, 0.0, atol=1e-10): end_rem = 0.0
-            if np.isclose(start_rem, 1.0, atol=1e-10): start_rem = 0.0; start_int += 1
-            if np.isclose(end_rem, 1.0, atol=1e-10): end_rem = 0.0; end_int += 1
+            if start_rem < 1e-10: start_rem = 0.0
+            if end_rem < 1e-10: end_rem = 0.0
 
             if start_int < end_int and end_rem > 0.0:
-                events.append((start_rem, "start", idx))
-                events.append((1.0, "end", idx))
-                events.append((0.0, "start", idx))
-                events.append((end_rem, "end", idx))
+                events.extend([(start_rem, "start", idx), (1.0, "end", idx), 
+                               (0.0, "start", idx), (end_rem, "end", idx)])
             elif start_int < end_int and end_rem == 0.0:
-                events.append((start_rem, "start", idx))
-                events.append((1.0, "end", idx))
+                events.extend([(start_rem, "start", idx), (1.0, "end", idx)])
             else:
-                events.append((start_rem, "start", idx))
-                events.append((end_rem, "end", idx))
+                events.extend([(start_rem, "start", idx), (end_rem, "end", idx)])
 
         events.sort(key=lambda x: (x[0], 0 if x[1] == "boundary" else (1 if x[1] == "end" else 2)))
-        
         self.events = events
-        active = set()
-        last_point: float = 0.0
+        active, last_point = set(), 0.0
 
         for point, event_type, bar_index in events:
-            if point > last_point + 1e-12:
-                if active:
-                    midpoint = (last_point + point) / 2
-                    zone_idx = min(int(midpoint * self.num_partitions), self.num_partitions - 1)
-                    length = point - last_point
-                    self._push(zone_idx, _Sample(length, frozenset(active)))
-
-            if event_type == "start":
-                active.add(int(bar_index))
-            elif event_type == "end":
-                active.discard(int(bar_index))
-
+            if point > last_point + 1e-12 and active:
+                mid = (last_point + point) / 2
+                z_idx = min(int(mid * self.num_partitions), self.num_partitions - 1)
+                self._push(z_idx, _Sample(point - last_point, frozenset(active)))
+            if event_type == "start": active.add(int(bar_index))
+            elif event_type == "end": active.discard(int(bar_index))
             last_point = point
     # ======================================== Sampling ========================================
 
@@ -181,70 +154,33 @@ class Design:
         return samples[indices]
 
     # ======================================== Change ========================================
-    def exchange(
-            self,
-            partitions: int = 1,
-            pull_strategy: Literal['default', 'random', 'largest'] = 'default',
-            exchange_coef: float = 0.75,
-            window: int | None = None,
-    ) -> None:
-        if not (0 < partitions <= self.num_partitions):
-            raise ValueError(f"partitions must be <= {self.num_partitions}.")
-
-        valid_partitions = [i for i, h in enumerate(self._heaps) if len(h) >= 2]
-        if not valid_partitions: return
-
-        actual_count = min(partitions, len(valid_partitions))
-        selected_partitions = self._rng.choice(valid_partitions, size=actual_count, replace=False)
-
-        for part_idx in selected_partitions:
+    def exchange(self, partitions=1, pull_strategy='default', exchange_coef=0.75, window=None):
+        valid_parts = [i for i, h in enumerate(self._heaps) if len(h) >= 2]
+        if not valid_parts: return
+        
+        for part_idx in self._rng.choice(valid_parts, size=min(partitions, len(valid_parts)), replace=False):
             part_idx = int(part_idx)
-
-            if window is None:
-                # =========================================================
-                # ORIGINAL FAST PATH
-                # =========================================================
-                sample1 = self._pull(part_idx, 'largest' if pull_strategy == 'default' else pull_strategy)
-                sample2 = self._pull(part_idx, 'random' if pull_strategy == 'default' else pull_strategy)
-
-                if sample1.ids == sample2.ids:
-                    self._push(part_idx, _Sample(sample1.prob + sample2.prob, sample1.ids))
+            # Precision Path: Safely empty heap to avoid negative probability leaks
+            samples = []
+            while self._heaps[part_idx]:
+                samples.append(self._pull(part_idx, 'largest'))
+            
+            if len(samples) >= 2:
+                idx1 = 0 if pull_strategy in ['largest', 'default'] else self._rng.integers(0, len(samples))
+                if window is None:
+                    idx2 = self._rng.integers(0, len(samples))
+                    while idx2 == idx1: idx2 = self._rng.integers(0, len(samples))
                 else:
-                    self._push(part_idx, *self._switch(sample1, sample2, exchange_coef))
-            else:
-                # =========================================================
-                # SCALPEL (Precision Window Path - Leak Proof!)
-                # =========================================================
-                # Safely pull ALL valid positive samples out using the class method
-                samples_list = []
-                while len(self._heaps[part_idx]) > 0:
-                    samples_list.append(self._pull(part_idx, 'largest'))
+                    choices = [i for i in range(max(0, idx1-window), min(len(samples), idx1+window+1)) if i != idx1]
+                    idx2 = self._rng.choice(choices) if choices else (idx1 + 1) % len(samples)
                 
-                n_samples = len(samples_list)
-                if n_samples >= 2:
-                    if pull_strategy == 'largest' or pull_strategy == 'default':
-                        idx1 = 0
-                    else:
-                        idx1 = self._rng.integers(0, n_samples)
-                    
-                    low = max(0, idx1 - window)
-                    high = min(n_samples, idx1 + window + 1)
-                    choices = [idx for idx in range(low, high) if idx != idx1]
-                    idx2 = self._rng.choice(choices) if choices else (idx1 + 1) % n_samples
-                    
-                    # Pop the larger index first to avoid shifting
-                    s2 = samples_list.pop(max(idx1, idx2))
-                    s1 = samples_list.pop(min(idx1, idx2))
-                    
-                    if s1.ids == s2.ids:
-                        self._push(part_idx, _Sample(s1.prob + s2.prob, s1.ids))
-                    else:
-                        self._push(part_idx, *self._switch(s1, s2, exchange_coef))
-                
-                # Safely push the untouched samples back into the heap
-                for s in samples_list:
-                    self._push(part_idx, s)
-
+                s2, s1 = samples.pop(max(idx1, idx2)), samples.pop(min(idx1, idx2))
+                if s1.ids == s2.ids:
+                    self._push(part_idx, _Sample(s1.prob + s2.prob, s1.ids))
+                else:
+                    self._push(part_idx, *self._switch(s1, s2, exchange_coef))
+            
+            for s in samples: self._push(part_idx, s)
         self._reset_stats(self)
 
 

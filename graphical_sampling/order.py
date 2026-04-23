@@ -501,11 +501,23 @@ class Order:
     def get(self) -> np.ndarray:
         return self._order
 
-    def copy(self) -> Order:
+    def copy(self) -> 'Order':
         new_instance = Order(self.pop)
         new_instance._order = np.copy(self._order)
         new_instance._fixed_ids = self._fixed_ids.copy()
-        new_instance.clusters = copy.deepcopy(self.clusters)
+        
+        if self.clusters is not None:
+            new_clusters = []
+            for c in self.clusters:
+                new_zones = [Zone(_shares=z._shares, _indices=z._indices, 
+                                  sort=z.sort.copy(), virtual_centroid=z.virtual_centroid) 
+                             for z in c.zones]
+                # Use copy.copy for light objects, avoid deepcopy
+                new_c = Cluster(label=c.label, zones=new_zones, 
+                                floor=copy.copy(c.floor), ceil=copy.copy(c.ceil))
+                new_clusters.append(new_c)
+            new_instance.clusters = new_clusters
+        
         new_instance.num_zones = self.num_zones
         new_instance.num_splits = self.num_splits
         return new_instance
