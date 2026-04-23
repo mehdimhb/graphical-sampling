@@ -140,6 +140,7 @@ class GreedyBestFirstSearch:
                     act_c = len(new_design.order.clusters)
                     act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
                     print(f"new@ {iteration:4d}: {new_val:.6f} | {new_type:12s} | {act_c}Cx{act_z}Z | "
+                          f"DSize: {len(new_design.all_samples_and_probs[1]):4d} | "
                           f"Entp:{new_design.entropy:.4f}")
                     self.best_design = new_design
                     self.best_criteria_value = new_val
