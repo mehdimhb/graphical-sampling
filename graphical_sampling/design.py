@@ -282,7 +282,31 @@ class Design:
         return hash(tuple(self._heaps))
 
     # ======================================== getters for main properties ========================================
-
+    @property
+    def all_samples_and_probs(self) -> tuple[np.ndarray, np.ndarray]:
+        if self._all_samples_and_probs: return self._all_samples_and_probs
+        
+        final_samples, final_probs = [], []
+        target_n = self.pop.n
+        
+        for sample in self:
+            # THE INTEGRITY CHECK: No dust under the carpet
+            if len(sample.ids) != target_n:
+                 raise ValueError(
+                     f"MATH FAILURE: Design generated a sample of size {len(sample.ids)} "
+                     f"instead of {target_n}. Inclusion probabilities are now invalid."
+                 )
+            
+            final_samples.append(list(sample.ids))
+            final_probs.append(sample.prob)
+        
+        probs_array = np.array(final_probs, dtype=np.float32)
+        # We still normalize to ensure a perfect 1.0 sum
+        probs_array /= probs_array.sum()
+        
+        self._all_samples_and_probs = (np.array(final_samples, dtype=np.int64), probs_array)
+        return self._all_samples_and_probs
+    
     @property
     def pop(self) -> Population:
         return self._pop

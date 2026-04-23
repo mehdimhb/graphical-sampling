@@ -250,23 +250,16 @@ class GreedyBestFirstSearch:
                 # new_design.plot(mode='hard')
                 new_type = unique_neighbors[new_design]
                 if new_val < self.best_criteria_value:
-                    print(
-                        f"{iteration}: {new_val:.7f},  "
-                        f"{new_type},  "
-                        f"DSize:{len(new_design.all_samples_and_probs[0])},  "
-                        f"var:{new_design.nht_variance:.2f}, "
-                        f"Entp:{new_design.entropy:.2f}"
-                        )
                     act_c = len(new_design.order.clusters)
                     # We look at the first cluster to see the number of zones per cluster
                     act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
                     
                     print(
-                        f"Update @ {iteration:4d}: {new_val:.6f} | "
+                        f"UpdateSimp @ {iteration:4d}: {new_val:.6f} | "
                         f"Type: {new_type:12s} | "
-                        # f"Scope: C={num_clusters}, Z={num_zones} | " # Search params
-                        f"Actual: {act_c}Cx{act_z}Z | "             # Internal structure
-                        # f"Partitions: {new_design.num_partitions}"  # Total heaps
+                        f"struc: {act_c}Cx{act_z}Z | "
+                        f"DSize: {len(new_design.all_samples_and_probs[1]):4d} | "  # Number of unique samples
+                        f"Entp: {new_design.entropy:.4f}"                          # Statistical entropy
                     )
                     self.best_design = new_design
                     self.best_criteria_value = new_val
