@@ -198,61 +198,52 @@ class Design:
         selected_partitions = self._rng.choice(valid_partitions, size=actual_count, replace=False)
 
         for part_idx in selected_partitions:
-            
-            # =========================================================
-            # FAST PATH: NO WINDOW (Original Sledgehammer Behavior)
-            # =========================================================
-            if window is None:
-                # self._pull natively handles the pull_strategy
-                pulled_samples = self._pull(part_idx, 2, pull_strategy)
-                
-                if len(pulled_samples) < 2:
-                    if pulled_samples: self._push(part_idx, *pulled_samples)
-                    continue
-                    
-                s1, s2 = pulled_samples[0], pulled_samples[1]
-                
-                if s1.ids == s2.ids:
-                    self._push(part_idx, _Sample(s1.prob + s2.prob, s1.ids))
-                else:
-                    self._push(part_idx, *self._switch(s1, s2, exchange_coef))
+            part_idx = int(part_idx)
 
-            # =========================================================
-            # PRECISION PATH: WINDOWED POLISHING (Scalpel Behavior)
-            # =========================================================
+            if window is None:
+                # =========================================================
+                # ORIGINAL FAST PATH
+                # =========================================================
+                sample1 = self._pull(part_idx, 'largest' if pull_strategy == 'default' else pull_strategy)
+                sample2 = self._pull(part_idx, 'random' if pull_strategy == 'default' else pull_strategy)
+
+                if sample1.ids == sample2.ids:
+                    self._push(part_idx, _Sample(sample1.prob + sample2.prob, sample1.ids))
+                else:
+                    self._push(part_idx, *self._switch(sample1, sample2, exchange_coef))
             else:
-                samples_list = list(self._heaps[part_idx])
+                # =========================================================
+                # SCALPEL (Precision Window Path - Leak Proof!)
+                # =========================================================
+                # Safely pull ALL valid positive samples out using the class method
+                samples_list = []
+                while len(self._heaps[part_idx]) > 0:
+                    samples_list.append(self._pull(part_idx, 'largest'))
+                
                 n_samples = len(samples_list)
-                if n_samples < 2: continue
+                if n_samples >= 2:
+                    if pull_strategy == 'largest' or pull_strategy == 'default':
+                        idx1 = 0
+                    else:
+                        idx1 = self._rng.integers(0, n_samples)
+                    
+                    low = max(0, idx1 - window)
+                    high = min(n_samples, idx1 + window + 1)
+                    choices = [idx for idx in range(low, high) if idx != idx1]
+                    idx2 = self._rng.choice(choices) if choices else (idx1 + 1) % n_samples
+                    
+                    # Pop the larger index first to avoid shifting
+                    s2 = samples_list.pop(max(idx1, idx2))
+                    s1 = samples_list.pop(min(idx1, idx2))
+                    
+                    if s1.ids == s2.ids:
+                        self._push(part_idx, _Sample(s1.prob + s2.prob, s1.ids))
+                    else:
+                        self._push(part_idx, *self._switch(s1, s2, exchange_coef))
                 
-                # Apply pull_strategy to pick the first sample (idx1)
-                if pull_strategy == 'largest':
-                    # In a max-heap, the largest probability is always at index 0
-                    idx1 = 0 
-                else:
-                    idx1 = self._rng.integers(0, n_samples)
-                
-                # --- WINDOW LOGIC ---
-                low = max(0, idx1 - window)
-                high = min(n_samples, idx1 + window + 1)
-                
-                choices = [idx for idx in range(low, high) if idx != idx1]
-                idx2 = self._rng.choice(choices) if choices else (idx1 + 1) % n_samples
-                
-                # Extract the samples and REMOVE them from the list
-                # Pop the larger index first to avoid shifting the smaller one!
-                s2 = samples_list.pop(max(idx1, idx2))
-                s1 = samples_list.pop(min(idx1, idx2))
-                
-                # Perform the switch
-                if s1.ids == s2.ids:
-                    new_samples = [_Sample(s1.prob + s2.prob, s1.ids)]
-                else:
-                    new_samples = self._switch(s1, s2, exchange_coef)
-                
-                # REBUILD the heap for this partition
-                self._heaps[part_idx] = _MaxHeap(initial_heap=samples_list)
-                self._push(part_idx, *new_samples)
+                # Safely push the untouched samples back into the heap
+                for s in samples_list:
+                    self._push(part_idx, s)
 
         self._reset_stats(self)
 
