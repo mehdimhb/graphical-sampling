@@ -32,11 +32,11 @@ class GreedyBestFirstSearch:
         return x
 
     @staticmethod
-    def _apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef, window):
+    def _apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef):
         new_design = design.copy()
         for _ in range(num_changes):
             new_design.exchange(partitions=num_zones, pull_strategy=pull_strategy, 
-                                exchange_coef=exchange_coef, window=window)
+                                exchange_coef=exchange_coef)
         return new_design
 
     @staticmethod
@@ -51,7 +51,7 @@ class GreedyBestFirstSearch:
 
     def _exchange_neighbors(self, design, num_new_nodes, num_zones, num_changes, pull_strategy, exchange_coef, window) -> Generator:
         for _ in range(num_new_nodes):
-            yield 'exchange', self._apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef, window)
+            yield 'exchange', self._apply_exchange(design, num_zones, num_changes, pull_strategy, exchange_coef)
 
     def _update_top_k(self, design, criteria_value, k):
         heapq.heappush(self.top_k, (-criteria_value, next(self._counter), design))

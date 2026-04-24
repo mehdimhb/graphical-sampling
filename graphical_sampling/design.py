@@ -154,35 +154,28 @@ class Design:
         return samples[indices]
 
     # ======================================== Change ========================================
-    def exchange(self, partitions=1, pull_strategy='default', exchange_coef=0.75, window=None):
+    def exchange(self, partitions=1, pull_strategy='default', exchange_coef=0.75):
+        # Only pick heaps that actually have mass to trade
         valid_parts = [i for i, h in enumerate(self._heaps) if len(h) >= 2]
         if not valid_parts: return
         
-        for part_idx in self._rng.choice(valid_parts, size=min(partitions, len(valid_parts)), replace=False):
+        # Randomly select which zones will undergo an internal exchange
+        selected_parts = self._rng.choice(valid_parts, size=min(partitions, len(valid_parts)), replace=False)
+        
+        for part_idx in selected_parts:
             part_idx = int(part_idx)
-            # Precision Path: Safely empty heap to avoid negative probability leaks
-            samples = []
-            while self._heaps[part_idx]:
-                samples.append(self._pull(part_idx, 'largest'))
             
-            if len(samples) >= 2:
-                idx1 = 0 if pull_strategy in ['largest', 'default'] else self._rng.integers(0, len(samples))
-                if window is None:
-                    idx2 = self._rng.integers(0, len(samples))
-                    while idx2 == idx1: idx2 = self._rng.integers(0, len(samples))
-                else:
-                    choices = [i for i in range(max(0, idx1-window), min(len(samples), idx1+window+1)) if i != idx1]
-                    idx2 = self._rng.choice(choices) if choices else (idx1 + 1) % len(samples)
+            # Pull two mass fragments belonging to this SPECIFIC zone
+            s1 = self._pull(part_idx, 'largest' if pull_strategy == 'default' else pull_strategy)
+            s2 = self._pull(part_idx, 'random' if pull_strategy == 'default' else pull_strategy)
+            
+            if s1.ids == s2.ids:
+                self._push(part_idx, _Sample(s1.prob + s2.prob, s1.ids))
+            else:
+                # We pass part_idx to ensure _switch only touches units in this zone
+                self._push(part_idx, *self._switch(s1, s2, exchange_coef, zone_idx=part_idx))
                 
-                s2, s1 = samples.pop(max(idx1, idx2)), samples.pop(min(idx1, idx2))
-                if s1.ids == s2.ids:
-                    self._push(part_idx, _Sample(s1.prob + s2.prob, s1.ids))
-                else:
-                    self._push(part_idx, *self._switch(s1, s2, exchange_coef))
-            
-            for s in samples: self._push(part_idx, s)
         self._reset_stats(self)
-
 
     def _pull(self, part_idx: int, strategy: Literal['random', 'largest']) -> _Sample:
         if strategy == 'random':
@@ -194,24 +187,40 @@ class Design:
             if not r.almost_zero():
                 self._heaps[part_idx].push(r)
 
-    def _switch(self, sample1: _Sample, sample2: _Sample, coef: float = 0.5) -> tuple[_Sample, ...]:
-        diff1 = list((sample1.ids - sample2.ids) - self.order.fixed_ids)
-        diff2 = list((sample2.ids - sample1.ids) - self.order.fixed_ids)
+    def _switch(self, sample1: _Sample, sample2: _Sample, coef: float, zone_idx: int) -> tuple[_Sample, ...]:
+        # 1. Access the global spatial hierarchy to find the target zone's IDs
+        # Flatten clusters to find the zone corresponding to the heap index
+        all_zones = []
+        for cluster in self.order.clusters:
+            all_zones.extend(cluster.zones)
+        
+        target_zone_ids = set(all_zones[zone_idx].indices)
 
+        # 2. Identify swappable units that are:
+        #    - Present in sample 1 but not 2 (and vice versa)
+        #    - NOT frozen on boundaries (fixed_ids)
+        #    - STRICTLY belonging to this zone's indices
+        diff1 = list((sample1.ids - sample2.ids) & target_zone_ids - self.order.fixed_ids)
+        diff2 = list((sample2.ids - sample1.ids) & target_zone_ids - self.order.fixed_ids)
+
+        # If the samples don't have unique, non-fixed units in this zone, abort swap
         if not diff1 or not diff2:
             return sample1, sample2
 
+        # 3. Perform the mass split (The 4-Sample Split)
         length = coef * min(sample1.prob, sample2.prob)
         n1 = self._rng.choice(diff1)
         n2 = self._rng.choice(diff2)
-
+        # Add this temporarily inside Design._switch
+        # print(f"Zone {zone_idx}: Swapping ID {n1} with {n2}")
+        # if n1 not in target_zone_ids or n2 not in target_zone_ids:
+        #     print("!!! SPATIAL LEAK DETECTED: Unit not in Zone indices!")
         return (
             _Sample(length, sample1.ids - {n1} | {n2}),
             _Sample(sample1.prob - length, sample1.ids),
             _Sample(length, sample2.ids - {n2} | {n1}),
             _Sample(sample2.prob - length, sample2.ids),
         )
-
     def merge_identical(self):
         for i in range(self.num_partitions):
             dic = {}
