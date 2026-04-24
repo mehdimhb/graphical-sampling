@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from .population import Population
 
+
 @dataclass
 class Zone:
     _shares: np.ndarray = field(default_factory=lambda: np.array([], dtype=float))
@@ -449,43 +450,55 @@ class Order:
         self._order = np.column_stack([final_ids, final_shares])
         self._fixed_ids = fixed_ids
 
-    def change(self, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int, window: int | None = None):
+    
+
+    # REMOVED fbn=None
+    def change(self, num_clusters: int, num_zones: int, num_changes: int, num_zone_changes: int, 
+               window: int | None = None, coords=None, debugger_func=None):
+        
         rng = np.random.default_rng()
         
         if num_changes > 0:
             c_idxs = rng.choice(len(self.clusters), size=min(num_clusters, len(self.clusters)), replace=False)
-            for idx in c_idxs:
-                cluster = self.clusters[idx]
+            for c_idx in c_idxs:
+                cluster = self.clusters[c_idx]
                 z_idxs = rng.choice(len(cluster.zones), size=min(num_zones, len(cluster.zones)), replace=False)
                 
+                # INSIDE Order.change
                 for z_idx in z_idxs:
                     zone = cluster.zones[z_idx]
                     n = len(zone.sort)
-                    
-                    if n > 1:
-                        for _ in range(num_changes):
-                            # =========================================================
-                            # FAST PATH: ORIGINAL BEHAVIOR (Sledgehammer)
-                            # =========================================================
-                            if window is None:
-                                # This is the native, C-optimized NumPy call
-                                i, j = rng.choice(n, size=2, replace=False)
-                                zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
+                    if n < 2: continue
+
+                    # --- ENFORCED WINDOW LOGIC ---
+                    for _ in range(num_changes):
+                        # n is the number of units in this specific zone
+                        if window is None:
+                            i, j = rng.choice(n, size=2, replace=False)
+                        else:
+                            # Pick the first position
+                            i = rng.integers(0, n)
                             
-                            # =========================================================
-                            # PRECISION PATH: WINDOWED POLISHING (Scalpel)
-                            # =========================================================
-                            else:
-                                i = rng.integers(0, n)
-                                low = max(0, i - window)
-                                high = min(n, i + window + 1)
-                                
-                                # This list comprehension is slightly slower, 
-                                # but we only use it during the final global polish
-                                choices = [idx for idx in range(low, high) if idx != i]
-                                if choices:
-                                    j = rng.choice(choices)
-                                    zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
+                            # Define the valid range for j based on the WINDOW
+                            # If window=1, j must be exactly i-1 or i+1
+                            low = max(0, i - window)
+                            high = min(n, i + window + 1)
+                            
+                            choices = [idx for idx in range(low, high) if idx != i]
+                            
+                            if not choices:
+                                continue
+                            j = rng.choice(choices)
+
+                        # MAP TO GLOBAL IDs FOR DEBUGGER
+                        real_id_i = zone._indices[zone.sort[i]]
+                        real_id_j = zone._indices[zone.sort[j]]
+
+                        if debugger_func is not None and coords is not None:
+                            debugger_func(self, coords, real_id_i, real_id_j, c_idx, z_idx)
+
+                        # SWAP THE POINTERS
+                        zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
 
         if num_zone_changes > 0:
             c_idxs = rng.choice(len(self.clusters), size=min(num_clusters, len(self.clusters)), replace=False)
