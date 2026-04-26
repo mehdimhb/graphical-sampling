@@ -134,17 +134,19 @@ class GreedyBestFirstSearch:
             criteria_values = Parallel(n_jobs=n_jobs)(delayed(self.criteria)(d) for d in designs_to_eval)
 
             # 5. Process Results
+            new_best = 'Nothingyet'
             for new_design, new_val in zip(designs_to_eval, criteria_values):
                 new_type = unique_neighbors[new_design]
                 act_c = len(new_design.order.clusters)
                 act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
-                print(f"new@ {iteration:4d}{self.best_criteria_value:4f}, {new_val:.4f} | {new_type:12s} | {act_c}Cx{act_z}Z | "
+                print(f"new@ {iteration:4d}{self.best_criteria_value:8f}-{new_best}, {new_val:.7f} | {new_type:12s} | {act_c}Cx{act_z}Z | "
                         f"DSize: {len(new_design.all_samples_and_probs[1]):4d} | "
                         f"Entp:{new_design.entropy:.4f}")
                 if new_val < self.best_criteria_value:
+                    new_best = new_type
                     act_c = len(new_design.order.clusters)
                     act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
-                    print(f"new@ {iteration:4d}: {new_val:.6f} | {new_type:12s} | {act_c}Cx{act_z}Z | "
+                    print(f"new@ {iteration:4d}: {new_val:.4f} | {new_type:2s} | {act_c}Cx{act_z}Z | "
                           f"DSize: {len(new_design.all_samples_and_probs[1]):4d} | "
                           f"Entp:{new_design.entropy:.4f}")
                     self.best_design = new_design
