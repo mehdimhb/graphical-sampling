@@ -4,8 +4,6 @@ from typing import Generator, Callable, Literal, Any
 import random
 import pickle
 from joblib import Parallel, delayed
-from ..design import Design
-from ..criteria import Criteria
 
 # No changes to your types or imports
 PullStrategy = Literal['default', 'random', 'largest']
@@ -25,11 +23,6 @@ class GreedyBestFirstSearch:
         best_initial = min(self.initial_designs, key=self.criteria)
         self.best_design = best_initial
         self.best_criteria_value = self.criteria(best_initial)
-        # ==========================================
-        # 🛡️ THE IMMORTAL RESERVOIR 🛡️
-        # ==========================================
-        self.reservoir_design = best_initial
-        self.reservoir_val = self.best_criteria_value
 
     # All your static methods remain identical
     @staticmethod
@@ -67,12 +60,10 @@ class GreedyBestFirstSearch:
 
     def run(self, max_iterations, max_open_set_size, top_k, num_new_order_nodes, num_new_exchange_nodes,
             num_clusters_range, num_zones_range, num_changes_range, num_zone_changes,
-            pull_strategy='default', exchange_coef=0.75, num_explore=1, window=None, n_jobs=-1, backtrack_depth=50, stagnation_limit=10):
-
-        # --- SHOCK / BACKTRACK SETTINGS --
-        stalls = 0             
+            pull_strategy='default', exchange_coef=0.75, num_explore=1, window=None, n_jobs=-1):
 
         # --- RESUME LOGIC ---
+        # Only initialize if the open set is actually empty (first run)
         if not self.open_set:
             print("Starting fresh: Initializing Open Set.")
             for design in self.initial_designs:
@@ -82,11 +73,10 @@ class GreedyBestFirstSearch:
         else:
             print(f"Resuming search with {len(self.open_set)} candidates in memory.")
 
+        log_interval = max(1, max_iterations // 10)
         print(f"--- Parallel GBFS: Batch Size={num_explore}, Workers={n_jobs} ---")
         new_best = 'Nothingyet'
         num_improvements = 0
-        num_improvements_reservoir = 0
-        
         for iteration in range(max_iterations):
             current_window = self._get(window, iteration)
             
@@ -103,45 +93,13 @@ class GreedyBestFirstSearch:
                 print(f"Search exhausted at iteration {iteration}.")
                 break
 
-            # =========================================================
-            # 1. BATCH EXTRACTION & BACKTRACKING
-            # =========================================================
+            # 1. Batch Extraction
             nodes_to_explore = []
-            
-            if stalls >= stagnation_limit:
-                num_improvements = 0
-                skip_depth = random.randint(backtrack_depth, len(self.open_set))
-                print(f"\n⚡ STUCK. Purging the top {skip_depth} dead-ends to force a new path! ⚡")
-                
-                # 1. Permanently discard the nodes that got us stuck
-                for _ in range(skip_depth):
-                    if self.open_set:
-                        heapq.heappop(self.open_set)
-                
-                # 2. Grab the target node from the new frontier
-                while self.open_set and len(nodes_to_explore) < num_explore:
-                    node = heapq.heappop(self.open_set)
-                    if node[3] not in self.closed_set:
-                        nodes_to_explore.append(node)
-                
-                # 3. COMMIT TO THE NEW PATH
-                if nodes_to_explore:
-                    new_start_val = nodes_to_explore[0][0]
-                    self.best_criteria_value = new_start_val
-                    self.best_design = nodes_to_explore[0][3]
-                    print(f"Adopted new working baseline: {new_start_val:.6f}. Ready to improve little by little!\n")
-                
-                stalls = 0
-                # ---> ADD THESE 4 LINES TO FIX THE JUPYTER MEMORY ERROR <---
-                if not hasattr(self, 'reservoir_val'):
-                    self.reservoir_val = self.best_criteria_value
-                    self.reservoir_design = self.best_design
-            else:
-                # Normal Greedy Extraction
-                while self.open_set and len(nodes_to_explore) < num_explore:
-                    node = heapq.heappop(self.open_set)
-                    if node[3] not in self.closed_set:
-                        nodes_to_explore.append(node)
+            for _ in range(num_explore):
+                if not self.open_set: break
+                node = heapq.heappop(self.open_set)
+                if node[3] not in self.closed_set:
+                    nodes_to_explore.append(node)
 
             if not nodes_to_explore: continue
 
@@ -170,92 +128,37 @@ class GreedyBestFirstSearch:
                 if n_design not in self.closed_set and n_design not in unique_neighbors:
                     unique_neighbors[n_design] = n_type
 
-            if not unique_neighbors: 
-                stalls += 1 
-                continue
-                
+            if not unique_neighbors: continue
             designs_to_eval = list(unique_neighbors.keys())
 
             # 4. Parallel Evaluation
             criteria_values = Parallel(n_jobs=n_jobs)(delayed(self.criteria)(d) for d in designs_to_eval)
 
             # 5. Process Results
-            improved_this_iter = False
             
             for new_design, new_val in zip(designs_to_eval, criteria_values):
                 new_type = unique_neighbors[new_design]
                 act_c = len(new_design.order.clusters)
                 act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
-                print(
-                        f"ITR {iteration:4d} | "
-                        f"IMP {num_improvements}-{num_improvements_reservoir} | "
-                        f"RSV {self.reservoir_val:.6f} | "
-                        f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
-                        f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
-                        f"{act_c:2d}C x {act_z:2d}Z | "
-                        f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
-                        f"ENT {new_design.entropy:.4f}"
-                    )
-                # ==========================================
-                # 🛡️ 1. CHECK THE IMMORTAL RESERVOIR
-                # ==========================================
-                if round(new_val, 9) < round(self.reservoir_val, 9):
-                    num_improvements_reservoir += 1
-                    self.reservoir_val = new_val
-                    self.reservoir_design = new_design
-                    print(f"🏆 WOWW! RESERVOIR UPDATED! Absolute Best: {new_val:.6f} 🏆")
-                    print(
-                        f"ITR {iteration:4d} | "
-                        f"IMP {num_improvements:3d}-{num_improvements_reservoir:3d} | "
-                        f"RSV {self.reservoir_val:.6f} | "
-                        f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
-                        f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
-                        f"{act_c:2d}C x {act_z:2d}Z | "
-                        f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
-                        f"ENT {new_design.entropy:.4f}"
-                    )
-                
-                # ==========================================
-                # 🚶 2. CHECK THE CURRENT WORKING PATH
-                # ==========================================
-                if round(new_val, 9) < round(self.best_criteria_value, 9):
-                    num_improvements += 1
-                    improved_this_iter = True
+                print(f"new@ {iteration:4d}, #impv{num_improvements}, {self.best_criteria_value:8f}-{new_best}, {new_val:.7f} | {new_type:12s} | {act_c}Cx{act_z}Z | "
+                        f"DSize: {len(new_design.all_samples_and_probs[1]):4d} | "
+                        f"Entp:{new_design.entropy:.4f}")
+                if round(new_val,9) <= round(self.best_criteria_value,9):
                     new_best = new_type
-                    
-                    # Clean print statement ONLY when we find an improvement
-                    print(
-                        f"WOWITR {iteration:4d} | "
-                        f"IMP {num_improvements:3d}-{num_improvements_reservoir:3d} | "
-                        f"RSV {self.reservoir_val:.6f} | "
-                        f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
-                        f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
-                        f"{act_c:2d}C x {act_z:2d}Z | "
-                        f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
-                        f"ENT {new_design.entropy:.4f}"
-                    )
-                    
-                    # Update local baseline
+                    act_c = len(new_design.order.clusters)
+                    act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
+                    print(f"new@ {iteration:4d}: {new_val:.4f} | {new_type:2s} | {act_c}Cx{act_z}Z | "
+                          f"DSize: {len(new_design.all_samples_and_probs[1]):2d} | "
+                          f"Entp:{new_design.entropy:.4f}")
                     self.best_design = new_design
                     self.best_criteria_value = new_val
 
                 self._update_top_k(new_design, new_val, top_k)
                 heapq.heappush(self.open_set, (new_val, next(self._counter), new_type, new_design))
 
-            # Update Stalls
-            if improved_this_iter:
-                stalls = 0
-            else:
-                stalls += 1
-
             # Pruning
             if len(self.open_set) > max_open_set_size * 2:
                 self.open_set = heapq.nsmallest(max_open_set_size, self.open_set)
                 heapq.heapify(self.open_set)
-                
-        # =========================================================
-        # END OF RUN: RESTORE THE ABSOLUTE BEST FROM RESERVOIR
-        # =========================================================
-        self.best_design = self.reservoir_design
-        self.best_criteria_value = self.reservoir_val
-        print(f"--- Search Complete. Final All-Time Best (from Reservoir): {self.reservoir_val:.6f} ---")
+
+        print(f"--- Search Complete. Final Best: {self.best_criteria_value:.4f} ---")

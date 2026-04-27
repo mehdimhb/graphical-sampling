@@ -493,7 +493,10 @@ class Order:
                         # MAP TO GLOBAL IDs FOR DEBUGGER
                         real_id_i = zone._indices[zone.sort[i]]
                         real_id_j = zone._indices[zone.sort[j]]
-
+                        
+                        # dist = np.linalg.norm(self.pop.coords[real_id_i] - self.pop.coords[real_id_j])
+                        # print(f"Swapping IDs {real_id_i} & {real_id_j} | Distance: {dist:.4f}")
+                        
                         if debugger_func is not None and coords is not None:
                             debugger_func(self, coords, real_id_i, real_id_j, c_idx, z_idx)
 
