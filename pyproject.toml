@@ -19,6 +19,8 @@ dependencies = [
     "ipykernel>=6.29.5",
     "seaborn>=0.13.2",
     "dill>=0.4.1",
+    "pyreadr>=0.5.6",
+    "opencv-python>=4.13.0.92",
 ]
 authors = [
     { name = "Bardia Panahbehagh", email = "bardia.panah@gmail.com" },
