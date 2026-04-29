@@ -86,7 +86,8 @@ class GreedyBestFirstSearch:
         new_best = 'Nothingyet'
         num_improvements = 0
         num_improvements_reservoir = 0
-        
+        self.reservoir_val = self.best_criteria_value
+        self.reservoir_design = self.best_design
         for iteration in range(max_iterations):
             current_window = self._get(window, iteration)
             
@@ -133,9 +134,7 @@ class GreedyBestFirstSearch:
                 
                 stalls = 0
                 # ---> ADD THESE 4 LINES TO FIX THE JUPYTER MEMORY ERROR <---
-                if not hasattr(self, 'reservoir_val'):
-                    self.reservoir_val = self.best_criteria_value
-                    self.reservoir_design = self.best_design
+                    
             else:
                 # Normal Greedy Extraction
                 while self.open_set and len(nodes_to_explore) < num_explore:
@@ -186,34 +185,34 @@ class GreedyBestFirstSearch:
                 new_type = unique_neighbors[new_design]
                 act_c = len(new_design.order.clusters)
                 act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
-                print(
-                        f"ITR {iteration:4d} | "
-                        f"IMP {num_improvements}-{num_improvements_reservoir} | "
-                        f"RSV {self.reservoir_val:.6f} | "
-                        f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
-                        f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
-                        f"{act_c:2d}C x {act_z:2d}Z | "
-                        f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
-                        f"ENT {new_design.entropy:.4f}"
-                    )
+                # print(
+                #         f"ITR {iteration:4d} | "
+                #         f"IMP {num_improvements}-{num_improvements_reservoir} | "
+                #         f"RSV {self.reservoir_val:.6f} | "
+                #         f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
+                #         f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
+                #         f"{act_c:2d}C x {act_z:2d}Z | "
+                #         f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
+                #         f"ENT {new_design.entropy:.4f}"
+                #     )
                 # ==========================================
                 # 🛡️ 1. CHECK THE IMMORTAL RESERVOIR
                 # ==========================================
-                if round(new_val, 9) < round(self.reservoir_val, 9):
-                    num_improvements_reservoir += 1
-                    self.reservoir_val = new_val
-                    self.reservoir_design = new_design
-                    print(f"🏆 WOWW! RESERVOIR UPDATED! Absolute Best: {new_val:.6f} 🏆")
-                    print(
-                        f"ITR {iteration:4d} | "
-                        f"IMP {num_improvements:3d}-{num_improvements_reservoir:3d} | "
-                        f"RSV {self.reservoir_val:.6f} | "
-                        f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
-                        f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
-                        f"{act_c:2d}C x {act_z:2d}Z | "
-                        f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
-                        f"ENT {new_design.entropy:.4f}"
-                    )
+                # if round(new_val, 9) < round(self.reservoir_val, 9):
+                #     num_improvements_reservoir += 1
+                #     self.reservoir_val = new_val
+                #     self.reservoir_design = new_design
+                #     print(f"🏆 WOWW! RESERVOIR UPDATED! Absolute Best: {new_val:.6f} 🏆")
+                #     print(
+                #         f"ITR {iteration:4d} | "
+                #         f"IMP {num_improvements:3d}-{num_improvements_reservoir:3d} | "
+                #         f"RSV {self.reservoir_val:.6f} | "
+                #         f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
+                #         f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
+                #         f"{act_c:2d}C x {act_z:2d}Z | "
+                #         f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
+                #         f"ENT {new_design.entropy:.4f}"
+                #     )
                 
                 # ==========================================
                 # 🚶 2. CHECK THE CURRENT WORKING PATH

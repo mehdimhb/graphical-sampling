@@ -138,11 +138,11 @@ class GreedyBestFirstSearch:
             
             for new_design, new_val in zip(designs_to_eval, criteria_values):
                 new_type = unique_neighbors[new_design]
-                act_c = len(new_design.order.clusters)
-                act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
-                print(f"new@ {iteration:4d}, #impv{num_improvements}, {self.best_criteria_value:8f}-{new_best}, {new_val:.7f} | {new_type:12s} | {act_c}Cx{act_z}Z | "
-                        f"DSize: {len(new_design.all_samples_and_probs[1]):4d} | "
-                        f"Entp:{new_design.entropy:.4f}")
+                # act_c = len(new_design.order.clusters)
+                # act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
+                # print(f"new@ {iteration:4d}, #impv{num_improvements}, {self.best_criteria_value:8f}-{new_best}, {new_val:.7f} | {new_type:12s} | {act_c}Cx{act_z}Z | "
+                #         f"DSize: {len(new_design.all_samples_and_probs[1]):4d} | "
+                #         f"Entp:{new_design.entropy:.4f}")
                 if round(new_val,9) <= round(self.best_criteria_value,9):
                     new_best = new_type
                     act_c = len(new_design.order.clusters)
