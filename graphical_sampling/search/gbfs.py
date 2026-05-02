@@ -67,7 +67,7 @@ class GreedyBestFirstSearch:
 
     def run(self, max_iterations, max_open_set_size, top_k, num_new_order_nodes, num_new_exchange_nodes,
             num_clusters_range, num_zones_range, num_changes_range, num_zone_changes,
-            pull_strategy='default', exchange_coef=0.75, num_explore=1, window=None, n_jobs=-1, backtrack_depth=50, stagnation_limit=10):
+            pull_strategy='default', exchange_coef=0.75, num_explore=1, window=None, n_jobs=-1, backtrack_depth=50, stagnation_limit=10, output_details=False):
 
         # --- SHOCK / BACKTRACK SETTINGS --
         stalls = 0             
@@ -185,16 +185,18 @@ class GreedyBestFirstSearch:
                 new_type = unique_neighbors[new_design]
                 act_c = len(new_design.order.clusters)
                 act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
-                # print(
-                #         f"ITR {iteration:4d} | "
-                #         f"IMP {num_improvements}-{num_improvements_reservoir} | "
-                #         f"RSV {self.reservoir_val:.6f} | "
-                #         f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
-                #         f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
-                #         f"{act_c:2d}C x {act_z:2d}Z | "
-                #         f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
-                #         f"ENT {new_design.entropy:.4f}"
-                #     )
+                if output_details:
+                    print(
+                            f"ITR {iteration:4d} | "
+                            f"IMP {num_improvements}-{num_improvements_reservoir} | "
+                            # f"current_window: {current_window} | "
+                            f"RSV {self.reservoir_val:.6f} | "
+                            f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
+                            f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
+                            f"{act_c:2d}C x {act_z:2d}Z | "
+                            f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
+                            f"ENT {new_design.entropy:.4f}"
+                        )
                 # ==========================================
                 # 🛡️ 1. CHECK THE IMMORTAL RESERVOIR
                 # ==========================================
@@ -224,8 +226,9 @@ class GreedyBestFirstSearch:
                     
                     # Clean print statement ONLY when we find an improvement
                     print(
-                        f"WOWITR {iteration:4d} | "
-                        f"IMP {num_improvements:3d}-{num_improvements_reservoir:3d} | "
+                        f"ITR/SuccR {iteration:4d}/{num_improvements/(iteration+1):.3f} | "
+                        # f"current_window: {current_window} | "
+                        # f"IMP {num_improvements:3d}-{num_improvements_reservoir:3d} | "
                         f"RSV {self.reservoir_val:.6f} | "
                         f"BST {self.best_criteria_value:.6f} [{new_best[:3].upper():3s}] | "
                         f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
