@@ -7,6 +7,23 @@ from joblib import Parallel, delayed
 from ..design import Design
 from ..criteria import Criteria
 
+# =========================
+# Swap debugger (window-gap)
+# =========================
+def swap_debugger(order, id_i, id_j, local_i, local_j, c_idx, z_idx):
+    gap = abs(local_i - local_j)
+
+    if not hasattr(order, "_last_swap_info"):
+        order._last_swap_info = []
+
+    order._last_swap_info.append({
+        "id_i": int(id_i),
+        "id_j": int(id_j),
+        "gap": int(gap),
+        "cluster": int(c_idx),
+        "zone": int(z_idx)
+    })
+
 # No changes to your types or imports
 PullStrategy = Literal['default', 'random', 'largest']
 
@@ -48,9 +65,21 @@ class GreedyBestFirstSearch:
 
     @staticmethod
     def _apply_order_change(design, num_clusters, num_zones, num_changes, num_zone_changes, window):
-        new_order = design.order.copy()
-        new_order.change(num_clusters, num_zones, num_changes, num_zone_changes, window=window)
-        return design.from_order(design.pop, new_order)
+        
+        new_order = design.order.copy()   # 🔥 THIS WAS MISSING
+
+        new_order._last_swap_info = []
+
+        new_order.change(
+            num_clusters, num_zones, num_changes, num_zone_changes,
+            window=window,
+            debugger_func=swap_debugger
+        )
+
+        new_design = design.from_order(design.pop, new_order)
+        new_design._swap_info = new_order._last_swap_info
+
+        return new_design
    
     def _order_neighbors(self, design, num_new_nodes, num_clusters, num_zones, num_changes, num_zone_changes, window) -> Generator:
         for _ in range(num_new_nodes):
@@ -220,6 +249,9 @@ class GreedyBestFirstSearch:
                 # 🚶 2. CHECK THE CURRENT WORKING PATH
                 # ==========================================
                 if round(new_val, 9) < round(self.best_criteria_value, 9):
+                    if hasattr(new_design, "_swap_info"):
+                        gaps = [s["gap"] for s in new_design._swap_info]
+                        print(f"    GAP USED: {gaps}")
                     num_improvements += 1
                     improved_this_iter = True
                     new_best = new_type
