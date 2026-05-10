@@ -1009,7 +1009,7 @@ class FIPBalancedNMeans:
         # 2. Spatial Color Assignment (Lexicographical sort)
 
 
-        def generate_palette(n, cmap_name="Pastel2"):
+        def generate_palette(n, cmap_name="Set3"):
             cmap = plt.get_cmap(cmap_name)
             return [mcolors.to_hex(cmap(i / n)) for i in range(n)]
 
@@ -1036,7 +1036,7 @@ class FIPBalancedNMeans:
             probs = self.pop.inclusions[all_indices] * all_shares
 
             # The overall structure (Soft border shape) is drawn first (Lowest Z-order)
-            _draw_hull(coords, color=c, alpha=0.15, edge_color="black", lw=1.0)
+            _draw_hull(coords, color=c, alpha=0.10, edge_color="black", lw=1.0)
 
             # --- Draw Internal Zones ---
             if c_data['zones']:
@@ -1045,7 +1045,7 @@ class FIPBalancedNMeans:
                     if zone['indices'].size > 0:
                         zone_coords = self.pop.coords[zone['indices']]
                         # Sub-hulls use slightly more opacity to differentiate them
-                        _draw_hull(zone_coords, color=c, alpha=0.35, edge_color="none", lw=0.0)
+                        _draw_hull(zone_coords, color=c, alpha=0.10, edge_color="none", lw=0.0)
 
                         if show_zone_labels:
                             _draw_zone_centroid_label(zone_coords, zone['label'])

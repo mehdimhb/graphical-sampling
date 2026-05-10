@@ -3,7 +3,7 @@ import copy
 from dataclasses import dataclass, field
 import numpy as np
 from .population import Population
-
+from scipy.spatial.distance import cdist
 
 @dataclass
 class Zone:
@@ -87,43 +87,171 @@ class Order:
         instance.num_splits = num_splits
         return instance
 
-    def _modify_clusters(self, population, clusters, zone_strategy, point_strategy, topological, shift_jump, shuffle, grid_dims=None):
+    def _modify_clusters(self, population, clusters, zone_strategy, point_strategy,
+                     topological, shift_jump, shuffle, grid_dims=None):
+
         new_clusters = []
+
+        # =====================================================
+        # Fake lexicographic cluster numbering
+        # =====================================================
+        cluster_centroids = []
+
+        for cluster in clusters:
+
+            pts = []
+
+            for zone in cluster.zones:
+                pts.extend(zone.indices)
+
+            pts = np.array(pts)
+
+            cluster_centroids.append(
+                population.coords[pts].mean(axis=0)
+            )
+
+        cluster_centroids = np.array(cluster_centroids)
+
+                # =====================================================
+        # Snap centroids to a regular logical grid
+        # =====================================================
+
+        num_clusters = len(cluster_centroids)
+
+        grid_cols = int(np.sqrt(num_clusters))
+        grid_rows = int(np.ceil(num_clusters / grid_cols))
+
+        # Regular lattice
+        grid_x = np.linspace(
+            cluster_centroids[:, 0].min(),
+            cluster_centroids[:, 0].max(),
+            grid_cols
+        )
+
+        grid_y = np.linspace(
+            cluster_centroids[:, 1].max(),   # top -> bottom
+            cluster_centroids[:, 1].min(),
+            grid_rows
+        )
+
+        gx, gy = np.meshgrid(grid_x, grid_y)
+
+        grid_points = np.column_stack([
+            gx.ravel(),
+            gy.ravel()
+        ])
+
+        # Assign each cluster centroid to nearest grid point
+        D = cdist(cluster_centroids, grid_points)
+
+        nearest_grid = np.argmin(D, axis=1)
+
+        # Fake lexicographic numbering
+        fake_order = np.argsort(nearest_grid)
+
+        fake_rank = np.empty(len(fake_order), dtype=int)
+
+        for rank, real_idx in enumerate(fake_order):
+            fake_rank[real_idx] = rank
+
+        # =====================================================
+        # Main cluster loop
+        # =====================================================
         for c_idx, cluster in enumerate(clusters):
+
+            # -------------------------------------------------
             # 1. Calculate Zone Centroids
+            # -------------------------------------------------
             zone_coords = []
+
             for z in cluster.zones:
+
                 if len(z.indices) > 0:
-                    zone_coords.append(population.coords[z.indices].mean(axis=0))
+                    zone_coords.append(
+                        population.coords[z.indices].mean(axis=0)
+                    )
+
                 else:
                     zone_coords.append(np.array([0.5, 0.5]))
+
             zone_centroids = np.array(zone_coords)
 
+            # -------------------------------------------------
             # 2. Zone-Level Sorting
-            strategy = zone_strategy if zone_strategy is not None else 'lexico_yx'
-            # PASS grid_dims HERE
-            base_order = self._get_strategy_order(zone_centroids, strategy, topological=topological, grid_dims=grid_dims).tolist()
-            
-            # 3. Apply the Phase Shift (Jump)
+            # -------------------------------------------------
+            strategy = (
+                zone_strategy
+                if zone_strategy is not None
+                else 'lexico_yx'
+            )
+
+            base_order = self._get_strategy_order(
+                zone_centroids,
+                strategy,
+                topological=topological,
+                grid_dims=grid_dims
+            ).tolist()
+
+            # -------------------------------------------------
+            # 3. Apply Zig-Zag Phase Shift
+            # -------------------------------------------------
             num_z = len(base_order)
-            jump_val = (c_idx * 7) % num_z if shuffle else (c_idx * shift_jump) % num_z
-            shifted_order = base_order[jump_val:] + base_order[:jump_val]
-            
-            modified_zones = [copy.deepcopy(cluster.zones[idx]) for idx in shifted_order]
 
+            if shuffle:
+
+                jump_val = (c_idx * 7) % num_z
+
+            else:
+
+                # use FAKE lexicographic numbering
+                if fake_rank[c_idx] % 2 == 0:
+                    jump_val = shift_jump % num_z
+                else:
+                    jump_val = 0
+
+            shifted_order = (
+                base_order[jump_val:] +
+                base_order[:jump_val]
+            )
+
+            modified_zones = [
+                copy.deepcopy(cluster.zones[idx])
+                for idx in shifted_order
+            ]
+
+            # -------------------------------------------------
             # 4. Point-Level Sorting
+            # -------------------------------------------------
             if point_strategy is not None:
-                for zone in modified_zones:
-                    if len(zone.indices) > 1:
-                        pts_coords = population.coords[zone.indices]
-                        # Force topological=False for points
-                        zone.sort = self._get_strategy_order(pts_coords, point_strategy, topological=False).tolist()
-                    else:
-                        zone.sort = [0] if len(zone.indices) == 1 else []
 
+                for zone in modified_zones:
+
+                    if len(zone.indices) > 1:
+
+                        pts_coords = population.coords[zone.indices]
+
+                        zone.sort = self._get_strategy_order(
+                            pts_coords,
+                            point_strategy,
+                            topological=False
+                        ).tolist()
+
+                    else:
+
+                        zone.sort = (
+                            [0]
+                            if len(zone.indices) == 1
+                            else []
+                        )
+
+            # -------------------------------------------------
+            # 5. Save Cluster
+            # -------------------------------------------------
             new_cluster = copy.copy(cluster)
             new_cluster.zones = modified_zones
+
             new_clusters.append(new_cluster)
+
         return new_clusters
 
     def _get_strategy_order(self, points, strategy, topological=False, grid_dims=None):
@@ -286,7 +414,7 @@ class Order:
                         row_indices = np.roll(row_indices, shift)
                     final_order.extend(row_indices.tolist())
                 return np.array(final_order)
-            case 'knight_move':
+            case 'snake_move':
                 num_pts = pts.shape[0]
                 # Determine grid dimensions
                 if grid_dims is not None:
@@ -361,21 +489,21 @@ class Order:
                     final_order.extend(row_indices.tolist())
                 return np.array(final_order)
 
-            case 'lexico_xy': 
+            case 'lexicoXY': 
                 return np.lexsort((pts[:, 1], pts[:, 0]))
 
-            case 'lexico_yx': 
+            case 'lexicoYX': 
                 return np.lexsort((pts[:, 0], pts[:, 1]))
         
 
-            case 'lexico_xy': 
-                # Primary sort on X, secondary on Y
-                # print(np.lexsort((pts[:, 1], pts[:, 0])))
-                return np.lexsort((pts[:, 1], pts[:, 0]))
+            # case 'lexico_xy': 
+            #     # Primary sort on X, secondary on Y
+            #     # print(np.lexsort((pts[:, 1], pts[:, 0])))
+            #     return np.lexsort((pts[:, 1], pts[:, 0]))
 
-            case 'lexico_yx': 
-                # Primary sort on Y, secondary on X
-                return np.lexsort((pts[:, 0], pts[:, 1]))
+            # case 'lexico_yx': 
+            #     # Primary sort on Y, secondary on X
+            #     return np.lexsort((pts[:, 0], pts[:, 1]))
 
             case 'projection': 
                 return np.argsort(pts[:, 0] + pts[:, 1])
@@ -392,7 +520,7 @@ class Order:
                 dists = np.linalg.norm(pts - center, axis=1)
                 angles = np.arctan2(pts[:, 1] - center[1], pts[:, 0] - center[0])
                 return np.lexsort((angles, dists))
-            case 'pure_random':
+            case 'random':
                 # Completely random selection within the zone
                 rng = np.random.default_rng()
                 return rng.permutation(len(points))
@@ -406,6 +534,16 @@ class Order:
 
             case _: 
                 return np.arange(len(pts))
+    def apply_zone_order_to_clusters(self):
+
+        if self.clusters is None:
+            return
+
+        for i, cluster in enumerate(self.clusters):
+
+            # overwrite original cluster ordering
+            self.clusters[i].zones = cluster.zones
+
 
     def _build_order(self, num_splits: int):
         indices_list = []
@@ -493,12 +631,17 @@ class Order:
                         # MAP TO GLOBAL IDs FOR DEBUGGER
                         real_id_i = zone._indices[zone.sort[i]]
                         real_id_j = zone._indices[zone.sort[j]]
-                        
-                        # dist = np.linalg.norm(self.pop.coords[real_id_i] - self.pop.coords[real_id_j])
-                        # print(f"Swapping IDs {real_id_i} & {real_id_j} | Distance: {dist:.4f}")
-                        
-                        if debugger_func is not None and coords is not None:
-                            debugger_func(self, coords, real_id_i, real_id_j, c_idx, z_idx)
+
+                        if debugger_func is not None:
+                            debugger_func(
+                                order=self,
+                                id_i=real_id_i,
+                                id_j=real_id_j,
+                                local_i=i,
+                                local_j=j,
+                                c_idx=c_idx,
+                                z_idx=z_idx
+                            )
 
                         # SWAP THE POINTERS
                         zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
