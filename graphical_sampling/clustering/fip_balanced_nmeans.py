@@ -906,7 +906,8 @@ class FIPBalancedNMeans:
             figsize: tuple[int, int] = (8, 6),
             dpi: int = 100,
             show_zone_sub_hulls: bool = True,
-            show_zone_labels: bool = True
+            show_zone_labels: bool = True,
+            zone_color_mode: bool = False
     ) -> plt.Axes:
 
         def _draw_hull(points: np.ndarray, color: str, alpha: float, edge_color: str, lw: float):
@@ -1009,19 +1010,34 @@ class FIPBalancedNMeans:
         # 2. Spatial Color Assignment (Lexicographical sort)
 
 
-        def generate_palette(n, cmap_name="Set3"):
+        def generate_palette(n, cmap_name="tab20"):
             cmap = plt.get_cmap(cmap_name)
             return [mcolors.to_hex(cmap(i / n)) for i in range(n)]
 
 
         # Generate enough colors for all clusters
         palette_seq = generate_palette(len(centroids))
+        # =====================================================
+        # Zone-based palette
+        # same zone number -> same color
+        # =====================================================
+        max_num_zones = max(
+            len(c_data['zones']) if len(c_data['zones']) > 0 else 1
+            for c_data in formatted_cluster_data
+        )
 
+        zone_palette = generate_palette(max_num_zones, cmap_name="tab20")
+        zone_palette = [
+    "#6BCB77",  # soft green
+    "#4D96FF",  # vivid soft blue
+    "#FF6B6B",  # soft coral red
+    "#FFD93D",  # warm pastel yellow
+]
         # Sort spatially (top-to-bottom, left-to-right)
         order = np.lexsort((centroids[:, 0], -centroids[:, 1]))
 
         for rank, idx in enumerate(order):
-            formatted_cluster_data[idx]['parent_color'] = palette_seq[rank]
+             formatted_cluster_data[idx]['parent_color'] = palette_seq[rank]
 
         # 3. Draw Clusters and Zones
         for i, c_data in enumerate(formatted_cluster_data):
@@ -1036,7 +1052,7 @@ class FIPBalancedNMeans:
             probs = self.pop.inclusions[all_indices] * all_shares
 
             # The overall structure (Soft border shape) is drawn first (Lowest Z-order)
-            _draw_hull(coords, color=c, alpha=0.10, edge_color="black", lw=1.0)
+            _draw_hull(coords, color=c, alpha=0.05, edge_color="black", lw=1.0)
 
             # --- Draw Internal Zones ---
             if c_data['zones']:
@@ -1045,7 +1061,18 @@ class FIPBalancedNMeans:
                     if zone['indices'].size > 0:
                         zone_coords = self.pop.coords[zone['indices']]
                         # Sub-hulls use slightly more opacity to differentiate them
-                        _draw_hull(zone_coords, color=c, alpha=0.10, edge_color="none", lw=0.0)
+                        if zone_color_mode:
+                            zone_color = zone_palette[zone['label'] % len(zone_palette)]
+                        else:
+                            zone_color = c
+
+                        _draw_hull(
+                            zone_coords,
+                            color=zone_color,
+                            alpha=0.30,
+                            edge_color="none",
+                            lw=0.0
+                        )
 
                         if show_zone_labels:
                             _draw_zone_centroid_label(zone_coords, zone['label'])
@@ -1063,8 +1090,45 @@ class FIPBalancedNMeans:
                            s=sizes[is_border], color="black",
                            edgecolors="none", alpha=1.0, zorder=3)
             else:
-                ax.scatter(coords[:, 0], coords[:, 1], s=sizes, color=c,
-                           edgecolors="none", alpha=1.0, zorder=2)
+                if zone_color_mode and c_data['zones']:
+
+                    for zone in c_data['zones']:
+
+                        zone_indices = zone['indices']
+
+                        zone_coords = self.pop.coords[zone_indices]
+
+                        zone_color = zone_palette[
+                            zone['label'] % len(zone_palette)
+                        ]
+
+                        # TRUE unequal sizes
+                        zone_sizes = (
+                            self.pop.inclusions[zone_indices]
+                            * size_scale
+                        )
+
+                        ax.scatter(
+                            zone_coords[:, 0],
+                            zone_coords[:, 1],
+                            s=zone_sizes,
+                            color=zone_color,
+                            edgecolors="none",
+                            alpha=0.65,
+                            zorder=2
+                        )
+
+                else:
+
+                    ax.scatter(
+                        coords[:, 0],
+                        coords[:, 1],
+                        s=sizes,
+                        color=c,
+                        edgecolors="none",
+                        alpha=0.65,
+                        zorder=2
+                    )
 
         # 4. Handle Centroids Visuals (drawn based on parent centroids)
         if connect_centroids and len(centroids) > 1:
