@@ -174,5 +174,5 @@ temp_*
 .DS_Store
 *.tar.gz
 
-simulations/best_designs/
-*.pkl
+# simulations/best_designs/
+# *.pkl
