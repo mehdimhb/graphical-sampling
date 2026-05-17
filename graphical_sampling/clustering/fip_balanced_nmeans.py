@@ -713,7 +713,7 @@ class FIPBalancedNMeans:
                     init=init_centers,
                     n_init=1,
                     random_state=42,
-                    n_jobs=1
+                    n_jobs=-1
                 )
             
                 extended_labels = kmeans.fit_predict(expanded_coords)
