@@ -6,7 +6,7 @@ import pickle
 from joblib import Parallel, delayed
 from ..design import Design
 from ..criteria import Criteria
-
+from ..criteria.multi_objective import nht_variance_for_variable
 # =========================
 # Swap debugger (window-gap)
 # =========================
@@ -94,10 +94,28 @@ class GreedyBestFirstSearch:
         if len(self.top_k) > k:
             heapq.heappop(self.top_k)
 
-    def run(self, max_iterations, max_open_set_size, top_k, num_new_order_nodes, num_new_exchange_nodes,
-            num_clusters_range, num_zones_range, num_changes_range, num_zone_changes,
-            pull_strategy='default', exchange_coef=0.75, num_explore=1, window=None, n_jobs=-1, backtrack_depth=50, stagnation_limit=10, output_details=False):
-
+    def run(
+            self,
+            max_iterations,
+            max_open_set_size,
+            top_k,
+            num_new_order_nodes,
+            num_new_exchange_nodes,
+            num_clusters_range,
+            num_zones_range,
+            num_changes_range,
+            num_zone_changes,
+            pull_strategy='default',
+            exchange_coef=0.75,
+            num_explore=1,
+            window=None,
+            n_jobs=-1,
+            backtrack_depth=50,
+            stagnation_limit=10,
+            output_details=False,
+            y_main=None,
+            y_aux=None,
+        ):
         # --- SHOCK / BACKTRACK SETTINGS --
         stalls = 0             
 
@@ -255,19 +273,31 @@ class GreedyBestFirstSearch:
                     num_improvements += 1
                     improved_this_iter = True
                     new_best = new_type
+                    var_main = (
+                        nht_variance_for_variable(new_design, y_main)
+                        if y_main is not None
+                        else np.nan
+                    )
+
+                    var_aux = (
+                        nht_variance_for_variable(new_design, y_aux)
+                        if y_aux is not None
+                        else new_design.nht_variance
+                    )
+
+                    mi_val = new_design.moran[0]
                     
                     # Clean print statement ONLY when we find an improvement
                     print(
-                        f"ITR/SuccR {iteration:4d}/{num_improvements/(iteration+1):.3f} | "
-                        # f"current_window: {current_window} | "
-                        # f"IMP {num_improvements:3d}-{num_improvements_reservoir:3d} | "
-                        # f"RSV {self.reservoir_val:.6f} | "
-                        f"BST {new_design.nht_variance:.2f} - {new_design.moran[0]:.5f} [{new_best[:3].upper():3s}] | "
-                        f"NEW {new_val:.6f} [{new_type[:3].upper():3s}] | "
-                        f"{act_c:2d}C x {act_z:2d}Z | "
-                        f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
-                        f"ENT {new_design.entropy:.4f}"
-                    )
+                            f"ITR/SuccR {iteration:4d}/{num_improvements/(iteration+1):.3f} | "
+                            f"OBJ {new_val:.6f} | "
+                            f"VAR_main {var_main/10000:.6f} | "
+                            f"VAR_aux {var_aux/10000:.6f} | "
+                            f"MI {mi_val:.5f} | "
+                            f"{act_c:2d}C x {act_z:2d}Z | "
+                            f"SIZ {len(new_design.all_samples_and_probs[1]):3d} | "
+                            f"ENT {new_design.entropy:.4f}"
+                        )
                     
                     # Update local baseline
                     self.best_design = new_design
