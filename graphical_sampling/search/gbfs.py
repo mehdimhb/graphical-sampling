@@ -7,6 +7,7 @@ from joblib import Parallel, delayed
 from ..design import Design
 from ..criteria import Criteria
 from ..criteria.multi_objective import nht_variance_for_variable
+import numpy as np
 # =========================
 # Swap debugger (window-gap)
 # =========================
