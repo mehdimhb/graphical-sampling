@@ -1027,13 +1027,12 @@ class FIPBalancedNMeans:
         # Background boundary
         # ---------------------------------------------------------
         if background_gdf is not None:
-            background_gdf.plot(
-                ax=ax,
-                color="white",
-                edgecolor="0.25",
-                linewidth=background_lw,
-                zorder=0
-            )
+            background_gdf.boundary.plot(
+            ax=ax,
+            color="0.25",
+            linewidth=background_lw,
+            zorder=0
+        )
 
         # ---------------------------------------------------------
         # Build plot data
