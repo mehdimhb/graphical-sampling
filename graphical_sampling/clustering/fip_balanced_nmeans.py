@@ -902,7 +902,7 @@ class FIPBalancedNMeans:
         background_gdf=None,
         show_centroids: bool = False,
         connect_centroids: bool = False,
-        size_scale: float = 95.0,
+        size_scale: float = 700.0,
         figsize: tuple[int, int] = (8, 6),
         dpi: int = 150,
         show_zone_sub_hulls: bool = True,
@@ -974,7 +974,7 @@ class FIPBalancedNMeans:
                 centroid[0],
                 centroid[1],
                 str(label + 1),
-                fontsize=7,
+                fontsize=12,
                 color="0.25",
                 ha="center",
                 va="center",
@@ -1011,7 +1011,7 @@ class FIPBalancedNMeans:
 
         def _generate_zone_palette(n: int) -> list[str]:
             base = [
-                "#4DAF4A",  # green
+                # "#4DAF4A",  # green
                 "#377EB8",  # blue
                 "#E41A1C",  # red
                 "#FFD92F",  # yellow
@@ -1180,8 +1180,8 @@ class FIPBalancedNMeans:
             _draw_hull(
                 coords,
                 color=c,
-                alpha=hull_alpha,
-                edge_color="0.20",
+                alpha=0.10,
+                edge_color="0.050",
                 lw=hull_edge_lw,
                 zorder=1
             )
@@ -1203,7 +1203,7 @@ class FIPBalancedNMeans:
                     _draw_hull(
                         zone_coords,
                         color=zone_color,
-                        alpha=zone_hull_alpha,
+                        alpha=.30,
                         edge_color=None,
                         lw=0.0,
                         zorder=2
