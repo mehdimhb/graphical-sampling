@@ -328,54 +328,54 @@ class Design:
     def order(self) -> Order:
         return self._order
 
-    # ============================== Cached properties for scores and samples/probs ==============================
+    # # ============================== Cached properties for scores and samples/probs ==============================
 
-    @property
-    def all_samples_and_probs(self) -> tuple[np.ndarray, np.ndarray]:
-        if self._all_samples_and_probs is not None:
-            return self._all_samples_and_probs
+    # @property
+    # def all_samples_and_probs(self) -> tuple[np.ndarray, np.ndarray]:
+    #     if self._all_samples_and_probs is not None:
+    #         return self._all_samples_and_probs
 
-        temp_samples = []
-        temp_probs = []
-        target_n = self.pop.n
+    #     temp_samples = []
+    #     temp_probs = []
+    #     target_n = self.pop.n
 
-        for sample in self:
-            # Only keep samples that are reasonably close to target size
-            # or collect them to see what's happening
-            temp_samples.append(list(sample.ids))
-            temp_probs.append(sample.prob)
+    #     for sample in self:
+    #         # Only keep samples that are reasonably close to target size
+    #         # or collect them to see what's happening
+    #         temp_samples.append(list(sample.ids))
+    #         temp_probs.append(sample.prob)
 
-        # --- REPAIR LOGIC ---
-        final_samples = []
-        final_probs = []
+    #     # --- REPAIR LOGIC ---
+    #     final_samples = []
+    #     final_probs = []
         
-        for s_ids, s_prob in zip(temp_samples, temp_probs):
-            if len(s_ids) == target_n:
-                final_samples.append(s_ids)
-                final_probs.append(s_prob)
-            elif len(s_ids) > 0:
-                # This is a 'broken' sample (usually 19 or 21 units)
-                # We find the nearest valid sample and give it this mass
-                if final_probs:
-                    final_probs[-1] += s_prob
-                else:
-                    # If it's the first one, we'll attach it to the next valid one later
-                    # but for now, let's just log it
-                    pass
+    #     for s_ids, s_prob in zip(temp_samples, temp_probs):
+    #         if len(s_ids) == target_n:
+    #             final_samples.append(s_ids)
+    #             final_probs.append(s_prob)
+    #         elif len(s_ids) > 0:
+    #             # This is a 'broken' sample (usually 19 or 21 units)
+    #             # We find the nearest valid sample and give it this mass
+    #             if final_probs:
+    #                 final_probs[-1] += s_prob
+    #             else:
+    #                 # If it's the first one, we'll attach it to the next valid one later
+    #                 # but for now, let's just log it
+    #                 pass
 
-        # Re-normalize to ensure sum is exactly 1.0
-        probs_array = np.array(final_probs, dtype=np.float32)
-        probs_array /= probs_array.sum()
+    #     # Re-normalize to ensure sum is exactly 1.0
+    #     probs_array = np.array(final_probs, dtype=np.float32)
+    #     probs_array /= probs_array.sum()
         
-        samples_array = np.array(final_samples, dtype=np.int64)
+    #     samples_array = np.array(final_samples, dtype=np.int64)
 
-        # Final sanity check
-        sizes = [len(s) for s in samples_array]
-        if len(set(sizes)) > 1:
-             raise ValueError(f"Repair failed. Sizes still inconsistent: {set(sizes)}")
+    #     # Final sanity check
+    #     sizes = [len(s) for s in samples_array]
+    #     if len(set(sizes)) > 1:
+    #          raise ValueError(f"Repair failed. Sizes still inconsistent: {set(sizes)}")
 
-        self._all_samples_and_probs = (samples_array, probs_array)
-        return self._all_samples_and_probs
+    #     self._all_samples_and_probs = (samples_array, probs_array)
+    #     return self._all_samples_and_probs
     @property
     def nht_variance(self) -> float:
         if self._nht_variance is not None:
