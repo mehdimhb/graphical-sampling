@@ -19,6 +19,7 @@ from numba import jit
 
 from ..population import Population
 from ..order import Cluster, Zone, Floor, Ceil
+from joblib import Parallel, delayed
 
 
 @jit(nopython=True)
@@ -194,6 +195,7 @@ class _Clustering:
         tol: float = 1e-4,
         n_init: int = 5,
         random_state: int | None = None,
+        n_jobs: int = -1
     ):
         self.K = n_clusters
         self.epsilon = epsilon
@@ -202,6 +204,7 @@ class _Clustering:
         self.tol = tol
         self.n_init = n_init
         self.random_state = random_state
+        self.n_jobs = n_jobs
 
         self.membership: np.ndarray | None = None
         self.labels: np.ndarray | None = None
@@ -251,10 +254,9 @@ class _Clustering:
 
         return f, g
 
-    @staticmethod
-    def _hard_objective(coords: np.ndarray, centroids: np.ndarray, labels: np.ndarray, inclusion: np.ndarray) -> float:
-        d = np.sum((coords - centroids[labels]) ** 2, axis=1)
-        return np.sum(inclusion * d).item()
+    def _hard_objective(self, labels: np.ndarray, inclusion: np.ndarray) -> float:
+        sums = np.bincount(labels, weights=inclusion, minlength=self.K)
+        return np.sum((sums - 1) ** 2)
 
     def _fit_single(self, coords: np.ndarray, inclusion: np.ndarray, rng: np.random.Generator,
                     init_centroids: np.ndarray | None = None):
@@ -287,28 +289,57 @@ class _Clustering:
 
         R = P / inclusion[:, None]
         labels = np.argmax(R, axis=1)
-        obj = self._hard_objective(coords, centroids, labels, inclusion)
+        obj = self._hard_objective(labels, inclusion)
 
         return centroids, R, labels, obj
 
-    def fit(self, coords: np.ndarray, inclusions: np.ndarray,
-            init_centroids: np.ndarray | None = None) -> _Clustering:
-        rng = np.random.default_rng(self.random_state)
-
-        best_obj = np.inf
-        best_state = None
+    def fit(
+        self,
+        coords: np.ndarray,
+        inclusions: np.ndarray,
+        init_centroids: np.ndarray | None = None,
+    ) -> _Clustering:
 
         n_runs = 1 if init_centroids is not None else self.n_init
-        for _ in range(n_runs):
-            centroids, R, labels, obj = self._fit_single(coords, inclusions, rng, init_centroids=init_centroids)
+
+        # independent RNG seeds for reproducibility
+        seed_rng = np.random.default_rng(self.random_state)
+        seeds = seed_rng.integers(0, np.iinfo(np.int32).max, size=n_runs)
+
+        def _run(seed):
+            rng = np.random.default_rng(seed)
+
+            return self._fit_single(
+                coords,
+                inclusions,
+                rng,
+                init_centroids=init_centroids,
+            )
+
+        results = Parallel(n_jobs=self.n_jobs)(
+            delayed(_run)(seed)
+            for seed in seeds
+        )
+
+        best_centroids = None
+        best_R = None
+        best_labels = None
+        best_obj = np.inf
+
+        for centroids, R, labels, obj in results:
             if obj < best_obj:
                 best_obj = obj
-                best_state = (centroids, R, labels)
+                best_centroids = centroids
+                best_R = R
+                best_labels = labels
 
-        self.centroids, self.membership, self.labels = best_state
+        self.centroids = best_centroids
+        self.membership = best_R
+        self.labels = best_labels
         self.objective = best_obj
+
         return self
-        
+
 class FIPBalancedNMeans:
     def __init__(self, n: int, r_sample_per_cluster: int = 1, centroid_grid_x: int = None, n_init=50, tol=1e-9, max_iter=100, split_size=0.001,
                 init_clust_method: Literal['weighted', 'expanded', 'ot'] = 'expanded',
