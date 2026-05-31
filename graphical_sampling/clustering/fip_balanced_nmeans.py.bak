@@ -652,23 +652,17 @@ class FIPBalancedNMeans:
                 probs_normalized = probs / probs.sum() * len(coords)
 
                 if init_centroids is not None:
-                    init_centroids = np.asarray(init_centroids)
+                    k_means = KMeans(
+                        n_clusters=self.K,
+                        init=init_centroids,
+                        tol=self.tol,
+                        max_iter=self.max_iter,
+                        n_init=1
+                    )
 
-                    if init_centroids.ndim == 2 and init_centroids.shape[0] == self.K:
-                        k_means = KMeans(
-                            n_clusters=self.K,
-                            init=init_centroids,
-                            tol=self.tol,
-                            max_iter=self.max_iter,
-                            n_init=1
-                        )
-
-                        labels = k_means.fit_predict(coords, sample_weight=probs_normalized)
-                        centroids = k_means.cluster_centers_
-                        return labels, centroids
-
-                    # If the number of initial centers does not match self.K,
-                    # ignore them and fall back to ordinary KMeans initialization.
+                    labels = k_means.fit_predict(coords, sample_weight=probs_normalized)
+                    centroids = k_means.cluster_centers_
+                    return labels, centroids
 
                 best_error = np.inf
                 best_labels = None

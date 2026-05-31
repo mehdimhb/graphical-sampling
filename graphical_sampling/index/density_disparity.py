@@ -14,7 +14,8 @@ class DensityDisparity:
             n_jobs: int = -1,
             clustering_tol: float = 1e-9,
             clustering_max_iter: int = 100,
-            kde_rtol: float = 1e-4
+            kde_rtol: float = 1e-4,
+            representative: str = "nmeans",   # "nmeans" or "nmedoids"
     ):
         self.pop = population
         self.coords = self.pop.coords
@@ -24,6 +25,10 @@ class DensityDisparity:
         self.clustering_tol = clustering_tol
         self.clustering_max_iter = clustering_max_iter
         self.kde_rtol = kde_rtol
+
+        if representative not in {"nmeans", "nmedoids"}:
+            raise ValueError("representative must be either 'nmeans' or 'nmedoids'.")
+        self.representative = representative
 
         # 1. First KDE: Calculate the original density once, as self.coords never changes
         self.original_density = self._density(self.coords)
@@ -63,30 +68,43 @@ class DensityDisparity:
         """The complete, independent pipeline for a single sample."""
         raw_sample = self.coords[sample_indices]
 
-        # 1. Clustering per sample (Using the raw_sample as initial centroids)
+        # 1. Clustering per sample
         fbn = FIPBalancedNMeans(
             n=self.pop.n,
             tol=self.clustering_tol,
             max_iter=self.clustering_max_iter,
-            init_clust_method = 'weighted'
+            init_clust_method="weighted"
         )
         fbn.fit(self.pop, init_centroids=raw_sample)
+
         labels = fbn.labels
         centroids = fbn.centroids
 
-        # 2. Assign sample points to the newly generated centroids
-        cost = cdist(centroids, raw_sample)
-        _, col_ind = linear_sum_assignment(cost)
-        assigned_sample = raw_sample[col_ind]
+        # 2. Choose cluster representative: n-means or n-medoids
+        if self.representative == "nmeans":
+            reference_points = centroids
 
-        # 3. Translation
-        translations = assigned_sample - centroids
+        elif self.representative == "nmedoids":
+            reference_points, medoid_indices = self._cluster_medoids(labels, centroids)
+
+        else:
+            raise ValueError("representative must be either 'nmeans' or 'nmedoids'.")
+
+        # 3. Assign sample points to the selected reference points
+        cost = cdist(reference_points, raw_sample)
+        row_ind, col_ind = linear_sum_assignment(cost)
+
+        assigned_sample = np.empty_like(reference_points)
+        assigned_sample[row_ind] = raw_sample[col_ind]
+
+        # 4. Translation based on either centroids or medoids
+        translations = assigned_sample - reference_points
         translated_coords = self.coords + translations[labels]
 
-        # 4. Second KDE: DensityDisparity of the translated coordinates
+        # 5. Second KDE
         translated_density = self._density(translated_coords)
 
-        # 5. Score Calculation
+        # 6. Score calculation
         score = self._score_single_density(translated_density)
 
         return score, translated_density
@@ -108,3 +126,50 @@ class DensityDisparity:
         if return_densities:
             return scores, [(self.original_density, td) for td in densities]
         return scores
+    
+    def _cluster_medoids(self, labels: np.ndarray, centroids: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Return one medoid for each cluster.
+
+        The medoid is the population unit inside the cluster that minimizes
+        the weighted sum of distances to all other units in that cluster.
+        """
+        K = centroids.shape[0]
+        medoids = np.empty_like(centroids)
+        medoid_indices = np.empty(K, dtype=int)
+
+        for k in range(K):
+            idx = np.flatnonzero(labels == k)
+
+            if idx.size == 0:
+                # Very rare fallback: keep the centroid if a cluster is empty
+                medoids[k] = centroids[k]
+                medoid_indices[k] = -1
+                continue
+
+            if idx.size == 1:
+                medoid_indices[k] = idx[0]
+                medoids[k] = self.coords[idx[0]]
+                continue
+
+            X = self.coords[idx]
+            w = self.probs[idx]
+
+            # Weighted medoid objective
+            D = cdist(X, X, metric="euclidean")
+            objective = D @ w
+
+            min_obj = objective.min()
+            candidate_locals = np.flatnonzero(np.isclose(objective, min_obj))
+
+            # Tie-breaking 1: choose the candidate with the largest IP
+            candidate_probs = self.probs[idx[candidate_locals]]
+            max_prob = candidate_probs.max()
+            candidate_locals = candidate_locals[np.isclose(candidate_probs, max_prob)]
+
+            # Tie-breaking 2: if still tied, choose the smallest population index
+            best_local = candidate_locals[np.argmin(idx[candidate_locals])]
+
+            medoid_indices[k] = idx[best_local]
+            medoids[k] = self.coords[medoid_indices[k]]
+        return medoids, medoid_indices
