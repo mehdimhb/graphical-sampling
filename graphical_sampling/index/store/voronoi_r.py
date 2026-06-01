@@ -3,10 +3,10 @@ import rpy2.robjects as ro
 from rpy2.robjects import numpy2ri, default_converter
 from rpy2.robjects.conversion import localconverter
 
-from ..population import Population
+from ...population import Population
 
 
-class LocalBalance_r:
+class Voronoi_r:
     def __init__(self, population: Population):
         self.population = population
         self.coords = self.population.coords
@@ -32,26 +32,27 @@ class LocalBalance_r:
 
             # Define an R function that loops over all samples
             ro.r("""
-                    score_local_balance <- function(W, probs, coords, samples_list) {
+                    score_voronoi <- function(W, probs, coords, samples_list) {
                       S <- length(samples_list)
-                      SBLBs <- numeric(S)
+                      SBs <- numeric(S)
 
                       for (i in seq_len(S)) {
                         samp_idx <- samples_list[[i]]
                         mask <- integer(length(probs))
                         mask[samp_idx] <- 1
 
-                        SBLBs[i] <- tryCatch(sblb(probs, coords, samp_idx), error = function(e) Inf)
+                        SBs[i] <- tryCatch(sb(probs, coords, samp_idx), error = function(e) Inf)
+                        
                       }
-                      cbind(SBLB = SBLBs)
+                      cbind(SB = SBs)
                     }
                 """)
 
             # Call it once
-            result = ro.r("score_local_balance(W, probs, coords, samples)")
+            result = ro.r("score_voronoi(W, probs, coords, samples)")
             # result comes back as an R matrix  S×2
 
         # Turn it into an (S×2) numpy array
         with localconverter(default_converter + numpy2ri.converter):
-            local_balance_scores = np.array(result)
-        return local_balance_scores.reshape(-1)
+            voronoi_scores = np.array(result)
+        return voronoi_scores.reshape(-1)

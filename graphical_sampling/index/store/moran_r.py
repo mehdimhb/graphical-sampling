@@ -3,10 +3,10 @@ import rpy2.robjects as ro
 from rpy2.robjects import numpy2ri, default_converter
 from rpy2.robjects.conversion import localconverter
 
-from ..population import Population
+from ...population import Population
 
 
-class Voronoi_r:
+class Moran_r:
     def __init__(self, population: Population):
         self.population = population
         self.coords = self.population.coords
@@ -21,38 +21,52 @@ class Voronoi_r:
         with localconverter(default_converter + numpy2ri.converter):
             ro.globalenv['coords'] = self.coords
             ro.globalenv['probs'] = self.inclusion_probs
-            ro.globalenv['samples'] = r_sample_list
 
             ro.r("""
-                library(Matrix)
-                library(WaveSampling)
-                library(sampling)
-                library(BalancedSampling)      
+            library(Matrix)
+            library(WaveSampling)
+            library(sampling)
+            library(BalancedSampling)
             """)
+
+            # Precompute W once
+            ro.r("""
+# detect certainty units
+certainty <- probs >= 1 - 1e-5
+
+coords_sub <- coords[!certainty, ]
+probs_sub  <- probs[!certainty]
+
+W0 <- wpik(coords_sub, probs_sub)
+W <- W0 - diag(diag(W0))
+diag(W) <- 0
+
+                """)
+            ro.globalenv['samples'] = r_sample_list
 
             # Define an R function that loops over all samples
             ro.r("""
-                    score_voronoi <- function(W, probs, coords, samples_list) {
+                    score_moran <- function(W, probs, coords, samples_list) {
                       S <- length(samples_list)
-                      SBs <- numeric(S)
+                      IBs   <- numeric(S)
 
                       for (i in seq_len(S)) {
                         samp_idx <- samples_list[[i]]
                         mask <- integer(length(probs))
                         mask[samp_idx] <- 1
 
-                        SBs[i] <- tryCatch(sb(probs, coords, samp_idx), error = function(e) Inf)
-                        
+                        IBs[i]   <- tryCatch(IB(W, mask), error = function(e) Inf)
                       }
-                      cbind(SB = SBs)
+
+                      cbind(IB = IBs)
                     }
                 """)
 
             # Call it once
-            result = ro.r("score_voronoi(W, probs, coords, samples)")
+            result = ro.r("score_moran(W, probs, coords, samples)")
             # result comes back as an R matrix  S×2
 
         # Turn it into an (S×2) numpy array
         with localconverter(default_converter + numpy2ri.converter):
-            voronoi_scores = np.array(result)
-        return voronoi_scores.reshape(-1)
+            moran_scores = np.array(result)
+        return moran_scores.reshape(-1)
