@@ -169,7 +169,7 @@ cython_debug/
 .envrc
 
 temp_*
-*.png
+#*.png
 
 .DS_Store
 *.tar.gz
