@@ -4,7 +4,7 @@
 Terminal script for ABC + Random Search on MU284.
 Generated from Vincent_Sampling_abc_fast_random.ipynb, with clean user settings.
 """
-
+import pandas as pd
 import numpy as np
 from typing import Union, Optional
 
