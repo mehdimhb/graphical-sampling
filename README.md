@@ -1,69 +1,228 @@
+# graphical-sampling
 
-# Geometric Sampling Method - Python Package
+`graphical-sampling` is a Python package for finite-population sampling, with a particular focus on graphical sampling designs, unequal inclusion probabilities, and spatially well-spread samples.
 
-The Geometric Sampling Method, introduced by Panahbehagh (2024), presents an innovative approach to finite population sampling based on a unique geometric framework. This method allows researchers to visually depict first-order inclusion probabilities (FIP) as bars on a two-dimensional graph. By adjusting the positions of these bars, users can explore a wide range of sampling designs while controlling second-order inclusion probabilities (SIP).
+The package implements the Graphical Finite-Population Sampling (GFS) framework and its spatial extensions, including probability-balanced `n`-means clustering, nested spatial ordering, and intelligent search procedures for improving spatial spread while preserving prescribed first-order inclusion probabilities.
 
-This package, `geometric_sampling`, provides tools for implementing the Geometric Sampling Method and is available on PyPI.
+The package is designed for researchers and practitioners working in survey sampling, spatial statistics, environmental monitoring, ecological sampling, agricultural surveys, and related fields.
 
 ---
 
-## Features
-- Create various unequal probability sampling designs with a fixed FIP.
-- Control and explore second-order inclusion probabilities (SIP) through visual manipulation.
-- Incorporate search algorithms, such as A* and Genetic Algorithm, to optimize sampling designs for specific needs (e.g., well-spread or optimal sampling).
+## Main Features
+
+* Construct fixed-size sampling designs with prescribed first-order inclusion probabilities.
+* Represent sampling designs through the graphical/bar construction of GFS.
+* Draw samples from the resulting design.
+* Compute design properties such as:
+
+  * first-order inclusion probabilities,
+  * second-order inclusion probabilities,
+  * entropy and relative entropy,
+  * exact Narain--Horvitz--Thompson variance when the response variable is supplied.
+* Build probability-balanced spatial clusters using FIP-balanced `n`-means.
+* Create nested cluster-zone structures for spatial sampling.
+* Evaluate spatial spread using indices such as:
+
+  * Moran-type spatial balance,
+  * Voronoi-based spread,
+  * Density Disparity Index,
+  * local balance measures.
+* Improve sampling designs using intelligent search procedures such as Greedy Best-First Search.
+
+---
 
 ## Installation
 
-Install the package via pip:
+Install the package from PyPI:
+
 ```bash
-pip install graphical_sampling
+pip install graphical-sampling
 ```
 
-## How to Use
+or install the development version from GitHub:
 
-The package includes core classes and methods to facilitate sampling design creation and optimization. Below is a basic example demonstrating the API.
+```bash
+pip install git+https://github.com/mehdimhb/graphical-sampling.git
+```
 
-### Example Usage
+Then import the package in Python:
 
 ```python
-import graphical_sampling as gm
-import numpy as np
-
-# Set up random generator and sample data
-rng = np.random.default_rng()
-N = 50  # Population size
-x = rng.random(size=N)  # Auxiliary variable
-n = 5  # Sample size
-
-# Generate initial inclusion probabilities
-inclusion = rng.random(N)
-inclusion *= n / inclusion.sum()
-
-# Define initial sampling design and evaluation criteria
-initial_design = gm.Design(inclusion)
-nht = gm.criteria.VarNHT(x, inclusion)
-astar = gm.search.AStar(initial_design, nht, switch_coefficient=1)
-
-# Display initial criteria and design
-print("Initial criteria value:", astar.initial_criteria_value)
-astar.initial_designs.show()
-
-# Run the A* search algorithm to optimize the design
-astar.run(max_iterations=2000, num_new_nodes=10, max_open_set_size=10000, num_changes=1)
-
-# Display results after optimization
-print("Best criteria value:", astar.best_criteria_value)
-astar.best_design.show()
+import graphical_sampling
 ```
 
-
-## Maintainers
-
-- Bardia Panahbehagh - [bardia.panah@gmail.com](mailto:bardia.panah@gmail.com)
-- Mehdi Mohebbi - [mehdi.mohebbi23@gmail.com](mailto:mehdi.mohebbi23@gmail.com)
-- AmirMohammad HosseiniNasab - [awmirhn@gmail.com](mailto:awmirhn@gmail.com)
-- Mehdi Hosseini Moghadam - [m.h.moghadam1996@gmail.com](mailto:m.h.moghadam1996@gmail.com)
+Depending on the installation version, the main classes can also be imported directly from their submodules.
 
 ---
 
-For more details, consult the official paper: Panahbehagh, B. (2024). Geometric Sampling Method.
+## Basic Example
+
+The following example constructs a finite population with spatial coordinates, unequal inclusion probabilities, and a response variable. It then builds a graphical sampling design and draws samples from it.
+
+```python
+import numpy as np
+
+from graphical_sampling.population import Population
+from graphical_sampling.design import Design
+
+# Reproducibility
+rng = np.random.default_rng(123)
+
+# Population size and sample size
+N = 200
+n = 20
+
+# Spatial coordinates
+coords = rng.random((N, 2))
+
+# Unequal size measure, normalized internally to sum to n
+weights = 0.5 + rng.random(N)
+
+# Example response variable
+y = coords[:, 0] + coords[:, 1] + rng.normal(scale=0.1, size=N)
+
+# Create the finite population
+pop = Population(
+    coords=coords,
+    inclusions=weights,
+    variable=y,
+    n=n
+)
+
+# Build a graphical sampling design
+design = Design(population=pop)
+
+# Draw five samples
+samples = design.sample(num_samples=5)
+
+print(samples)
+print("Relative entropy:", design.relative_entropy)
+print("NHT variance:", design.nht_variance)
+```
+
+---
+
+## Spatial Sampling with FIP-Balanced `n`-Means
+
+The package also provides probability-balanced spatial clustering. This is useful when the aim is to form compact spatial clusters whose total inclusion probabilities are controlled exactly.
+
+```python
+from graphical_sampling.population import Population
+from graphical_sampling.design import Design
+from graphical_sampling.order import Order
+from graphical_sampling.clustering.fip_balanced_nmeans import FIPBalancedNMeans
+
+# Fit FIP-balanced n-means clustering
+fbn = FIPBalancedNMeans(
+    n=n,
+    n_init=20,
+    init_clust_method="expanded"
+)
+
+fbn.fit(population=pop)
+
+# Optionally divide each cluster into internal zones
+fbn.fit_zones(
+    num_zones=(2, 2),
+    mode="sweep_xy"
+)
+
+# Build a spatial order from the cluster-zone structure
+order = Order.from_clusters(
+    population=pop,
+    clusters=fbn.clusters,
+    zone_strategy="snake",
+    point_strategy="snake"
+)
+
+# Construct the corresponding spatial graphical design
+spatial_design = Design.from_order(pop, order)
+
+print("Moran index:", spatial_design.moran)
+print("Voronoi index:", spatial_design.voronoi)
+print("Density disparity:", spatial_design.density_disparity)
+```
+
+---
+
+## Intelligent Spatial Sampling
+
+The package includes search tools for improving a sampling design while preserving design validity. These methods modify the graphical order or exchange probability mass in a controlled way, and therefore maintain the prescribed inclusion probabilities.
+
+A typical workflow is:
+
+1. Create a `Population`.
+2. Build an initial design using GFS or FIP-balanced `n`-means clustering.
+3. Choose a criterion, such as a spatial spread index or a weighted combination of indices.
+4. Run an intelligent search algorithm to improve the design.
+5. Use the optimized design for sampling and design-based inference.
+
+---
+
+## Citation
+
+If you use `graphical-sampling`, please cite the software package. If you use the spatial clustering or intelligent spatial sampling methods, please also cite the corresponding methodological paper.
+
+### Software citation
+
+```bibtex
+@software{graphical_sampling_2025,
+  author = {Panahbehagh, Bardia and Mohebbi, Mehdi and HosseiniNasab, Amir Mohammad and Hosseini Moghadam, Mehdi},
+  title = {graphical-sampling: A Python package for graphical finite-population and spatial sampling},
+  year = {2025},
+  url = {https://github.com/mehdimhb/graphical-sampling},
+  note = {Python package}
+}
+```
+
+### Methodological papers
+
+For the graphical finite-population sampling framework, cite:
+
+```bibtex
+@article{panahbehagh2026geometric,
+  author = {Panahbehagh, Bardia},
+  title = {Graphical Finite-Population Sampling},
+  year = {2026},
+  note = {Manuscript}
+}
+```
+
+For the spatial sampling design, cite:
+
+```bibtex
+@article{panahbehagh2026intelligent,
+  author = {Panahbehagh, Bardia and Mohebbi, Mehdi},
+  title = {Intelligent n-Means Spatial Sampling},
+  year = {2026},
+  note = {Manuscript}
+}
+```
+
+For the spatial spread measure, cite:
+
+```bibtex
+@article{panahbehagh2026spread,
+  author = {Panahbehagh, Bardia and Mohebbi, Mehdi and HosseiniNasab, Amir Mohammad},
+  title = {Measuring Spatial Spread via n-Means Balanced Clustering},
+  year = {2026},
+  note = {Manuscript}
+}
+```
+
+Please replace the manuscript entries with the final journal citation once the papers are published.
+
+---
+
+## Maintainers
+
+* Bardia Panahbehagh
+* Mehdi Mohebbi
+* Amir Mohammad HosseiniNasab
+* Mehdi Hosseini Moghadam
+
+---
+
+## License
+
+License information should be checked in the repository before redistribution.
