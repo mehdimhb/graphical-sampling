@@ -704,6 +704,8 @@ class ABCAlgorithm:
         validation_mode: str = "fast",
         eigen_check_interval: int = 0,
         initial_strict_checks: int = 2,
+        initial_omega_value: float = 0.0,
+        initial_rho_value: float = 0.5,
     ):
         self.rng = np.random.default_rng(random_state)
 
@@ -739,6 +741,8 @@ class ABCAlgorithm:
         self.validation_mode = validation_mode
         self.eigen_check_interval = int(eigen_check_interval) if eigen_check_interval else 0
         self.initial_strict_checks = int(initial_strict_checks)
+        self.initial_omega_value = float(initial_omega_value)
+        self.initial_rho_value = float(initial_rho_value)
 
         # Kept for compatibility with downstream sensitivity code.
         self.I_N = np.eye(self.N)
@@ -811,7 +815,20 @@ class ABCAlgorithm:
             return 2.0 * eff_z * eff_y / (eff_z + eff_y)
         if self.objective == "mean":
             return 0.5 * (eff_z + eff_y)
-        raise ValueError("objective must be one of: 'eff_z', 'eff_y', 'harmonic', 'mean'.")
+        if self.objective in {"mean_relative", "harmonic_relative", "min_relative"}:
+            rel_z = eff_z / self.eff_z_optimal if self.eff_z_optimal > 0 else 0.0
+            rel_y = eff_y / self.eff_y_optimal if self.eff_y_optimal > 0 else 0.0
+            if self.objective == "mean_relative":
+                return 0.5 * (rel_z + rel_y)
+            if self.objective == "harmonic_relative":
+                if rel_z <= 0 or rel_y <= 0:
+                    return 0.0
+                return 2.0 * rel_z * rel_y / (rel_z + rel_y)
+            return min(rel_z, rel_y)
+        raise ValueError(
+            "objective must be one of: 'eff_z', 'eff_y', 'harmonic', 'mean', "
+            "'mean_relative', 'harmonic_relative', 'min_relative'."
+        )
 
     def _needs_strict_kernel_check(self) -> bool:
         if self.validation_mode == "strict":
@@ -917,9 +934,10 @@ class ABCAlgorithm:
 
         population = []
 
-        center_omega = 0.5 * np.ones((self.M, self.N))
-        center_rho = 0.5 * np.ones((self.M, self.N - 1))
-        food = self._food_from_arrays(center_omega, center_rho)
+        # Vincent warm start: omega=0 reproduces the Ppi variance for any fixed rho.
+        warm_omega = self.initial_omega_value * np.ones((self.M, self.N))
+        warm_rho = self.initial_rho_value * np.ones((self.M, self.N - 1))
+        food = self._food_from_arrays(warm_omega, warm_rho)
         if food is not None:
             population.append(food)
 
@@ -939,6 +957,10 @@ class ABCAlgorithm:
         if verbose:
             print(f"\n    Initialized {len(population)} food sources (requested {colony_size})")
             if len(population) > 0:
+                print(
+                    "    Warm start: "
+                    f"omega={self.initial_omega_value:g}, rho={self.initial_rho_value:g}"
+                )
                 print(f"    Best initial: eff_z={self.global_best_eff_z:.4f}, eff_y={self.global_best_eff_y:.4f}")
             else:
                 print("    WARNING: no valid solution found.")
@@ -1453,8 +1475,8 @@ class RandomSearchAlgorithm(ABCAlgorithm):
         done = 0
 
         if include_center_once and (not self.center_evaluated) and n_evals > 0:
-            center_omega = 0.5 * np.ones((self.M, self.N))
-            center_rho = 0.5 * np.ones((self.M, self.N - 1))
+            center_omega = self.initial_omega_value * np.ones((self.M, self.N))
+            center_rho = self.initial_rho_value * np.ones((self.M, self.N - 1))
             self._food_from_arrays(center_omega, center_rho)
             self.center_evaluated = True
             done += 1
@@ -1586,6 +1608,11 @@ def _abc_optimize_progress_terminal(
         print(f"   max_iterations       = {max_iterations}", flush=True)
         print(f"   abandonment limit    = {limit}", flush=True)
         print(f"   objective            = {self.objective}", flush=True)
+        print(
+            f"   warm start           = omega={self.initial_omega_value:g}, "
+            f"rho={self.initial_rho_value:g}",
+            flush=True,
+        )
         print(f"   validation mode      = {getattr(self, 'validation_mode', 'unknown')}", flush=True)
         print(f"   onlooker factor      = {onlooker_factor}", flush=True)
         print(f"   early stopping       = {early_stopping}, patience={patience}", flush=True)
@@ -1719,8 +1746,8 @@ def _abc_optimize_progress_terminal(
 
                 print(
                     f"{iteration+1:5d} | "
-                    f"{abc_z_ratio:10.2f} | {abc_y_ratio:10.2f} | "
-                    f"{rand_z_ratio:11.2f} | {rand_y_ratio:11.2f} | "
+                    f"{abc_z_ratio:10.4f} | {abc_y_ratio:10.4f} | "
+                    f"{rand_z_ratio:11.4f} | {rand_y_ratio:11.4f} | "
                     f"{n_abandoned:5d} | {abc_valid:7.2f}% | {rand_valid:7.2f}% | "
                     f"{elapsed:7.2f}s",
                     flush=True,
@@ -1728,7 +1755,7 @@ def _abc_optimize_progress_terminal(
             else:
                 print(
                     f"{iteration+1:5d} | "
-                    f"{abc_z_ratio:10.2f} | {abc_y_ratio:10.2f} | "
+                    f"{abc_z_ratio:10.4f} | {abc_y_ratio:10.4f} | "
                     f"{n_abandoned:5d} | {abc_valid:7.2f}% | {elapsed:7.2f}s",
                     flush=True,
                 )
@@ -1813,6 +1840,8 @@ Y_VAR = "P85"
 ABC_RANDOM_SEED = 12345
 RANDOM_SEARCH_SEED = 54321
 OBJECTIVE = "eff_z"      # options: "eff_z", "eff_y", "harmonic", "mean"
+INITIAL_OMEGA_VALUE = 0.0
+INITIAL_RHO_VALUE = 0.5
 
 # How large is each run?
 # Random Search tries:
@@ -1928,6 +1957,8 @@ def run_mu284_abc_random():
                 validation_mode=VALIDATION_MODE,
                 eigen_check_interval=0,
                 initial_strict_checks=2,
+                initial_omega_value=INITIAL_OMEGA_VALUE,
+                initial_rho_value=INITIAL_RHO_VALUE,
             )
 
             random_search = RandomSearchAlgorithm(
@@ -1945,6 +1976,8 @@ def run_mu284_abc_random():
                 validation_mode=VALIDATION_MODE,
                 eigen_check_interval=0,
                 initial_strict_checks=2,
+                initial_omega_value=INITIAL_OMEGA_VALUE,
+                initial_rho_value=INITIAL_RHO_VALUE,
             )
 
             res = abc.optimize(

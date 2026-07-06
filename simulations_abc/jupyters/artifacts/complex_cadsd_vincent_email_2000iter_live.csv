@@ -1,0 +1,2 @@
+iteration,y_correlation_target,pi_decreasing,z_over_pi_increasing,corr_y_z,corr_y_over_pi_z_over_pi,Start_z_over_Vincent_z,Start_y_over_Vincent_y,ABC_z_over_Vincent_z,ABC_y_over_Vincent_y,Random_z_over_Vincent_z,Random_y_over_Vincent_y,evaluations_ABC,evaluations_Random,valid_ABC,valid_Random
+50,0.0,True,True,-0.533298333379086,-1.2741350795703174e-16,0.9998300022770583,0.07544808734629083,1.0710880641832694,0.07618017697778351,0.9998300022770583,0.07544808734629083,2264,2264,2260,2254

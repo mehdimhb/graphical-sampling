@@ -1,0 +1,21 @@
+\begin{table}[!htbp]
+\centering
+\small
+\caption{Corrected simulated nine-scenario experiment after 250 ABC iterations. Both ABC and random search start from the same Vincent design optimized for $z$ through the $z/\pi$ ordering. The $y$ ratios are reported relative to the Vincent benchmark optimized for $y$ through the $y/\pi$ ordering, denoted by $P\pi_y^*$. Values larger than 1 indicate improvement relative to the corresponding benchmark. The optimization objective is efficiency for $z$ only.}
+\label{tab:abc-random-simulated-effz-250-corrected}
+\begin{tabular}{llrrrrrrrr}
+\hline
+$z$ & $\pi$ source & $\mathrm{corr}(y,z)$ & $\mathrm{corr}(y,\pi)$ & Start$_z/P\pi_z$ & Start$_y/P\pi_y^*$ & ABC$_z/P\pi_z$ & ABC$_y/P\pi_y^*$ & Rand$_z/P\pi_z$ & Rand$_y/P\pi_y^*$ \\
+\hline
+$z_{00}$ & equal & -0.0000 & 0.0000 & 1.0000 & 0.1618 & 1.0000 & 0.1618 & 1.0000 & 0.1618 \\
+$z_{00}$ & $\pi_{80}$ & -0.0000 & 0.7968 & 1.0000 & 0.5881 & 1.7915 & 0.2637 & 1.1561 & 0.2115 \\
+$z_{00}$ & $\pi_{90}$ & -0.0000 & 0.8655 & 1.0000 & 0.5500 & 1.4668 & 0.1141 & 1.1112 & 0.1550 \\
+$z_{80}$ & equal & 0.8000 & 0.0000 & 1.0000 & 0.3598 & 1.0000 & 0.3598 & 1.0000 & 0.3598 \\
+$z_{80}$ & $\pi_{80}$ & 0.8000 & 0.7968 & 1.0000 & 0.5881 & 1.7052 & 0.2922 & 1.0000 & 0.5881 \\
+$z_{80}$ & $\pi_{90}$ & 0.8000 & 0.8655 & 1.0000 & 0.5500 & 1.9724 & 0.1773 & 1.0000 & 0.5500 \\
+$z_{90}$ & equal & 0.9000 & 0.0000 & 1.0000 & 0.4714 & 1.0000 & 0.4714 & 1.0000 & 0.4714 \\
+$z_{90}$ & $\pi_{80}$ & 0.9000 & 0.7968 & 1.0000 & 0.5881 & 1.4783 & 0.4171 & 1.0000 & 0.5881 \\
+$z_{90}$ & $\pi_{90}$ & 0.9000 & 0.8655 & 1.0000 & 0.5500 & 1.4949 & 0.2058 & 1.0000 & 0.5500 \\
+\hline
+\end{tabular}
+\end{table}

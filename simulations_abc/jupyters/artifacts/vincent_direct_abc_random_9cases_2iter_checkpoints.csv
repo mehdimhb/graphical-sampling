@@ -1,0 +1,3 @@
+iteration,z_variable,pi_source,corr_y_z,corr_y_pi,corr_y_over_pi_z_over_pi,Start_z_over_Vincent_z,Start_y_over_Vincent_y,ABC_z_over_Vincent_z,ABC_y_over_Vincent_y,Random_z_over_Vincent_z,Random_y_over_Vincent_y,evaluations_ABC,evaluations_Random
+1,z_90,size_90,0.9000000000000001,0.8714416182858846,-0.5420575768862299,1.0,0.11834137018091379,1.0,0.11834137018091379,1.0,0.11834137018091379,12,12
+2,z_90,size_90,0.9000000000000001,0.8714416182858846,-0.5420575768862299,1.0,0.11834137018091379,1.0,0.11834137018091379,1.0,0.11834137018091379,19,19
