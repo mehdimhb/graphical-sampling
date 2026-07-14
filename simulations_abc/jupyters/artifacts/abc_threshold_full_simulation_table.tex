@@ -1,0 +1,44 @@
+\begin{table}[!htbp]
+\centering
+\small
+\caption{ABC results with threshold stopping. The optimized study variable is denoted by \(y\). The efficiency column is \(V_{P^\pi}(y)/V_K(y)\). The run stops when the efficiency reaches the threshold 3.5 or when 1000 iterations are reached.}
+\label{tab:abc-threshold-results}
+\begin{tabular}{llrrl}
+\toprule
+Study case & \(\pi\) case & Stop iter. & ABC efficiency & Stop reason \\
+\midrule
+\(y_{00}\) & \(\pi_{\mathrm{eq}}\) & 1000 & 1.07 & max iter. \\ 
+ & \(\pi_{0.10}\) & 1000 & 1.01 & max iter. \\ 
+ & \(\pi_{0.20}\) & 4 & 12.71 & threshold \\ 
+ & \(\pi_{0.30}\) & 2 & 9.97 & threshold \\ 
+ & \(\pi_{0.40}\) & 1000 & 1.00 & max iter. \\ 
+ & \(\pi_{0.50}\) & 49 & 29.71 & threshold \\ 
+ & \(\pi_{0.60}\) & 12 & 3.92 & threshold \\ 
+ & \(\pi_{0.70}\) & 1000 & 1.00 & max iter. \\ 
+ & \(\pi_{0.80}\) & 11 & 5.84 & threshold \\ 
+ & \(\pi_{0.90}\) & 4 & 5.10 & threshold \\ 
+\addlinespace
+\(y_{80}\) & \(\pi_{\mathrm{eq}}\) & 1000 & 1.05 & max iter. \\ 
+ & \(\pi_{0.10}\) & 1000 & 1.01 & max iter. \\ 
+ & \(\pi_{0.20}\) & 5 & 5.30 & threshold \\ 
+ & \(\pi_{0.30}\) & 1000 & 1.00 & max iter. \\ 
+ & \(\pi_{0.40}\) & 1000 & 1.00 & max iter. \\ 
+ & \(\pi_{0.50}\) & 1000 & 1.01 & max iter. \\ 
+ & \(\pi_{0.60}\) & 1 & 23.17 & threshold \\ 
+ & \(\pi_{0.70}\) & 2 & 3.53 & threshold \\ 
+ & \(\pi_{0.80}\) & 1000 & 1.03 & max iter. \\ 
+ & \(\pi_{0.90}\) & 1000 & 1.00 & max iter. \\ 
+\addlinespace
+\(y_{90}\) & \(\pi_{\mathrm{eq}}\) & 1000 & 1.08 & max iter. \\ 
+ & \(\pi_{0.10}\) & 29 & 4.20 & threshold \\ 
+ & \(\pi_{0.20}\) & 1000 & 1.01 & max iter. \\ 
+ & \(\pi_{0.30}\) & 2 & 6.79 & threshold \\ 
+ & \(\pi_{0.40}\) & 1000 & 1.00 & max iter. \\ 
+ & \(\pi_{0.50}\) & 1000 & 1.05 & max iter. \\ 
+ & \(\pi_{0.60}\) & 1 & 3.64 & threshold \\ 
+ & \(\pi_{0.70}\) & 8 & 14.19 & threshold \\ 
+ & \(\pi_{0.80}\) & 1000 & 1.00 & max iter. \\ 
+ & \(\pi_{0.90}\) & 1000 & 1.04 & max iter. \\ 
+\bottomrule
+\end{tabular}
+\end{table}
