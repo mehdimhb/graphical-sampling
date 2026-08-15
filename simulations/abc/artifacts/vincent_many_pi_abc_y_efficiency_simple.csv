@@ -1,0 +1,12 @@
+pi_case,target,ABC_y_over_Ppi_y,vincent_condition_ok,Ppi_start_checked
+pi_m90,-0.90,249.7397,True,True
+pi_m80,-0.80,2605.3521,True,True
+pi_m60,-0.60,1.0000,True,True
+pi_m40,-0.40,105.2360,True,True
+pi_m20,-0.20,427.7905,True,True
+pi_equal,0.00,1.0365,True,True
+pi_p20,0.20,1.0000,True,True
+pi_p40,0.40,3063.9671,True,True
+pi_p60,0.60,769.1676,True,True
+pi_p80,0.80,12.4700,True,True
+pi_p90,0.90,1.0507,True,True

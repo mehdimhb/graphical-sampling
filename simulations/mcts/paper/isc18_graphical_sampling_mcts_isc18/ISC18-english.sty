@@ -1,0 +1,29 @@
+\usepackage[all]{xy}
+\usepackage{amsmath,amsthm,amssymb,graphicx,tikz,mathrsfs,color,xspace,pdflscape,natbib}
+%\usepackage[numbers]{natbib}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+%%%%%%%%%%%%%%%%%%%% Command for coloring links %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hypersetup{colorlinks=true,linkcolor=red,citecolor=blue,filecolor=magneta,urlcolor=cyan}
+\usepackage{geometry}
+\geometry{verbose,a4paper, tmargin=3cm, bmargin=2.5cm, lmargin=3cm, rmargin=3cm, footskip=1.5cm}
+\usepackage{times}
+\linespread{1.8}
+\newtheorem{dfn}{Definition}[section]
+\newtheorem{thm}[dfn]{Theorem}
+\newtheorem{pro}[dfn]{Proposition}
+\newtheorem{rem}[dfn]{Remark}
+\newtheorem{lem}[dfn]{Lemma}
+\newtheorem{cor}[dfn]{Corollary}
+\newtheorem{eg}[dfn]{Example}
+\newtheorem{qu}[dfn]{Question}
+\newtheorem{con}[dfn]{Construction}
+\newtheorem{alg}{Algorithm}
+\renewenvironment{proof}{\noindent{\bf Proof. }  \rm } {\hfill{$\Box$}\\}
+\renewcommand{\bibname}{References}
+\fancyhead[RE]{\thepage}
+\fancyhead[LO]{\thepage}
+\fancyfoot{\empty} 
+\pagestyle{fancy}
+\numberwithin{equation}{section}
+
