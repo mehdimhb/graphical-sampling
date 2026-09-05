@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from abc import abstractmethod, ABC
 
-from ..design import Design
+from graphical_sampling.design import Design
 
 
 @dataclass

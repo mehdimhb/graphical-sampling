@@ -1,6 +1,5 @@
 from importlib import metadata
 
-from . import criteria
 from . import search
 from . import clustering
 from . import random
@@ -16,9 +15,7 @@ __all__ = [
     "Population",
     "Design",
     "Order",
-    "criteria",
     "search",
-    "sampling",
     "clustering",
     "random",
     "index",

@@ -210,10 +210,8 @@ class Order:
 
                     for zone in selected_zones:
                         for _ in range(num_changes):
-                            old_idx = int(rng.integers(0, len(zone.sort)))
-                            item = zone.sort.pop(old_idx)
-                            new_idx = int(rng.integers(0, len(zone.sort) + 1))
-                            zone.sort.insert(new_idx, item)
+                            i, j = rng.choice(len(zone.sort), size=2, replace=False)
+                            zone.sort[i], zone.sort[j] = zone.sort[j], zone.sort[i]
 
         # --- Phase 2: Zone-level changes inside clusters ---
         if num_zone_changes > 0:
@@ -228,12 +226,8 @@ class Order:
 
                 for cluster in selected_clusters_zones:
                     for _ in range(num_zone_changes):
-                        # Pick a zone, remove it, and insert it at a new random index
-                        old_idx = int(rng.integers(0, len(cluster.zones)))
-                        moved_zone = cluster.zones.pop(old_idx)
-
-                        new_idx = int(rng.integers(0, len(cluster.zones) + 1))
-                        cluster.zones.insert(new_idx, moved_zone)
+                        i, j = rng.choice(len(cluster.zones), size=2, replace=False)
+                        cluster.zones[i], cluster.zones[j] = cluster.zones[j], cluster.zones[i]
 
         # Rebuild the _order array to reflect all new states
         self._build_order(self.num_splits)

@@ -1,4 +1,4 @@
-from .fip_balanced_nmeans import FIPBalancedNMeans
+from .ip_balanced_ot_nmeans import IPBalancedOTNMeans
 
 
-__all__ = ['FIPBalancedNMeans']
+__all__ = ['IPBalancedOTNMeans']

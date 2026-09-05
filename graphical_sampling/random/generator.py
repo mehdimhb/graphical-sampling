@@ -21,12 +21,14 @@ class Generator:
         Returns:
             NDArray: An array containing the coordinates of the grid(s), normalized to [0, 1].
         """
-        batch, N, dim = self._check_size(size)
+        # batch, N, dim = self._check_size(size)
+        m_x, m_y = size
 
-        linspace = np.linspace(0, 1, N)
-        grid = np.meshgrid(*[linspace] * dim)
-        base_coordinates = np.stack([indices.ravel() for indices in grid], axis=-1)
-        coordinates = np.repeat(base_coordinates[np.newaxis, :, :], batch, axis=0)
+        linspace_x = np.linspace(0, 1, m_x, endpoint=False) + 1/(2*m_x)
+        linspace_y = np.linspace(0, 1, m_y, endpoint=False) + 1/(2*m_y)
+        grid = np.meshgrid(linspace_x, linspace_y)
+        coordinates = np.stack([indices.ravel() for indices in grid], axis=-1)
+        # coordinates = np.repeat(base_coordinates[np.newaxis, :, :], batch, axis=0)
 
         return coordinates.squeeze()
 

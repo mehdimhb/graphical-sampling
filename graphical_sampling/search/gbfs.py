@@ -5,7 +5,7 @@ from typing import Generator, Callable, Literal, Any
 from joblib import Parallel, delayed
 
 from ..design import Design
-from ..criteria import Criteria
+from graphical_sampling.search.criteria import Criteria
 
 
 PullStrategy = Literal['default', 'random', 'largest']

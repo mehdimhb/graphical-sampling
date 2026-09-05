@@ -1,4 +1,4 @@
-from ..clustering import FIPBalancedNMeans
+from ..clustering import IPBalancedOTNMeans
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
@@ -64,7 +64,7 @@ class DensityDisparity:
         raw_sample = self.coords[sample_indices]
 
         # 1. Clustering per sample (Using the raw_sample as initial centroids)
-        fbn = FIPBalancedNMeans(
+        fbn = IPBalancedOTNMeans(
             n=self.pop.n,
             tol=self.clustering_tol,
             max_iter=self.clustering_max_iter,

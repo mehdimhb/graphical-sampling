@@ -1,3 +1,4 @@
+from . import criteria
 from .gbfs import GreedyBestFirstSearch
 
-__all__ = ['GreedyBestFirstSearch']
+__all__ = ['criteria', 'GreedyBestFirstSearch']

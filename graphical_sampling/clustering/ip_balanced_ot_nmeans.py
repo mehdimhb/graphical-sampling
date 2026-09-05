@@ -7,8 +7,10 @@ from matplotlib.patches import Polygon
 from scipy.spatial import ConvexHull, QhullError
 from scipy.spatial.distance import cdist, pdist, squareform
 from scipy.spatial import cKDTree
+from scipy.special import logsumexp
 from sklearn.cluster import KMeans
 from numba import jit
+from joblib import Parallel, delayed
 
 from ..population import Population
 from ..order import Cluster, Zone, Floor, Ceil
@@ -71,7 +73,7 @@ def _two_opt_open_numba(D, path, n):
                     improved = True
 
 
-class OpenTSPSolver:
+class _OpenTSPSolver:
     def solve(self, points: np.ndarray, restarts: int = 15) -> np.ndarray:
         """
         Finds the best OPEN path (Start -> End) by trying multiple random start nodes.
@@ -176,8 +178,173 @@ class OpenTSPSolver:
         return path
 
 
-class FIPBalancedNMeans:
-    def __init__(self, n: int, n_init=50, tol=1e-9, max_iter=100) -> None:
+class _Clustering:
+    def __init__(
+        self,
+        n_clusters: int,
+        epsilon: float = 0.05,
+        max_iter: int = 50,
+        sinkhorn_iter: int =50,
+        tol: float = 1e-4,
+        n_init: int = 5,
+        random_state: int | None = None,
+        n_jobs: int = -1
+    ):
+        self.K = n_clusters
+        self.epsilon = epsilon
+        self.max_iter = max_iter
+        self.sinkhorn_iter = sinkhorn_iter
+        self.tol = tol
+        self.n_init = n_init
+        self.random_state = random_state
+        self.n_jobs = n_jobs
+
+        self.membership: np.ndarray | None = None
+        self.labels: np.ndarray | None = None
+        self.centroids: np.ndarray | None = None
+        self.objective: float | None = None
+
+    @staticmethod
+    def _compute_distances(coords: np.ndarray, centroids: np.ndarray) -> np.ndarray:
+        return cdist(coords, centroids, metric='sqeuclidean')
+
+    def _weighted_kmeans_pp(
+            self, coords: np.ndarray, inclusions: np.ndarray, rng: np.random.Generator
+    ) -> np.ndarray:
+        N, D = coords.shape
+        K = self.K
+
+        centers = np.empty((K, D))
+
+        idx = rng.integers(N)
+        centers[0] = coords[idx]
+
+        closest_dist = np.sum((coords - centers[0]) ** 2, axis=1)
+
+        for k in range(1, K):
+            probs = inclusions * closest_dist
+            probs /= probs.sum()
+
+            idx = rng.choice(N, p=probs)
+            centers[k] = coords[idx]
+
+            new_dist = np.sum((coords - centers[k]) ** 2, axis=1)
+            closest_dist = np.minimum(closest_dist, new_dist)
+
+        return centers
+
+    def _sinkhorn_log(self, C, pi, b, f, g):
+
+        eps = self.epsilon
+
+        for _ in range(self.sinkhorn_iter):
+
+            tmp = (g[None, :] - C) / eps
+            f = eps * (np.log(pi) - logsumexp(tmp, axis=1))
+
+            tmp = (f[:, None] - C) / eps
+            g = eps * (np.log(b) - logsumexp(tmp, axis=0))
+
+        return f, g
+
+    def _hard_objective(self, labels: np.ndarray, inclusion: np.ndarray) -> float:
+        sums = np.bincount(labels, weights=inclusion, minlength=self.K)
+        return np.sum((sums - 1) ** 2)
+
+    def _fit_single(self, coords: np.ndarray, inclusion: np.ndarray, rng: np.random.Generator,
+                    init_centroids: np.ndarray | None = None):
+        N, D = coords.shape
+        K = self.K
+        b = np.ones(K)
+
+        if init_centroids is not None:
+            assert init_centroids.shape == (K, D), "init_centroids shape must be (n_clusters, n_features)"
+            centroids = init_centroids.copy()
+        else:
+            centroids = self._weighted_kmeans_pp(coords, inclusion, rng)
+
+        f = np.zeros(N)
+        g = np.zeros(K)
+
+        for _ in range(self.max_iter):
+            C = self._compute_distances(coords, centroids)
+            C = C / (np.median(C) + 1e-12)
+
+            f, g = self._sinkhorn_log(C, inclusion, b, f, g)
+            P = np.exp((f[:, None] + g[None, :] - C) / self.epsilon)
+
+            new_centroids = P.T @ coords
+            shift = np.linalg.norm(new_centroids - centroids)
+
+            centroids = new_centroids
+            if shift < self.tol:
+                break
+
+        R = P / inclusion[:, None]
+        labels = np.argmax(R, axis=1)
+        obj = self._hard_objective(labels, inclusion)
+
+        return centroids, R, labels, obj
+
+    def fit(
+        self,
+        coords: np.ndarray,
+        inclusions: np.ndarray,
+        init_centroids: np.ndarray | None = None,
+    ) -> _Clustering:
+
+        n_runs = 1 if init_centroids is not None else self.n_init
+
+        # independent RNG seeds for reproducibility
+        seed_rng = np.random.default_rng(self.random_state)
+        seeds = seed_rng.integers(0, np.iinfo(np.int32).max, size=n_runs)
+
+        def _run(seed):
+            rng = np.random.default_rng(seed)
+
+            return self._fit_single(
+                coords,
+                inclusions,
+                rng,
+                init_centroids=init_centroids,
+            )
+
+        results = Parallel(n_jobs=self.n_jobs)(
+            delayed(_run)(seed)
+            for seed in seeds
+        )
+
+        best_centroids = None
+        best_R = None
+        best_labels = None
+        best_obj = np.inf
+
+        for centroids, R, labels, obj in results:
+            if obj < best_obj:
+                best_obj = obj
+                best_centroids = centroids
+                best_R = R
+                best_labels = labels
+
+        self.centroids = best_centroids
+        self.membership = best_R
+        self.labels = best_labels
+        self.objective = best_obj
+
+        return self
+
+
+class IPBalancedOTNMeans:
+    def __init__(
+            self,
+            n: int,
+            n_init: int = 5,
+            epsilon: float = 0.01,
+            max_iter: int = 50,
+            sinkhorn_iter: int = 50,
+            tol=1e-4,
+            n_jobs=-1,
+    ) -> None:
         self.n = n
         self.pop: Population | None = None
         self.labels: np.ndarray | None = None
@@ -185,20 +352,23 @@ class FIPBalancedNMeans:
         self.path_order: np.ndarray | None = None
         self.membership: np.ndarray | None = None
         self.clusters: list[Cluster] = []
-        self.tsp_solver = OpenTSPSolver()
+        self.tsp_solver = _OpenTSPSolver()
 
         self.n_init = n_init
-        self.tol = tol
+        self.epsilon = epsilon
         self.max_iter = max_iter
+        self.sinkhorn_iter = sinkhorn_iter
+        self.tol = tol
+        self.n_jobs = n_jobs
 
     def fit(self, population: Population, init_centroids: np.ndarray | None = None) -> None:
         self.pop = population
         coords = population.coords
-        probs = population.inclusions
+        inclusions = population.inclusions
         N = len(coords)
 
         # 1. Initial Clustering
-        raw_labels, raw_centroids = self._get_labels_centroids(coords, probs, init_centroids)
+        raw_labels, raw_centroids = self._get_labels_centroids_ot_kmeans(coords, inclusions, init_centroids)
 
         # 2. TSP Ordering
         # returns a linear path [Start -> ... -> End]
@@ -206,7 +376,7 @@ class FIPBalancedNMeans:
 
         # 3. Exact Balanced Clusters
         self.clusters = self._generate_exact_clusters(
-            self.path_order, raw_labels, coords, probs, population.indices
+            self.path_order, raw_labels, coords, inclusions, population.indices
         )
 
         # 4. Finalize Outputs
@@ -224,7 +394,7 @@ class FIPBalancedNMeans:
         Splits each existing cluster's pop into `num_partitions` sub-zones.
         'num_partitions' should be int in case of 'cluster' mode. in case of 'sweep_xy' or 'sweep_yx' mode,
         it can be a tuple with first indicating number of zones in x-axis and second indicating number of zones in
-        y-axis. if it is a int then will be interpreted as (num_partitions, num_partitions).
+        y-axis. if it is an int then will be interpreted as (num_partitions, num_partitions).
         """
         if self.clusters is None:
             raise ValueError("The main clusters have not been fitted yet. Call .fit() first.")
@@ -248,8 +418,26 @@ class FIPBalancedNMeans:
             else:
                 raise ValueError(f"Unknown mode '{mode}'. Must be 'cluster' or 'sweep'.")
 
+    def _get_labels_centroids_ot_kmeans(
+            self,
+            coords: np.ndarray,
+            inclusions: np.ndarray,
+            init_centroids: np.ndarray | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        clustering = _Clustering(
+            n_clusters=self.n,
+            epsilon=self.epsilon,
+            max_iter=self.max_iter,
+            sinkhorn_iter=self.sinkhorn_iter,
+            tol=self.tol,
+            n_init=self.n_init,
+            n_jobs=self.n_jobs
+        )
+        clustering.fit(coords, inclusions, init_centroids)
+        return clustering.labels, clustering.centroids
+
     def _get_zones_from_fbn(self, subpopulation: Population, num_zones: int) -> list[Zone]:
-        zones_fbn = FIPBalancedNMeans(
+        zones_fbn = IPBalancedOTNMeans(
             n=num_zones,
             n_init=self.n_init,
             tol=self.tol,
@@ -438,7 +626,8 @@ class FIPBalancedNMeans:
         # Inter-Cluster Sorting
         for i, lab in enumerate(order):
             curr_idx = clusters_idx.get(lab, np.array([], dtype=int))
-            if curr_idx.size == 0: continue
+            if curr_idx.size == 0:
+                continue
 
             key = np.zeros(len(curr_idx))
 
@@ -610,7 +799,8 @@ class FIPBalancedNMeans:
         formatted_cluster_data = []
 
         if mode == 'hard':
-            if self.labels is None: raise ValueError("Model not fitted yet.")
+            if self.labels is None:
+                raise ValueError("Model not fitted yet.")
             for i in range(self.n):
                 idx = np.where(self.labels == i)[0]
                 formatted_cluster_data.append({
@@ -666,7 +856,8 @@ class FIPBalancedNMeans:
 
         for i, c_data in enumerate(formatted_cluster_data):
             all_indices = np.concatenate([c_data['free_points']['indices'], c_data['border_points']['indices']])
-            if len(all_indices) == 0: continue
+            if len(all_indices) == 0:
+                continue
 
             all_shares = np.concatenate([c_data['free_points']['shares'], c_data['border_points']['shares']])
 
@@ -695,7 +886,8 @@ class FIPBalancedNMeans:
         # 3. Draw Clusters and Zones
         for i, c_data in enumerate(formatted_cluster_data):
             c = c_data['parent_color']
-            if c is None: continue  # Skip empty/invalid clusters
+            if c is None:
+                continue  # Skip empty/invalid clusters
 
             # --- Draw Internal Points and Soft Hull ---
             # Use all relevant indices for the main hull
@@ -747,6 +939,8 @@ class FIPBalancedNMeans:
         ax.set_aspect("equal")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
+        ax.set_xticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
         ax.set_xlabel(r"$X_1$")
         ax.set_ylabel(r"$X_2$")
         ax.set_title(f"FIP Balanced {self.n}-Means {mode.capitalize()} Clustering with Zones")
