@@ -141,3 +141,10 @@ def test_fixed_lambda_and_nonfinite_evaluation_are_rejected():
         LinkedDesign(d.cfg, d.states, fixed_lambda=np.zeros((4, 5)))
     with pytest.raises(ValueError):
         d.nht_variance([np.nan]*4, [1]*5)
+
+
+def test_tolerance_does_not_allow_eliminating_a_positive_fip():
+    eps = 1e-12
+    c = OGISInputs([eps, 1-eps], [eps, 1-eps], np.eye(2), [1, 2], [3, 4])
+    with pytest.raises(ValueError, match='FIP'):
+        LinkedDesign(c, {((1, 1),): 1})

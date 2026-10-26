@@ -37,6 +37,8 @@ def optimize_gbfs(initial, iterations=150, proposals=35, alpha=.5,
     keep_best = _integer(keep_best, 'keep_best', 1)
     stagnation_limit = _integer(stagnation_limit, 'stagnation_limit', 1)
     backtrack_depth = _integer(backtrack_depth, 'backtrack_depth', 0)
+    if seed is not None:
+        seed = _integer(seed, 'seed', 0)
     if not math.isfinite(alpha) or not 0 <= alpha <= 1:
         raise ValueError('alpha must be in [0, 1]')
     if not math.isfinite(fraction) or not 0 < fraction <= 1:
@@ -106,4 +108,8 @@ def optimize_gbfs(initial, iterations=150, proposals=35, alpha=.5,
                 candidate_iterations=candidate_iterations,
                 best_candidates=sorted(candidates, key=lambda item: item[0])[:keep_best],
                 generated_candidates=len(candidates), explored_states=len(search.closed_set),
-                alpha=alpha, scales=scales, seed=seed)
+                alpha=alpha, scales=scales, seed=seed,
+                settings=dict(iterations=iterations, proposals=proposals,
+                              fraction=fraction, max_frontier=max_frontier,
+                              keep_best=keep_best, stagnation_limit=stagnation_limit,
+                              backtrack_depth=backtrack_depth))

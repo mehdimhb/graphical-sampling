@@ -158,7 +158,8 @@ class LinkedDesign:
                     raise ValueError('Matching includes a forbidden link')
         lm = self.link_masses
         if (not np.allclose(lm.sum(axis=1), cfg.pi_A, atol=TOL, rtol=0)
-                or not np.allclose(lm.sum(axis=0), cfg.pi_B, atol=TOL, rtol=0)):
+                or not np.allclose(lm.sum(axis=0), cfg.pi_B, atol=TOL, rtol=0)
+                or np.any(lm.sum(axis=1) == 0) or np.any(lm.sum(axis=0) == 0)):
             raise ValueError('FIP constraints violated')
         if (self.fixed_lambda.shape != lm.shape or not np.isfinite(self.fixed_lambda).all()
                 or np.any(self.fixed_lambda < 0)

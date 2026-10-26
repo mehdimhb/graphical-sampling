@@ -1,0 +1,105 @@
+{
+  "pi_A": [
+    0.75,
+    0.5,
+    0.5,
+    0.25
+  ],
+  "pi_B": [
+    0.5416666666666666,
+    0.625,
+    0.2916666666666667,
+    0.4166666666666667,
+    0.125
+  ],
+  "links": [
+    [
+      true,
+      true,
+      false,
+      false,
+      false
+    ],
+    [
+      true,
+      false,
+      true,
+      true,
+      false
+    ],
+    [
+      false,
+      true,
+      false,
+      true,
+      false
+    ],
+    [
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  ],
+  "x_A": [
+    3.0,
+    1.0,
+    3.0,
+    0.5
+  ],
+  "x_B": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "y_A": [
+    5.0,
+    2.0,
+    6.0,
+    1.0
+  ],
+  "y_B": [
+    4.0,
+    2.0,
+    7.0,
+    1.0,
+    3.0
+  ],
+  "names_A": [
+    "A1",
+    "A2",
+    "A3",
+    "A4"
+  ],
+  "names_B": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5"
+  ],
+  "n": 2,
+  "alpha": 0.5,
+  "scales": [
+    2.75,
+    3.4501098901098874
+  ],
+  "seed": 2026,
+  "settings": {
+    "iterations": 150,
+    "proposals": 35,
+    "fraction": 0.75,
+    "max_frontier": 100,
+    "keep_best": 10,
+    "stagnation_limit": 10,
+    "backtrack_depth": 50
+  },
+  "heuristic": true,
+  "index_base": 0,
+  "generated_candidates": 1000,
+  "initial_score": 1.0,
+  "best_score": 0.980793731685565
+}

@@ -28,6 +28,10 @@ The package is designed for researchers and practitioners working in survey samp
   * Density Disparity Index,
   * local balance measures.
 * Improve sampling designs using intelligent search procedures such as Greedy Best-First Search.
+* Construct linked two-population sampling designs with fixed link masses and
+  matching-preserving optimization through the existing GBFS engine. See the
+  [OGIS guide](docs/ogis.md) and
+  [Run-All notebook](simulations/jupyters/20_ogis_indirect_sampling.ipynb).
 
 ---
 
