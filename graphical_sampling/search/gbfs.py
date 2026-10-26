@@ -30,9 +30,25 @@ def swap_debugger(order, id_i, id_j, local_i, local_j, c_idx, z_idx):
 PullStrategy = Literal['default', 'random', 'largest']
 
 class GreedyBestFirstSearch:
-    def __init__(self, initial_designs: list['Design'], criteria: 'Criteria') -> None:
+    def __init__(self, initial_designs: list['Design'], criteria: 'Criteria', *,
+                 state_key=None, neighbor_factory=None, candidate_callback=None,
+                 rng=None) -> None:
+        """Create a search, optionally adapting it to a different design state.
+
+        ``state_key(design)`` returns an immutable hashable snapshot.
+        ``neighbor_factory(design, iteration)`` yields (node_type, design)
+        pairs and replaces both legacy neighbor operators when supplied.
+        ``candidate_callback(design, score, iteration)`` observes evaluated
+        candidates (initial states use iteration zero). ``rng`` may be a local
+        random.Random instance; the default retains the global random module.
+        Custom states should use objective or silent output in ``run``.
+        """
         self.initial_designs = initial_designs
         self.criteria = criteria
+        self._state_key = state_key or self._design_key
+        self._neighbor_factory = neighbor_factory
+        self._candidate_callback = candidate_callback
+        self._rng = random if rng is None else rng
         self._counter = count()
         self.top_k: list[tuple[float, int, 'Design']] = []
 
@@ -162,6 +178,8 @@ class GreedyBestFirstSearch:
                 val = self.criteria(design)
                 heapq.heappush(self.open_set, (val, next(self._counter), 'order_change', design))
                 self._update_top_k(design, val, top_k)
+                if self._candidate_callback is not None:
+                    self._candidate_callback(design, val, 0)
         else:
             log(f"Resuming search with {len(self.open_set)} candidates in memory.")
 
@@ -177,12 +195,12 @@ class GreedyBestFirstSearch:
             
             # Maintenance
             if iteration % 1000 == 0 and iteration > 0:
-                current_designs = {self._design_key(node[3]) for node in nodes_to_explore} if 'nodes_to_explore' in locals() else set()
+                current_designs = {self._state_key(node[3]) for node in nodes_to_explore} if 'nodes_to_explore' in locals() else set()
                 self.closed_set = current_designs 
 
-            num_changes = random.randint(num_changes_range[0], num_changes_range[1])
-            num_clusters = random.randint(num_clusters_range[0], num_clusters_range[1])
-            num_zones = random.randint(num_zones_range[0], num_zones_range[1])
+            num_changes = self._rng.randint(num_changes_range[0], num_changes_range[1])
+            num_clusters = self._rng.randint(num_clusters_range[0], num_clusters_range[1])
+            num_zones = self._rng.randint(num_zones_range[0], num_zones_range[1])
 
             if not self.open_set:
                 log(f"Search exhausted at iteration {iteration}.")
@@ -195,7 +213,10 @@ class GreedyBestFirstSearch:
             
             if stalls >= stagnation_limit:
                 num_improvements = 0
-                skip_depth = random.randint(backtrack_depth, len(self.open_set))
+                # Small frontiers must not produce an empty randint range.
+                # Custom neighbors keep one node available for the restart.
+                max_skip = len(self.open_set) - (self._neighbor_factory is not None)
+                skip_depth = self._rng.randint(min(backtrack_depth, max_skip), max_skip)
                 log(f"\n⚡ STUCK. Purging the top {skip_depth} dead-ends to force a new path! ⚡")
 
                 # 1. Permanently discard the nodes that got us stuck
@@ -206,7 +227,7 @@ class GreedyBestFirstSearch:
                 # 2. Grab the target node from the new frontier
                 while self.open_set and len(nodes_to_explore) < num_explore:
                     node = heapq.heappop(self.open_set)
-                    if self._design_key(node[3]) not in self.closed_set:
+                    if self._state_key(node[3]) not in self.closed_set:
                         nodes_to_explore.append(node)
                 
                 # 3. COMMIT TO THE NEW PATH
@@ -223,15 +244,24 @@ class GreedyBestFirstSearch:
                 # Normal Greedy Extraction
                 while self.open_set and len(nodes_to_explore) < num_explore:
                     node = heapq.heappop(self.open_set)
-                    if self._design_key(node[3]) not in self.closed_set:
+                    if self._state_key(node[3]) not in self.closed_set:
                         nodes_to_explore.append(node)
 
-            if not nodes_to_explore: continue
+            if not nodes_to_explore:
+                if self._neighbor_factory is not None:
+                    self.iterations_completed = iteration + 1
+                    if progress_callback is not None:
+                        progress_callback(self, self.iterations_completed)
+                continue
 
             # 2. Sequential Neighbor Generation
             all_neighbors = []
             for val, _, node_type, current_design in nodes_to_explore:
-                self.closed_set.add(self._design_key(current_design))
+                self.closed_set.add(self._state_key(current_design))
+
+                if self._neighbor_factory is not None:
+                    all_neighbors.extend(self._neighbor_factory(current_design, iteration))
+                    continue
 
                 neighbors = self._exchange_neighbors(
                     current_design, self._get(num_new_exchange_nodes, iteration),
@@ -250,12 +280,16 @@ class GreedyBestFirstSearch:
             # 3. Deduplication
             unique_neighbors = {}
             for n_type, n_design in all_neighbors:
-                key = self._design_key(n_design)
+                key = self._state_key(n_design)
                 if key not in self.closed_set and key not in unique_neighbors:
                     unique_neighbors[key] = (n_design, n_type)
 
             if not unique_neighbors: 
                 stalls += 1 
+                if self._neighbor_factory is not None:
+                    self.iterations_completed = iteration + 1
+                    if progress_callback is not None:
+                        progress_callback(self, self.iterations_completed)
                 continue
                 
             designs_to_eval = [item[0] for item in unique_neighbors.values()]
@@ -268,6 +302,8 @@ class GreedyBestFirstSearch:
             improved_this_iter = False
             
             for new_design, new_val, new_type in zip(designs_to_eval, criteria_values, neighbor_types):
+                if self._candidate_callback is not None:
+                    self._candidate_callback(new_design, new_val, iteration + 1)
                 if output_mode == "spatial":
                     act_c = len(new_design.order.clusters)
                     act_z = len(new_design.order.clusters[0].zones) if act_c > 0 else 0
