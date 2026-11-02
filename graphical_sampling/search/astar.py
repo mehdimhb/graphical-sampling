@@ -45,6 +45,12 @@ class AStar:
         self.switch_coefficient = switch_coefficient
         self.random_pull = random_pull
 
+        # Counter for total evaluated states (aligned with main script)
+        self.evaluation_count = 0
+
+        # Count initial designs as seen states
+        self.evaluation_count += len(self.initial_designs)
+
         # We use a counter to handle tie-breaking in the heap without comparing Designs directly
         self._counter = count()
         self.top_k = []  # Heap of (-value, tie_breaker, design)
@@ -104,6 +110,7 @@ class AStar:
             max_open_set_size: int,
             num_changes: Tuple[int, int],
             top_k: int,
+            max_evaluations: int = None,  # Optional parameter for early stopping
     ):
         closed_set = set()
         open_set = RedBlackTree[Node]()
@@ -115,6 +122,11 @@ class AStar:
             self._update_top_k(design, val, top_k)
 
         for it in range(max_iterations):
+            # Check stopping condition at the beginning of each iteration
+            if max_evaluations is not None and self.evaluation_count >= max_evaluations:
+                print(f"[!] Target evaluations ({self.evaluation_count}/{max_evaluations}) reached. Stopping A*.")
+                break
+
             if not open_set:
                 break
 
@@ -132,8 +144,13 @@ class AStar:
                     current_design, num_new_nodes, num_changes
             ):
                 new_criteria_value = new_design.nht_variance
+                
+                # Record a newly seen state
+                self.evaluation_count += 1
 
                 if new_design in closed_set:
+                    if max_evaluations is not None and self.evaluation_count >= max_evaluations:
+                        break
                     continue
 
                 # Update Open Set (RedBlackTree)
@@ -154,3 +171,7 @@ class AStar:
 
                 # Update Top K Heap
                 self._update_top_k(new_design, new_criteria_value, top_k)
+
+                # Stop if evaluation limit is reached
+                if max_evaluations is not None and self.evaluation_count >= max_evaluations:
+                    break

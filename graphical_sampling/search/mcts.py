@@ -20,59 +20,73 @@ from typing import List, Union
 # =============================================================================
 def worker_adaptive_binary(args):
     (design_copy, criteria, rollout_depth, initial_criteria_value, 
-     random_pull, switch_coefficient, seed) = args
+     random_pull, switch_coefficient, seed, shared_counter, lock, max_evals) = args
     
     np.random.seed(seed % (2**32 - 1))
     
+    def counted_criteria(d):
+        with lock:
+            if shared_counter.value >= max_evals:
+                raise StopIteration("MAX_EVALS_REACHED")
+            shared_counter.value += 1
+        return criteria(d)
+    # ---------------------------------
+
     current_design = design_copy
-    current_val = criteria(current_design)
-    
-    best_var = current_val
+    best_var = float('inf')
     best_design_local = None 
 
-    ROLLOUT_STEPS = 18
-    
-    for _ in range(ROLLOUT_STEPS):
+    try:
+        current_val = counted_criteria(current_design)
+        best_var = current_val
+
+        ROLLOUT_STEPS = 18
         
-        agg_coeff = min(1.0, switch_coefficient * 1.3)
-        
-        cand_a = current_design.copy()
-        cand_a.iterate(random_pull=random_pull, switch_coefficient=agg_coeff)
-        val_a = criteria(cand_a)
-        
-        accepted_cand = None
-        accepted_val = float('inf')
-        
-        if val_a < current_val:
-            accepted_cand = cand_a
-            accepted_val = val_a
-        else:
-            cons_coeff = max(0.01, switch_coefficient * 0.7)
+        for _ in range(ROLLOUT_STEPS):
+            agg_coeff = min(1.0, switch_coefficient * 1.3)
             
-            cand_b = current_design.copy()
-            cand_b.iterate(random_pull=random_pull, switch_coefficient=cons_coeff)
-            val_b = criteria(cand_b)
+            cand_a = current_design.copy()
+            cand_a.iterate(random_pull=random_pull, switch_coefficient=agg_coeff)
+            val_a = counted_criteria(cand_a)
             
-            if val_a < val_b:
+            accepted_cand = None
+            accepted_val = float('inf')
+            
+            if val_a < current_val:
                 accepted_cand = cand_a
                 accepted_val = val_a
             else:
-                accepted_cand = cand_b
-                accepted_val = val_b
-        
-        current_design = accepted_cand
-        current_val = accepted_val
-        
-        if current_val < best_var:
-            best_var = current_val
-            best_design_local = current_design.copy()
+                cons_coeff = max(0.01, switch_coefficient * 0.7)
+                
+                cand_b = current_design.copy()
+                cand_b.iterate(random_pull=random_pull, switch_coefficient=cons_coeff)
+                val_b = counted_criteria(cand_b)
+                
+                if val_a < val_b:
+                    accepted_cand = cand_a
+                    accepted_val = val_a
+                else:
+                    accepted_cand = cand_b
+                    accepted_val = val_b
             
-        # قطع امید (Safety Cutoff)
-        if current_val > initial_criteria_value * 1.15:
-            break
+            current_design = accepted_cand
+            current_val = accepted_val
+            
+            if current_val < best_var:
+                best_var = current_val
+                best_design_local = current_design.copy()
+                
+            # (Safety Cutoff)
+            if current_val > initial_criteria_value * 1.15:
+                break
+
+    except StopIteration:
+        pass
 
     if best_design_local is None:
         best_design_local = design_copy 
+        if best_var == float('inf'):
+            best_var = initial_criteria_value
         
     if best_var < initial_criteria_value:
         improvement = (initial_criteria_value - best_var) / initial_criteria_value
@@ -106,11 +120,6 @@ class MCTSNode:
 
 class MCTS:
     def __init__(self, initial_designs: Union[List, object], criteria, switch_coefficient=0.5, random_pull=False, base_changes=10, min_changes=1, exploration_constant=0.1):
-        """
-        Modified MCTS to handle multiple initial designs (Population-based MCTS).
-        Args:
-            initial_designs: A single Design object OR a list of Design objects.
-        """
         if not isinstance(initial_designs, list):
             self.initial_designs = [initial_designs]
         else:
@@ -128,7 +137,6 @@ class MCTS:
         
         print(f"=== MULTI-START MCTS (Population Size: {len(self.initial_designs)}) ===")
         
-
         for d in self.initial_designs:
             val = criteria(d)
             if val < self.best_criteria_value:
@@ -200,20 +208,28 @@ class MCTS:
             node.reward_sum += reward
             node = node.parent
 
-    def run(self, max_iterations=150, max_children_per_node=8):
+    def run(self, max_iterations=150, max_children_per_node=8, max_evaluations=4000):
         print("=== RUN STARTED (ADAPTIVE POPULATION MODE) ===")
         
         cpu_count = multiprocessing.cpu_count()
         self.last_improvement_iter = 0
         floor_high_mut = max(4, int(self.base_changes * 0.4))
         
+        manager = multiprocessing.Manager()
+        shared_eval_counter = manager.Value('i', len(self.initial_designs))
+        counter_lock = manager.Lock()
+        
         with multiprocessing.Pool(processes=cpu_count) as pool:
             
             for it in range(max_iterations):
                 
+                if shared_eval_counter.value >= max_evaluations:
+                    print(f"\n[!] Target evaluations ({shared_eval_counter.value}/{max_evaluations}) reached. Stopping MCTS.")
+                    break
+                
                 if (it - self.last_improvement_iter) > 3:
                     self.teleport_count += 1
-                    print(f"\n  >>> STAGNATION (8 iters) -> TELEPORT #{self.teleport_count} to Best ({self.best_criteria_value:.2f})")
+                    print(f"\n  >>> STAGNATION (3 iters) -> TELEPORT #{self.teleport_count} to Best ({self.best_criteria_value:.2f})")
                     self.root = MCTSNode(self.best_design.copy(), mutation_type=f'teleport_{self.teleport_count}')
                     self.last_improvement_iter = it 
                     self.initial_criteria_value = self.best_criteria_value
@@ -260,7 +276,9 @@ class MCTS:
 
                     for i, child in enumerate(children_to_simulate):
                         seed = int(time.time() * 1000) + id(child) + i
-                        args = (child.design.copy(), self.criteria, 0, self.initial_criteria_value, self.random_pull, self.switch_coefficient, seed)
+                        args = (child.design.copy(), self.criteria, 0, self.initial_criteria_value, 
+                                self.random_pull, self.switch_coefficient, seed, 
+                                shared_eval_counter, counter_lock, max_evaluations)
                         sim_args_list.append(args)
                 
                 if not children_to_simulate: continue

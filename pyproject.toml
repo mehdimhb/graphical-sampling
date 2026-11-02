@@ -9,15 +9,16 @@ dependencies = [
     "numpy",
     "scikit-learn",
     "scipy",
-    "k-means-constrained>=0.7.3",
+    "k-means-constrained>=0.7.5",
     "package-sampling>=0.3.0",
     "pandas",
 ]
 authors = [
     { name = "Bardia Panahbehagh", email = "bardia.panah@gmail.com" },
+    { name = "Elahe Moharrampour", email = "eli.mhrp1395@gmail.com" },
     { name = "Mehdi Mohebbi", email = "mehdi.mohebbi23@gmail.com" },
     { name = "AmirMohammad HosseiniNasab", email = "awmirhn@gmail.com" },
-    { name = "Mehdi Hosseini Moghadam", email = "m.h.moghadam1996@gmail.com" }
+    { name = "Mehdi Hosseini Moghadam", email = "m.h.moghadam1996@gmail.com" },
 ]
 
 [build-system]
