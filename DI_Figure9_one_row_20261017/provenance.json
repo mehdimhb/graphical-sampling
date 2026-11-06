@@ -1,0 +1,67 @@
+{
+  "source": "/home/bardia/projects/graphical-sampling/simulations/results/temporary_2D_relative_rotation/grid_20x20_N400_DI_original_shift_rotation90_rotation45_large_2x2_n20.pdf",
+  "source_sha256": "f2fa36bfd0a9330ce9b118982aaaad7c05d3212d95ca60cb91050b248f9c2b8a",
+  "layout": "one row, four panels; shared legend below",
+  "scientific_calculations_rerun": 0,
+  "source_graphics": "original PDF axes embedded as Form XObjects",
+  "displayed_statistics": [
+    "DI = 0.00; MI = \u22120.47; VI = 0.01; BI = 0.04",
+    "DI = 0.00; MI = \u22120.44; VI = 0.03; BI = 0.08",
+    "DI = 0.00; MI = \u22120.47; VI = 0.01; BI = 0.04",
+    "DI = \u22120.14; MI = \u22120.23; VI = 0.15; BI = 0.19"
+  ],
+  "rendering_threads": 8,
+  "available_cpus": 16,
+  "source_axes_top_origin": [
+    [
+      104.04136,
+      342.3599999999999,
+      496.9174,
+      735.236
+    ],
+    [
+      721.80136,
+      342.3599999999999,
+      1114.6774,
+      735.236
+    ],
+    [
+      104.04136,
+      900.24397,
+      496.9174,
+      1293.12
+    ],
+    [
+      721.80136,
+      900.24397,
+      1114.6774,
+      1293.12
+    ]
+  ],
+  "destination_axes_pdf_origin": [
+    [
+      40.0,
+      58.0,
+      250.0,
+      268.0
+    ],
+    [
+      284.0,
+      58.0,
+      494.0,
+      268.0
+    ],
+    [
+      528.0,
+      58.0,
+      738.0,
+      268.0
+    ],
+    [
+      772.0,
+      58.0,
+      982.0,
+      268.0
+    ]
+  ]
+}

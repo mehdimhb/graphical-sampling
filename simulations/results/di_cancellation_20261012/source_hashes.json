@@ -1,0 +1,8 @@
+{
+  "graphical_sampling/population.py": "9353fef9ae32f645a67d5507272a92cae9c38ee5c3db993fd244b360d655ebf2",
+  "graphical_sampling/clustering/fip_balanced_nmeans.py": "3f4243e04a830888f86303cd601414818e4f43d17f3f6d9eb362ddcd920e74f9",
+  "graphical_sampling/index/density_disparity.py": "a0c28d8d8968358828ab1ae908d8aaa87e8163eb25113ff5c2a783f832e06e43",
+  "simulations/di_cancellation_experiment_20261012.py": "621d0ae0e4e66a560ed4fc15ed6844e076bf017d7cf5efbc342f7bdbb51ea5fd",
+  "simulations/di_cancellation_audit_20261012.py": "045cb0f6934f93df25780e018a2ddf1232bb103b0fa71c7a5f347777967beed9",
+  "simulations/di_cancellation_report_20261012.py": "89ae71c28580c297baa8797484e75a68d959e5cecb1534ec10544d4dc0c98b47"
+}

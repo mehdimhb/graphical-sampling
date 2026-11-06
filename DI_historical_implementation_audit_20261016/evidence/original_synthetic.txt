@@ -1,0 +1,57 @@
+                                        The Three Simulated Populations
+                               MAX       SCP     LPV       WAV     |       UP       EP
+                              Gridded                   Random                  Clustered
+                 0.3
+
+
+
+
+Density (DI)
+                 0.0
+
+
+               -0.3
+
+
+               -0.6
+
+
+                 0.0
+
+
+
+Moran (MI)
+               -0.2
+
+               -0.5
+
+               -0.8
+
+                 0.6
+
+
+
+
+ Voronoi (VI)
+                 0.4
+
+
+                 0.2
+
+
+                 0.0
+                 2.4
+
+
+
+
+ Balanced (BI)
+                 1.6
+
+
+                 0.8
+
+
+                 0.0
+                       n=4   n=8 n=16 n=32     n=4     n=8 n=16 n=32      n=4   n=8 n=16 n=32
+

@@ -1,0 +1,633 @@
+{
+  "checked_UTC": "2026-10-16T06:53:17.541238+00:00",
+  "current_branch": "codex/gfs-numerical-corrections-20261016",
+  "current_SHA": "902ed8ef49edf4042ea8c30afefaa9aa974ad9ea",
+  "remote_current_SHA": "902ed8ef49edf4042ea8c30afefaa9aa974ad9ea",
+  "main_SHA": "dc2881af84a41e4f7658b6d21401e58470871b55",
+  "main_current_divergence": "0\t7",
+  "ahead_commits": [
+    "902ed8ef4 Fix GFS target size, supplied initialization and seeded replay",
+    "7e20e9ccb chore: ignore local worktrees",
+    "0d709e258 docs: finalize constrained GFS implementation plan",
+    "34688c090 docs: seed Madow repair streams independently",
+    "865997165 docs: revise constrained GFS around Madow repair",
+    "71507426e docs: specify constrained GFS astronomy prototype",
+    "af9b48194 Add prescribed SIP studies and graphical MaxEnt examples"
+  ],
+  "modified_paths": 527,
+  "statuses": {
+    "M": 9,
+    "A": 518
+  },
+  "path_groups": {
+    ".gitignore": 1,
+    "GFS_package_corrections_20261016": 28,
+    "docs": 5,
+    "graphical_sampling": 11,
+    "prescribed_sip": 434,
+    "simulations": 37,
+    "tests": 10,
+    "uv.lock": 1
+  },
+  "references": [
+    {
+      "ref": "refs/heads/codex/gfs-numerical-corrections-20261016",
+      "sha": "902ed8ef49edf4042ea8c30afefaa9aa974ad9ea",
+      "committer_date": "2026-10-16T02:52:40+03:30",
+      "current_unique_commits": 0,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/codex/gfs-numerical-corrections-20261016",
+      "sha": "902ed8ef49edf4042ea8c30afefaa9aa974ad9ea",
+      "committer_date": "2026-10-16T02:52:40+03:30",
+      "current_unique_commits": 0,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/codex/constrained-gfs-astronomy",
+      "sha": "789d29aa9d7455f1ca42faf11358549a03d2cc5a",
+      "committer_date": "2026-09-30T15:54:33+03:30",
+      "current_unique_commits": 1,
+      "branch_unique_commits": 7,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/heads/gfs-yves",
+      "sha": "7e20e9ccbf4eb09e13464899f89e681e0bb1b864",
+      "committer_date": "2026-09-30T01:19:25+03:30",
+      "current_unique_commits": 1,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/gfs-yves",
+      "sha": "af9b4819409e4bebf42a8fb0f5b87bb9809bd26a",
+      "committer_date": "2026-09-21T17:24:26+03:30",
+      "current_unique_commits": 6,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/main",
+      "sha": "dc2881af84a41e4f7658b6d21401e58470871b55",
+      "committer_date": "2026-09-07T19:14:31+03:30",
+      "current_unique_commits": 7,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/spread-jssam",
+      "sha": "dc2881af84a41e4f7658b6d21401e58470871b55",
+      "committer_date": "2026-09-07T19:14:31+03:30",
+      "current_unique_commits": 7,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/main",
+      "sha": "dc2881af84a41e4f7658b6d21401e58470871b55",
+      "committer_date": "2026-09-07T19:14:31+03:30",
+      "current_unique_commits": 7,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/spread-jssam",
+      "sha": "dc2881af84a41e4f7658b6d21401e58470871b55",
+      "committer_date": "2026-09-07T19:14:31+03:30",
+      "current_unique_commits": 7,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/final-refactor",
+      "sha": "247d9422e390d1a163a25df802523429308da286",
+      "committer_date": "2026-09-05T19:14:45+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 144,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/spread-sep-26",
+      "sha": "9ce40799877a75755114ce855e66d83ec29ed466",
+      "committer_date": "2026-08-18T01:28:55+03:30",
+      "current_unique_commits": 9,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/vincent_abc_warm_start",
+      "sha": "227b4ad93e544d31cee402e463212ffb9eb78ef1",
+      "committer_date": "2026-08-15T15:50:32+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 173,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/heads/mcts_graphical-sampling",
+      "sha": "f2fb4329bc35eaaccc45f72f4e1366faa985a3e7",
+      "committer_date": "2026-08-15T15:41:55+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 85,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/vincent_abc_warm_start",
+      "sha": "5f8d317167343e42f4a765d5e021f52e4240ff7e",
+      "committer_date": "2026-07-14T23:24:07+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 172,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/heads/make-vincent-example-easy",
+      "sha": "66ab3bd434a4c93d7b15c7b2ab896a6fd41a9bf5",
+      "committer_date": "2026-07-06T22:16:39+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 173,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/make-vincent-example-easy",
+      "sha": "66ab3bd434a4c93d7b15c7b2ab896a6fd41a9bf5",
+      "committer_date": "2026-07-06T22:16:39+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 173,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/heads/vincent_abc_Ppi",
+      "sha": "9249e834c7f62e454c34967efa3cff8d96b6293e",
+      "committer_date": "2026-06-24T12:20:20+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 169,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/vincent_abc_Ppi",
+      "sha": "9249e834c7f62e454c34967efa3cff8d96b6293e",
+      "committer_date": "2026-06-24T12:20:20+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 169,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/mcts_graphical-sampling",
+      "sha": "10ad61750785b455b51ce10254f5aaef1385a6dc",
+      "committer_date": "2026-06-23T23:45:11+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 84,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/heads/vincent_abc",
+      "sha": "fc504307988138211b51f173f71595dd300bf3c8",
+      "committer_date": "2026-06-10T03:16:51+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 168,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/vincent_abc",
+      "sha": "fc504307988138211b51f173f71595dd300bf3c8",
+      "committer_date": "2026-06-10T03:16:51+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 168,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/heads/bardia_test_1",
+      "sha": "82a7eca7d7b98cad9b01c6ace8dcda3f77f5079e",
+      "committer_date": "2026-06-05T02:48:34+03:30",
+      "current_unique_commits": 14,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/jassm/moran-28",
+      "sha": "3454afaa02bee9af5da0fda5d60800c2364bf969",
+      "committer_date": "2026-06-01T03:54:35+03:30",
+      "current_unique_commits": 20,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-28",
+      "sha": "3454afaa02bee9af5da0fda5d60800c2364bf969",
+      "committer_date": "2026-06-01T03:54:35+03:30",
+      "current_unique_commits": 20,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/jassm/moran-27",
+      "sha": "b255918ea99e579742d97808000d51c13b8c4112",
+      "committer_date": "2026-06-01T03:20:41+03:30",
+      "current_unique_commits": 21,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-27",
+      "sha": "b255918ea99e579742d97808000d51c13b8c4112",
+      "committer_date": "2026-06-01T03:20:41+03:30",
+      "current_unique_commits": 21,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/jassm/moran-26",
+      "sha": "e71d6935bfe824e72a7b722067a24775ed160610",
+      "committer_date": "2026-06-01T02:57:37+03:30",
+      "current_unique_commits": 22,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-26",
+      "sha": "e71d6935bfe824e72a7b722067a24775ed160610",
+      "committer_date": "2026-06-01T02:57:37+03:30",
+      "current_unique_commits": 22,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/jassm/moran-25",
+      "sha": "4555402d7f6c26baab5210876d4c97bb05f5db1d",
+      "committer_date": "2026-05-29T22:00:58+03:30",
+      "current_unique_commits": 23,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-25",
+      "sha": "4555402d7f6c26baab5210876d4c97bb05f5db1d",
+      "committer_date": "2026-05-29T22:00:58+03:30",
+      "current_unique_commits": 23,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/vincent",
+      "sha": "6e89c7b8d8a2e8ec1910460fd4f0029106c7b090",
+      "committer_date": "2026-05-25T11:09:17+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 159,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/vincent",
+      "sha": "6e89c7b8d8a2e8ec1910460fd4f0029106c7b090",
+      "committer_date": "2026-05-25T11:09:17+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 159,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/heads/jassm/moran-24",
+      "sha": "b68bd94bec0e7e03619fcfb0486a7c41a2dc6b27",
+      "committer_date": "2026-05-23T12:45:06+03:30",
+      "current_unique_commits": 30,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-24",
+      "sha": "b68bd94bec0e7e03619fcfb0486a7c41a2dc6b27",
+      "committer_date": "2026-05-23T12:45:06+03:30",
+      "current_unique_commits": 30,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/jassm/moran-23",
+      "sha": "39a1f3ffc16c5cec869df45b1aaef13028d316e8",
+      "committer_date": "2026-05-21T13:32:16+03:30",
+      "current_unique_commits": 32,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-23",
+      "sha": "39a1f3ffc16c5cec869df45b1aaef13028d316e8",
+      "committer_date": "2026-05-21T13:32:16+03:30",
+      "current_unique_commits": 32,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/heads/jassm/moran-22",
+      "sha": "c49275ba1bb9df12fd0ad05d1d92f3e0454a172e",
+      "committer_date": "2026-05-20T17:34:22+03:30",
+      "current_unique_commits": 36,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-22",
+      "sha": "c49275ba1bb9df12fd0ad05d1d92f3e0454a172e",
+      "committer_date": "2026-05-20T17:34:22+03:30",
+      "current_unique_commits": 36,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-21",
+      "sha": "2dd18fb662942a24404fa5db894e463e90ab6501",
+      "committer_date": "2026-05-18T23:54:09+03:30",
+      "current_unique_commits": 39,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-20",
+      "sha": "4df12f5ec18e36486cf3ec10e03368d931651322",
+      "committer_date": "2026-05-17T15:50:48+03:30",
+      "current_unique_commits": 43,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-19",
+      "sha": "d08cc72ba72d89dfd046131d7afb3609595c18da",
+      "committer_date": "2026-05-15T01:10:38+03:30",
+      "current_unique_commits": 48,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-18",
+      "sha": "634b8bdcea0d759dee4e55c72a7063a004bb8c11",
+      "committer_date": "2026-05-04T21:53:49+03:30",
+      "current_unique_commits": 51,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-16",
+      "sha": "d92c7e605b2c9e61027ceb28de493a25c0669c8b",
+      "committer_date": "2026-04-26T10:49:14+03:30",
+      "current_unique_commits": 56,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-17",
+      "sha": "d92c7e605b2c9e61027ceb28de493a25c0669c8b",
+      "committer_date": "2026-04-26T10:49:14+03:30",
+      "current_unique_commits": 56,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-15",
+      "sha": "e83da2af9b6f6d3650d126e04ed43e0882cf34c5",
+      "committer_date": "2026-04-25T01:35:10+03:30",
+      "current_unique_commits": 57,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-14",
+      "sha": "0215ce03295ae76c048b69e11ced7e53b7731e51",
+      "committer_date": "2026-04-24T19:44:34+03:30",
+      "current_unique_commits": 59,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-13",
+      "sha": "217e34df2717dcd8655d3f30790912cb0ffb958f",
+      "committer_date": "2026-04-24T17:47:52+03:30",
+      "current_unique_commits": 60,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-11",
+      "sha": "6a83b3dd667cfde42ef267454e5c67d9975f5021",
+      "committer_date": "2026-04-24T01:53:17+03:30",
+      "current_unique_commits": 61,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-10",
+      "sha": "bcf6a70ae787fccaef45f4f9526b5ac36193759b",
+      "committer_date": "2026-04-23T22:08:25+03:30",
+      "current_unique_commits": 64,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-9",
+      "sha": "4d66799edd9ff6988f7917f37d80412fb3e3fe8a",
+      "committer_date": "2026-04-23T12:17:10+03:30",
+      "current_unique_commits": 65,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-6",
+      "sha": "a07f936c2abb147992b08e57906b4241644c0c70",
+      "committer_date": "2026-04-23T11:44:59+03:30",
+      "current_unique_commits": 66,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-8",
+      "sha": "52f12288240db21eb41ee3b83ecccbb2cba80ea9",
+      "committer_date": "2026-04-23T01:45:30+02:00",
+      "current_unique_commits": 67,
+      "branch_unique_commits": 3,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-7",
+      "sha": "821b6dc1dce35e2a8158e178bf2f3452c47a4a42",
+      "committer_date": "2026-04-23T01:59:33+03:30",
+      "current_unique_commits": 67,
+      "branch_unique_commits": 1,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-5",
+      "sha": "3ac2e1b8febcf7c64e39f0102cd520294769cf2a",
+      "committer_date": "2026-04-22T12:34:47+03:30",
+      "current_unique_commits": 68,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-4",
+      "sha": "b9124db9dffdc9e6d4c7c6c20b39b00aba95ae88",
+      "committer_date": "2026-04-22T00:01:19+03:30",
+      "current_unique_commits": 70,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-2",
+      "sha": "580e73152295878c63b7bfe3553b31d5740dc145",
+      "committer_date": "2026-04-21T20:54:17+02:00",
+      "current_unique_commits": 72,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran",
+      "sha": "699bf92b3ebbd465f8ff2933f9aaadb7f2238859",
+      "committer_date": "2026-04-20T00:45:03+03:30",
+      "current_unique_commits": 77,
+      "branch_unique_commits": 3,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/jassm/moran-1",
+      "sha": "dabf92d503432dc13d64faeeec61681bc9afcfc6",
+      "committer_date": "2026-04-18T19:24:13+03:30",
+      "current_unique_commits": 76,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm_simulation_robertson",
+      "sha": "f65c0ffb77cb9573a81e195bf0871b6851dc6893",
+      "committer_date": "2026-04-14T21:09:46+02:00",
+      "current_unique_commits": 81,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm_simulation_r",
+      "sha": "902844498a16bfa91c52c1507d13ab8c04879b1f",
+      "committer_date": "2026-04-11T17:04:19+03:30",
+      "current_unique_commits": 88,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/jassm_simulation",
+      "sha": "92b6d469121f036bc6462a32de020ea54c3a4856",
+      "committer_date": "2026-04-06T00:24:37+03:30",
+      "current_unique_commits": 91,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/sampling_measure_simulation_2",
+      "sha": "1f376e9fc1394feac1d02888b0ba0053fb48bceb",
+      "committer_date": "2026-03-15T13:08:17+03:30",
+      "current_unique_commits": 109,
+      "branch_unique_commits": 0,
+      "wholly_contained_in_current": true
+    },
+    {
+      "ref": "refs/remotes/origin/sampling-measure",
+      "sha": "9631163a588fe22e745795c13ea034e215b4700a",
+      "committer_date": "2026-02-28T13:41:47+01:00",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 156,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/simulations",
+      "sha": "b95d2c4c0a1e74ac3442f0ee3b1fe47a1c410989",
+      "committer_date": "2026-02-15T10:22:02+01:00",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 142,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/Genetic_Algorithm",
+      "sha": "4cec837ab1b618d967620ce1f2b7f1f5ec38aa53",
+      "committer_date": "2026-01-08T11:09:28+01:00",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 112,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/astar",
+      "sha": "142492e5f2ad8167f45657d183c6e2fdc4b078f7",
+      "committer_date": "2026-01-06T16:48:01+01:00",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 122,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/refactor",
+      "sha": "a7740f503df1eff6105f305e58acb37d39f78f2a",
+      "committer_date": "2025-11-29T08:20:06+01:00",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 136,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/balanced-try",
+      "sha": "826442b40164568d68b892bbf7b1aafaf9ae99db",
+      "committer_date": "2025-07-29T00:27:10+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 122,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/heads/backup-main-before-moran28",
+      "sha": "b2f1e675097b4b2a13c9a89336ad8f94e7fc64e4",
+      "committer_date": "2025-07-01T13:19:41+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 82,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/backup-main-before-moran28",
+      "sha": "b2f1e675097b4b2a13c9a89336ad8f94e7fc64e4",
+      "committer_date": "2025-07-01T13:19:41+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 82,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/dev",
+      "sha": "916f8ab2e3ab743770fafe174f6a9bce3dc88f26",
+      "committer_date": "2025-05-10T13:37:13+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 77,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/legacy-measure",
+      "sha": "a3be3ec905d739ee8804336fd9e3cb266c8657fa",
+      "committer_date": "2025-04-12T13:44:10+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 71,
+      "wholly_contained_in_current": false
+    },
+    {
+      "ref": "refs/remotes/origin/handy-soft-balance",
+      "sha": "09e5e8b0d0491d0dee4dafdacea29a3071ebaea3",
+      "committer_date": "2025-02-08T16:49:33+03:30",
+      "current_unique_commits": 110,
+      "branch_unique_commits": 47,
+      "wholly_contained_in_current": false
+    }
+  ],
+  "snapshot": "/tmp/gfs-main-readiness-agi6uo6f/snapshot",
+  "imported_package": "/tmp/gfs-main-readiness-agi6uo6f/snapshot/graphical_sampling/__init__.py",
+  "test_command": [
+    "/home/bardia/projects/graphical-sampling/.venv/bin/python",
+    "-m",
+    "pytest",
+    "tests",
+    "-q"
+  ],
+  "test_status": "complete",
+  "working_tree_status": "D simulations/jupyters/17_graphical_maxent_die.ipynb\n M simulations/results/graphical_maxent_die/die_game_segments_initial_vs_chaotic.pdf\n M simulations/results/graphical_maxent_die/die_game_segments_initial_vs_chaotic.png\n M simulations/results/graphical_maxent_die/finite_population_exchange_diagnostics.pdf\n M simulations/results/graphical_maxent_die/finite_population_maxent.pdf\n M simulations/results/graphical_maxent_die/finite_population_segments_madow_vs_exchanged_gfs.pdf\n M simulations/results/graphical_maxent_die/graphical_maxent_die_comparison.pdf\n M simulations/results/graphical_maxent_die/summary.csv\n?? DI_IPNM_NUMERICAL_CORRECTION_OUTPUTS_20261014.zip\n?? DI_N32_CAUSES_OUTPUTS_20261014_PARTIAL.zip\n?? DI_TSP_RESTARTS_OUTPUTS_20261014.zip\n?? DI_TSP_STABILITY_All_Outputs.zip\n?? DI_historical_implementation_audit_20261016/\n?? DI_reference_sensitivity_JSSAM/\n?? GFS_branch_readiness_20261016/\n?? HARD_CLUSTER_IP_BALANCE_20261014.zip\n?? di_approx_tsp_EP_R1C1_20261013/\n?? di_cancellation_extended_20261012/\n?? di_cancellation_focused_20261012/\n?? di_exact_tsp_R1C1_20261013/\n?? di_ipnm_numerical_correction_20261014/\n?? di_n32_causes_20261014/\n?? di_reference_quality_JSSAM_20261015/\n?? di_reference_sensitivity_R1C1_20261013/\n?? di_tsp_restarts_20261014/\n?? hard_cluster_ip_balance_20261014/\n?? simulations/di_cancellation_audit_20261012.py\n?? simulations/di_cancellation_experiment_20261012.py\n?? simulations/di_cancellation_report_20261012.py\n?? simulations/jupyters/17_graphical_maxent_die_CORRECTED.ipynb\n?? simulations/jupyters/19_exact_double_stratified_gfs.ipynb\n?? simulations/populations/store/MU284.csv\n?? simulations/results/di_cancellation_20261012/\n?? tests/test_exact_double_stratified_gfs_notebook.py",
+  "note": "Committed snapshot excludes local untracked tests/studies. Snapshot research suites are not run. Package tests include the existing reduced MaxEnt notebook contract; no original Monte Carlo or DI480 evaluation is run.",
+  "test_exit_code": 0,
+  "remote_main_reference_unchanged": true,
+  "local_main_SHA": "dc2881af84a41e4f7658b6d21401e58470871b55"
+}

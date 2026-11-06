@@ -1,0 +1,948 @@
+Git 247d9422e390d1a163a25df802523429308da286:graphical_sampling/clustering/ip_balanced_ot_nmeans.py
+L0001 import warnings
+L0002 from typing import Literal
+L0003 
+L0004 import numpy as np
+L0005 import matplotlib.pyplot as plt
+L0006 from matplotlib.patches import Polygon
+L0007 from scipy.spatial import ConvexHull, QhullError
+L0008 from scipy.spatial.distance import cdist, pdist, squareform
+L0009 from scipy.spatial import cKDTree
+L0010 from scipy.special import logsumexp
+L0011 from sklearn.cluster import KMeans
+L0012 from numba import jit
+L0013 from joblib import Parallel, delayed
+L0014 
+L0015 from ..population import Population
+L0016 from ..order import Cluster, Zone, Floor, Ceil
+L0017 
+L0018 
+L0019 @jit(nopython=True)
+L0020 def _greedy_jitter_numba(D, n, start_node):
+L0021     """
+L0022     Greedy Nearest Neighbor with minimal probabilistic noise (Jitter).
+L0023     """
+L0024     path = np.empty(n, dtype=np.int32)
+L0025     visited = np.zeros(n, dtype=np.bool_)
+L0026 
+L0027     curr = start_node
+L0028     path[0] = curr
+L0029     visited[curr] = True
+L0030 
+L0031     for i in range(1, n):
+L0032         # Copy row to avoid modifying original matrix
+L0033         # Note: In Numba, row slicing D[curr] is a view, so we copy.
+L0034         dists = D[curr].copy()
+L0035 
+L0036         # Mark visited as infinity
+L0037         for v_idx in range(n):
+L0038             if visited[v_idx]:
+L0039                 dists[v_idx] = np.inf
+L0040 
+L0041         # PROBABILISTIC TRICK:
+L0042         # Instead of sorting to find top 3 (slow), we multiply unvisited
+L0043         # distances by a random factor between 0.9 and 1.1.
+L0044         # This sometimes makes the 2nd or 3rd closest look like the closest.
+L0045         # It preserves the "structure" of the data while adding variety.
+L0046         noise = np.random.rand(n) * 0.2 + 0.9 # Range [0.9, 1.1]
+L0047         dists *= noise
+L0048 
+L0049         nxt = np.argmin(dists)
+L0050 
+L0051         path[i] = nxt
+L0052         visited[nxt] = True
+L0053         curr = nxt
+L0054 
+L0055     return path
+L0056 
+L0057 
+L0058 @jit(nopython=True)
+L0059 def _two_opt_open_numba(D, path, n):
+L0060     """
+L0061     Optimizes Open Path.
+L0062     Can flip ANY segment, including the start and end nodes relative to the path structure.
+L0063     (Note: In Open TSP, rotating the array doesn't change length, but reversing inner segments does).
+L0064     """
+L0065     improved = True
+L0066     while improved:
+L0067         improved = False
+L0068         for i in range(1, n - 2):
+L0069             for j in range(i + 1, n - 1):
+L0070                 if D[path[i-1], path[j]] + D[path[i], path[j+1]] < \
+L0071                    D[path[i-1], path[i]] + D[path[j], path[j+1]]:
+L0072                     path[i:j+1] = path[i:j+1][::-1]
+L0073                     improved = True
+L0074 
+L0075 
+L0076 class _OpenTSPSolver:
+L0077     def solve(self, points: np.ndarray, restarts: int = 15) -> np.ndarray:
+L0078         """
+L0079         Finds the best OPEN path (Start -> End) by trying multiple random start nodes.
+L0080 
+L0081         Args:
+L0082             points: (N, 2) array of coordinates.
+L0083             restarts: Number of random start nodes to try.
+L0084                       Higher = better quality, linearly more time.
+L0085                       For N < 1000, 20 restarts is near-instant.
+L0086         """
+L0087         n = len(points)
+L0088         if n < 3:
+L0089             return np.arange(n)
+L0090 
+L0091         # For very large N, fallback to KD-Tree (Safe Mode)
+L0092         if n >= 5000:
+L0093             return self._solve_large_safe(points, n)
+L0094 
+L0095         # For N < 5000: Use Numba-accelerated Multi-Start
+L0096         return self._solve_numba_accelerated(points, n, restarts)
+L0097 
+L0098     def _solve_numba_accelerated(self, points, n, restarts):
+L0099         # 1. Precompute Distance Matrix (Heavy lifting done once)
+L0100         D = squareform(pdist(points))
+L0101 
+L0102         # 2. Run the heavy logic in Numba
+L0103         # We pass the matrix and let the JIT function handle the looping.
+L0104         best_path = self._run_multi_start_numba(D, n, restarts)
+L0105 
+L0106         return best_path
+L0107 
+L0108     @staticmethod
+L0109     @jit(nopython=True)
+L0110     def _run_multi_start_numba(D, n, restarts):
+L0111         """
+L0112         Runs the full pipeline (Greedy + 2-Opt) 'restarts' times.
+L0113         Fully Compiled = Blazing Fast.
+L0114         """
+L0115         best_path = np.empty(n, dtype=np.int32) # Placeholder
+L0116         best_dist = np.inf
+L0117 
+L0118         # We will try different random starts
+L0119         for i in range(restarts):
+L0120 
+L0121             # --- 1. Randomized Start & Construction ---
+L0122             # Pick a random start node
+L0123             start_node = np.random.randint(0, n)
+L0124 
+L0125             # Build path with "Jitter" (Probabilistic Greedy)
+L0126             # We add slight noise to distances to simulate picking from "top k"
+L0127             # without the expensive sorting cost.
+L0128             current_path = _greedy_jitter_numba(D, n, start_node)
+L0129 
+L0130             # --- 2. 2-Opt Optimization ---
+L0131             _two_opt_open_numba(D, current_path, n)
+L0132 
+L0133             # --- 3. Evaluate ---
+L0134             current_dist = 0.0
+L0135             for k in range(n - 1):
+L0136                 current_dist += D[current_path[k], current_path[k+1]]
+L0137 
+L0138             if current_dist < best_dist:
+L0139                 best_dist = current_dist
+L0140                 best_path = current_path.copy()
+L0141 
+L0142         return best_path
+L0143 
+L0144     @staticmethod
+L0145     def _solve_large_safe(points, n):
+L0146         # (Legacy KD-Tree implementation for N > 5000)
+L0147         tree = cKDTree(points)
+L0148         visited = np.zeros(n, dtype=bool)
+L0149         path = np.zeros(n, dtype=np.int32)
+L0150         current_idx = 0
+L0151         path[0] = 0
+L0152         visited[0] = True
+L0153         k_search = 10
+L0154         for i in range(1, n):
+L0155             found = False
+L0156             while not found:
+L0157                 dists, indices = tree.query(points[current_idx], k=min(n, k_search))
+L0158                 if np.ndim(indices) == 0:
+L0159                     indices = [indices]
+L0160                 for idx in indices:
+L0161                     if not visited[idx]:
+L0162                         current_idx = idx
+L0163                         found = True
+L0164                         break
+L0165                 if not found:
+L0166                     k_search *= 2
+L0167                     if k_search >= n:
+L0168                         remaining = np.where(~visited)[0]
+L0169                         if len(remaining) > 0:
+L0170                             current_idx = remaining[0]
+L0171                             found = True
+L0172                         else:
+L0173                             break
+L0174             path[i] = current_idx
+L0175             visited[current_idx] = True
+L0176             if k_search > 50:
+L0177                 k_search = 10
+L0178         return path
+L0179 
+L0180 
+L0181 class _Clustering:
+L0182     def __init__(
+L0183         self,
+L0184         n_clusters: int,
+L0185         epsilon: float = 0.05,
+L0186         max_iter: int = 50,
+L0187         sinkhorn_iter: int =50,
+L0188         tol: float = 1e-4,
+L0189         n_init: int = 5,
+L0190         random_state: int | None = None,
+L0191         n_jobs: int = -1
+L0192     ):
+L0193         self.K = n_clusters
+L0194         self.epsilon = epsilon
+L0195         self.max_iter = max_iter
+L0196         self.sinkhorn_iter = sinkhorn_iter
+L0197         self.tol = tol
+L0198         self.n_init = n_init
+L0199         self.random_state = random_state
+L0200         self.n_jobs = n_jobs
+L0201 
+L0202         self.membership: np.ndarray | None = None
+L0203         self.labels: np.ndarray | None = None
+L0204         self.centroids: np.ndarray | None = None
+L0205         self.objective: float | None = None
+L0206 
+L0207     @staticmethod
+L0208     def _compute_distances(coords: np.ndarray, centroids: np.ndarray) -> np.ndarray:
+L0209         return cdist(coords, centroids, metric='sqeuclidean')
+L0210 
+L0211     def _weighted_kmeans_pp(
+L0212             self, coords: np.ndarray, inclusions: np.ndarray, rng: np.random.Generator
+L0213     ) -> np.ndarray:
+L0214         N, D = coords.shape
+L0215         K = self.K
+L0216 
+L0217         centers = np.empty((K, D))
+L0218 
+L0219         idx = rng.integers(N)
+L0220         centers[0] = coords[idx]
+L0221 
+L0222         closest_dist = np.sum((coords - centers[0]) ** 2, axis=1)
+L0223 
+L0224         for k in range(1, K):
+L0225             probs = inclusions * closest_dist
+L0226             probs /= probs.sum()
+L0227 
+L0228             idx = rng.choice(N, p=probs)
+L0229             centers[k] = coords[idx]
+L0230 
+L0231             new_dist = np.sum((coords - centers[k]) ** 2, axis=1)
+L0232             closest_dist = np.minimum(closest_dist, new_dist)
+L0233 
+L0234         return centers
+L0235 
+L0236     def _sinkhorn_log(self, C, pi, b, f, g):
+L0237 
+L0238         eps = self.epsilon
+L0239 
+L0240         for _ in range(self.sinkhorn_iter):
+L0241 
+L0242             tmp = (g[None, :] - C) / eps
+L0243             f = eps * (np.log(pi) - logsumexp(tmp, axis=1))
+L0244 
+L0245             tmp = (f[:, None] - C) / eps
+L0246             g = eps * (np.log(b) - logsumexp(tmp, axis=0))
+L0247 
+L0248         return f, g
+L0249 
+L0250     def _hard_objective(self, labels: np.ndarray, inclusion: np.ndarray) -> float:
+L0251         sums = np.bincount(labels, weights=inclusion, minlength=self.K)
+L0252         return np.sum((sums - 1) ** 2)
+L0253 
+L0254     def _fit_single(self, coords: np.ndarray, inclusion: np.ndarray, rng: np.random.Generator,
+L0255                     init_centroids: np.ndarray | None = None):
+L0256         N, D = coords.shape
+L0257         K = self.K
+L0258         b = np.ones(K)
+L0259 
+L0260         if init_centroids is not None:
+L0261             assert init_centroids.shape == (K, D), "init_centroids shape must be (n_clusters, n_features)"
+L0262             centroids = init_centroids.copy()
+L0263         else:
+L0264             centroids = self._weighted_kmeans_pp(coords, inclusion, rng)
+L0265 
+L0266         f = np.zeros(N)
+L0267         g = np.zeros(K)
+L0268 
+L0269         for _ in range(self.max_iter):
+L0270             C = self._compute_distances(coords, centroids)
+L0271             C = C / (np.median(C) + 1e-12)
+L0272 
+L0273             f, g = self._sinkhorn_log(C, inclusion, b, f, g)
+L0274             P = np.exp((f[:, None] + g[None, :] - C) / self.epsilon)
+L0275 
+L0276             new_centroids = P.T @ coords
+L0277             shift = np.linalg.norm(new_centroids - centroids)
+L0278 
+L0279             centroids = new_centroids
+L0280             if shift < self.tol:
+L0281                 break
+L0282 
+L0283         R = P / inclusion[:, None]
+L0284         labels = np.argmax(R, axis=1)
+L0285         obj = self._hard_objective(labels, inclusion)
+L0286 
+L0287         return centroids, R, labels, obj
+L0288 
+L0289     def fit(
+L0290         self,
+L0291         coords: np.ndarray,
+L0292         inclusions: np.ndarray,
+L0293         init_centroids: np.ndarray | None = None,
+L0294     ) -> _Clustering:
+L0295 
+L0296         n_runs = 1 if init_centroids is not None else self.n_init
+L0297 
+L0298         # independent RNG seeds for reproducibility
+L0299         seed_rng = np.random.default_rng(self.random_state)
+L0300         seeds = seed_rng.integers(0, np.iinfo(np.int32).max, size=n_runs)
+L0301 
+L0302         def _run(seed):
+L0303             rng = np.random.default_rng(seed)
+L0304 
+L0305             return self._fit_single(
+L0306                 coords,
+L0307                 inclusions,
+L0308                 rng,
+L0309                 init_centroids=init_centroids,
+L0310             )
+L0311 
+L0312         results = Parallel(n_jobs=self.n_jobs)(
+L0313             delayed(_run)(seed)
+L0314             for seed in seeds
+L0315         )
+L0316 
+L0317         best_centroids = None
+L0318         best_R = None
+L0319         best_labels = None
+L0320         best_obj = np.inf
+L0321 
+L0322         for centroids, R, labels, obj in results:
+L0323             if obj < best_obj:
+L0324                 best_obj = obj
+L0325                 best_centroids = centroids
+L0326                 best_R = R
+L0327                 best_labels = labels
+L0328 
+L0329         self.centroids = best_centroids
+L0330         self.membership = best_R
+L0331         self.labels = best_labels
+L0332         self.objective = best_obj
+L0333 
+L0334         return self
+L0335 
+L0336 
+L0337 class IPBalancedOTNMeans:
+L0338     def __init__(
+L0339             self,
+L0340             n: int,
+L0341             n_init: int = 5,
+L0342             epsilon: float = 0.01,
+L0343             max_iter: int = 50,
+L0344             sinkhorn_iter: int = 50,
+L0345             tol=1e-4,
+L0346             n_jobs=-1,
+L0347     ) -> None:
+L0348         self.n = n
+L0349         self.pop: Population | None = None
+L0350         self.labels: np.ndarray | None = None
+L0351         self.centroids: np.ndarray | None = None
+L0352         self.path_order: np.ndarray | None = None
+L0353         self.membership: np.ndarray | None = None
+L0354         self.clusters: list[Cluster] = []
+L0355         self.tsp_solver = _OpenTSPSolver()
+L0356 
+L0357         self.n_init = n_init
+L0358         self.epsilon = epsilon
+L0359         self.max_iter = max_iter
+L0360         self.sinkhorn_iter = sinkhorn_iter
+L0361         self.tol = tol
+L0362         self.n_jobs = n_jobs
+L0363 
+L0364     def fit(self, population: Population, init_centroids: np.ndarray | None = None) -> None:
+L0365         self.pop = population
+L0366         coords = population.coords
+L0367         inclusions = population.inclusions
+L0368         N = len(coords)
+L0369 
+L0370         # 1. Initial Clustering
+L0371         raw_labels, raw_centroids = self._get_labels_centroids_ot_kmeans(coords, inclusions, init_centroids)
+L0372 
+L0373         # 2. TSP Ordering
+L0374         # returns a linear path [Start -> ... -> End]
+L0375         self.path_order = self.tsp_solver.solve(raw_centroids)
+L0376 
+L0377         # 3. Exact Balanced Clusters
+L0378         self.clusters = self._generate_exact_clusters(
+L0379             self.path_order, raw_labels, coords, inclusions, population.indices
+L0380         )
+L0381 
+L0382         # 4. Finalize Outputs
+L0383         self.membership = self._generate_membership(self.clusters, N, population.indices)
+L0384         self.labels = np.argmax(self.membership, axis=1)
+L0385 
+L0386         # Recalculate centroids based on final hard labels
+L0387         self.centroids = np.array([
+L0388             coords[self.labels == i].mean(axis=0) if np.any(self.labels == i)
+L0389             else np.zeros(coords.shape[1]) for i in range(self.n)
+L0390         ])
+L0391 
+L0392     def fit_zones(self, num_zones: int | tuple[int, int], mode: Literal['cluster', 'sweep_xy', 'sweep_yx']) -> None:
+L0393         """
+L0394         Splits each existing cluster's pop into `num_partitions` sub-zones.
+L0395         'num_partitions' should be int in case of 'cluster' mode. in case of 'sweep_xy' or 'sweep_yx' mode,
+L0396         it can be a tuple with first indicating number of zones in x-axis and second indicating number of zones in
+L0397         y-axis. if it is an int then will be interpreted as (num_partitions, num_partitions).
+L0398         """
+L0399         if self.clusters is None:
+L0400             raise ValueError("The main clusters have not been fitted yet. Call .fit() first.")
+L0401 
+L0402         for i, cluster in enumerate(self.clusters):
+L0403             # Create subpopulation subset using your sharing logic
+L0404             sp = self.pop.subset(cluster.zones[0].indices)
+L0405 
+L0406             if isinstance(num_zones, tuple) and mode == 'cluster':
+L0407                 raise ValueError(f"num_partitions must be a 'int' in the mode of cluster, not {type(num_zones)}")
+L0408             elif isinstance(num_zones, int) and mode != 'cluster':
+L0409                 num_zones = (num_zones, num_zones)
+L0410 
+L0411             # Replace the parent's single zone with the new partitioned zones
+L0412             if mode == 'cluster':
+L0413                 self.clusters[i].zones = self._get_zones_from_fbn(sp, num_zones)
+L0414             elif mode == 'sweep_xy':
+L0415                 self.clusters[i].zones = self._get_zones_from_sweeping(sp, num_zones, x_first=True)
+L0416             elif mode == 'sweep_yx':
+L0417                 self.clusters[i].zones = self._get_zones_from_sweeping(sp, num_zones, x_first=False)
+L0418             else:
+L0419                 raise ValueError(f"Unknown mode '{mode}'. Must be 'cluster' or 'sweep'.")
+L0420 
+L0421     def _get_labels_centroids_ot_kmeans(
+L0422             self,
+L0423             coords: np.ndarray,
+L0424             inclusions: np.ndarray,
+L0425             init_centroids: np.ndarray | None = None,
+L0426     ) -> tuple[np.ndarray, np.ndarray]:
+L0427         clustering = _Clustering(
+L0428             n_clusters=self.n,
+L0429             epsilon=self.epsilon,
+L0430             max_iter=self.max_iter,
+L0431             sinkhorn_iter=self.sinkhorn_iter,
+L0432             tol=self.tol,
+L0433             n_init=self.n_init,
+L0434             n_jobs=self.n_jobs
+L0435         )
+L0436         clustering.fit(coords, inclusions, init_centroids)
+L0437         return clustering.labels, clustering.centroids
+L0438 
+L0439     def _get_zones_from_fbn(self, subpopulation: Population, num_zones: int) -> list[Zone]:
+L0440         zones_fbn = IPBalancedOTNMeans(
+L0441             n=num_zones,
+L0442             n_init=self.n_init,
+L0443             tol=self.tol,
+L0444             max_iter=self.max_iter
+L0445         )
+L0446         zones_fbn.fit(subpopulation)
+L0447 
+L0448         zones = []
+L0449         for zone in zones_fbn.clusters:
+L0450             sc_indices = []
+L0451             sc_shares = []
+L0452 
+L0453             if zone.floor.index != -1:
+L0454                 sc_indices.append(zone.floor.index)
+L0455                 sc_shares.append(zone.floor.percentage)
+L0456 
+L0457             for z in zone.zones:
+L0458                 for idx, share in zip(z.indices, z.shares):
+L0459                     sc_indices.append(idx)
+L0460                     sc_shares.append(share)
+L0461             if zone.ceil.index != -1:
+L0462                 sc_indices.append(zone.ceil.index)
+L0463                 sc_shares.append(zone.ceil.percentage)
+L0464 
+L0465             zones.append(
+L0466                 Zone(
+L0467                     _indices=np.array(sc_indices),
+L0468                     _shares=np.array(sc_shares),
+L0469                     sort=np.arange(len(sc_indices)).tolist()
+L0470                 )
+L0471             )
+L0472 
+L0473         return zones
+L0474 
+L0475     @staticmethod
+L0476     def _get_zones_indices_share(
+L0477             num_zones: int,
+L0478             indices: np.ndarray,
+L0479             shares: np.ndarray,
+L0480             probs: np.ndarray
+L0481     ) -> list[tuple[np.ndarray, np.ndarray]]:
+L0482         cum_probs = np.cumsum(probs)
+L0483         total_mass = cum_probs[-1]
+L0484         target_mass = total_mass / num_zones
+L0485         thresholds = np.arange(1, num_zones) * target_mass
+L0486         split_indices = np.array(np.searchsorted(cum_probs, thresholds, side='left'))
+L0487 
+L0488         zones = []
+L0489         start_idx = 0
+L0490         split_idx = -1
+L0491         prev_border_remainder = 0.0
+L0492         prev_border_idx = -1
+L0493 
+L0494         for i in range(num_zones):
+L0495             if i < num_zones - 1:
+L0496                 split_idx = split_indices[i]
+L0497 
+L0498                 mass_at_split = cum_probs[split_idx]
+L0499                 mass_before = mass_at_split - probs[split_idx]
+L0500                 needed = thresholds[i] - mass_before
+L0501                 available = probs[split_idx]
+L0502 
+L0503                 frac_curr = np.clip(needed / available, 0.0, 1.0)
+L0504 
+L0505                 curr_border_idx = indices[split_idx]
+L0506                 end_idx = split_idx
+L0507             else:
+L0508                 end_idx = len(indices)
+L0509                 frac_curr = 0.0
+L0510                 curr_border_idx = -1
+L0511 
+L0512             free_ids = indices[start_idx: end_idx]
+L0513             floor_id = prev_border_idx
+L0514             floor_share = prev_border_remainder
+L0515             ceil_id = curr_border_idx
+L0516             ceil_share = frac_curr
+L0517 
+L0518             zone_indices = []
+L0519             zone_share = []
+L0520             if floor_id != -1:
+L0521                 zone_indices.append(floor_id)
+L0522                 zone_share.append(floor_share)
+L0523             zone_indices.extend(free_ids.tolist())
+L0524             zone_share.extend(np.ones_like(free_ids).tolist())
+L0525             if ceil_id != -1:
+L0526                 zone_indices.append(ceil_id)
+L0527                 zone_share.append(ceil_share)
+L0528             zones.append((np.array(zone_indices), np.array(zone_share) * shares[zone_indices]))
+L0529 
+L0530             start_idx = split_idx + 1
+L0531             if curr_border_idx != -1:
+L0532                 prev_border_idx = curr_border_idx
+L0533                 prev_border_remainder = 1.0 - frac_curr
+L0534                 if np.isclose(frac_curr, 1.0):
+L0535                     prev_border_remainder = 0.0
+L0536                     prev_border_idx = -1
+L0537             else:
+L0538                 prev_border_idx = -1
+L0539                 prev_border_remainder = 0.0
+L0540 
+L0541         return zones
+L0542 
+L0543 
+L0544     def _get_zones_from_sweeping(
+L0545             self, sp: Population, num_zones: tuple[int, int], x_first: bool
+L0546     ) -> list[Zone]:
+L0547         sort = np.argsort(sp.coords[:, 0]) if x_first else np.argsort(sp.coords[:, 1])
+L0548 
+L0549         initial_zones = self._get_zones_indices_share(
+L0550             num_zones=num_zones[0] if x_first else num_zones[1],
+L0551             indices=sort,
+L0552             shares=np.ones(len(sort)),
+L0553             probs=sp.inclusions[sort],
+L0554         )
+L0555         final_zones = []
+L0556         for zone_indices, zone_share in initial_zones:
+L0557             sort = np.argsort(sp.coords[zone_indices][:, 1]) if x_first else np.argsort(sp.coords[zone_indices][:, 0])
+L0558             secondary_zones = self._get_zones_indices_share(
+L0559                 num_zones=num_zones[1] if x_first else num_zones[0],
+L0560                 indices=sort,
+L0561                 shares=zone_share,
+L0562                 probs=sp.inclusions[zone_indices][sort] * zone_share[sort],
+L0563             )
+L0564             for sec_zone_indices, sec_zone_share in secondary_zones:
+L0565                 final_zones.append(
+L0566                     Zone(
+L0567                         _indices=sp.indices[zone_indices][sec_zone_indices],
+L0568                         _shares=sec_zone_share,
+L0569                         sort=np.arange(len(sec_zone_share)).tolist(),
+L0570                     )
+L0571                 )
+L0572         return final_zones
+L0573 
+L0574     def _get_labels_centroids(
+L0575             self,
+L0576             coords: np.ndarray,
+L0577             probs: np.ndarray,
+L0578             init_centroids: np.ndarray | None = None,
+L0579     ) -> tuple[np.ndarray, np.ndarray]:
+L0580         with warnings.catch_warnings():
+L0581             warnings.filterwarnings("ignore", message=".*divide by zero.*")
+L0582             warnings.filterwarnings("ignore", message=".*overflow.*")
+L0583             warnings.filterwarnings("ignore", message=".*invalid value.*")
+L0584 
+L0585             probs_normalized = probs / probs.sum() * len(coords)
+L0586 
+L0587             if init_centroids is not None:
+L0588                 k_means = KMeans(
+L0589                     n_clusters=self.n,
+L0590                     init=init_centroids,
+L0591                     tol=self.tol,
+L0592                     max_iter=self.max_iter
+L0593                 )
+L0594                 labels = k_means.fit_predict(coords, sample_weight=probs_normalized)
+L0595                 centroids = k_means.cluster_centers_
+L0596                 return labels, centroids
+L0597 
+L0598             best_error = np.inf
+L0599             best_labels = None
+L0600             best_centroids = None
+L0601 
+L0602             for _ in range(self.n_init):
+L0603                 k_means = KMeans(n_clusters=self.n, n_init=1, tol=self.tol, max_iter=self.max_iter)
+L0604                 raw_labels = k_means.fit_predict(coords, sample_weight=probs_normalized)
+L0605                 raw_centroids = k_means.cluster_centers_
+L0606 
+L0607                 sums = np.array([probs[raw_labels == i].sum() for i in range(self.n)])
+L0608                 mean_abs_error = np.abs(sums - 1).sum()
+L0609 
+L0610                 if mean_abs_error < best_error:
+L0611                     best_error = mean_abs_error
+L0612                     best_labels = raw_labels
+L0613                     best_centroids = raw_centroids
+L0614 
+L0615             return best_labels, best_centroids
+L0616 
+L0617     def _generate_exact_clusters(
+L0618             self, order: np.ndarray, labels: np.ndarray,
+L0619             coords: np.ndarray, probs: np.ndarray, pop_indices: np.ndarray
+L0620     ) -> list[Cluster]:
+L0621 
+L0622         # Group indices by label
+L0623         clusters_idx = {lab: np.flatnonzero(labels == lab) for lab in order}
+L0624         mega_indices = []
+L0625 
+L0626         # Inter-Cluster Sorting
+L0627         for i, lab in enumerate(order):
+L0628             curr_idx = clusters_idx.get(lab, np.array([], dtype=int))
+L0629             if curr_idx.size == 0:
+L0630                 continue
+L0631 
+L0632             key = np.zeros(len(curr_idx))
+L0633 
+L0634             # Distance to PREV cluster
+L0635             if i > 0:
+L0636                 prev_idx = clusters_idx.get(order[i - 1], np.array([], dtype=int))
+L0637                 if prev_idx.size > 0:
+L0638                     d_prev = cdist(coords[curr_idx], coords[prev_idx]).min(axis=1)
+L0639                     key += d_prev
+L0640 
+L0641             # Distance to NEXT cluster
+L0642             if i < self.n - 1:
+L0643                 next_idx = clusters_idx.get(order[i + 1], np.array([], dtype=int))
+L0644                 if next_idx.size > 0:
+L0645                     d_next = cdist(coords[curr_idx], coords[next_idx]).min(axis=1)
+L0646                     key -= d_next
+L0647 
+L0648             # Sort locally: low key -> close to prev; high key -> close to next
+L0649             mega_indices.append(curr_idx[np.argsort(key)])
+L0650 
+L0651         if not mega_indices:
+L0652             return []
+L0653         full_indices = np.concatenate(mega_indices)
+L0654 
+L0655         # Exact Mass Splitting (Quota)
+L0656         ordered_probs = probs[full_indices]
+L0657         cum_probs = np.cumsum(ordered_probs)
+L0658         total_mass = cum_probs[-1]
+L0659         target_mass = total_mass / self.n
+L0660         thresholds = np.arange(1, self.n) * target_mass
+L0661 
+L0662         # Find split points
+L0663         split_indices = np.array(np.searchsorted(cum_probs, thresholds, side='left'))
+L0664 
+L0665         final_clusters = []
+L0666         start_idx = 0
+L0667         split_idx = -1
+L0668         prev_border_remainder = 0.0
+L0669         prev_border_idx = -1
+L0670 
+L0671         for i in range(self.n):
+L0672             # Determine boundaries and fractional border ownership
+L0673             if i < self.n - 1:
+L0674                 split_idx = split_indices[i]
+L0675 
+L0676                 mass_at_split = cum_probs[split_idx]
+L0677                 mass_before = mass_at_split - ordered_probs[split_idx]
+L0678                 needed = thresholds[i] - mass_before
+L0679                 available = ordered_probs[split_idx]
+L0680 
+L0681                 frac_curr = np.clip(needed / available, 0.0, 1.0)
+L0682 
+L0683                 curr_border_idx = full_indices[split_idx]
+L0684                 end_idx = split_idx
+L0685             else:
+L0686                 end_idx = len(full_indices)
+L0687                 frac_curr = 0.0
+L0688                 curr_border_idx = -1
+L0689 
+L0690             # Extract free indices
+L0691             free_indices = full_indices[start_idx: end_idx]
+L0692 
+L0693             # Convert internal indices to pop indices
+L0694             free_ids = pop_indices[free_indices] if pop_indices is not None else free_indices
+L0695             floor_id = pop_indices[prev_border_idx] if (
+L0696                         pop_indices is not None and prev_border_idx != -1) else prev_border_idx
+L0697             ceil_id = pop_indices[curr_border_idx] if (
+L0698                         pop_indices is not None and curr_border_idx != -1) else curr_border_idx
+L0699 
+L0700             final_clusters.append(
+L0701                 Cluster(
+L0702                     label=int(order[i]),
+L0703                     zones=[
+L0704                         Zone(_indices=free_ids, _shares=np.ones_like(free_ids), sort=np.arange(len(free_ids)).tolist())
+L0705                     ],
+L0706                     floor=Floor(index=int(floor_id), percentage=float(prev_border_remainder)),
+L0707                     ceil=Ceil(index=int(ceil_id), percentage=float(frac_curr))
+L0708                 )
+L0709             )
+L0710 
+L0711             # Setup for next iteration
+L0712             start_idx = split_idx + 1
+L0713             if curr_border_idx != -1:
+L0714                 prev_border_idx = curr_border_idx
+L0715                 prev_border_remainder = 1.0 - frac_curr
+L0716                 # If the split consumed the point exactly, reset
+L0717                 if np.isclose(frac_curr, 1.0):
+L0718                     prev_border_remainder = 0.0
+L0719                     prev_border_idx = -1
+L0720             else:
+L0721                 prev_border_idx = -1
+L0722                 prev_border_remainder = 0.0
+L0723 
+L0724         return final_clusters
+L0725 
+L0726     def _generate_membership(self, clusters: list[Cluster], N: int,
+L0727                              pop_indices: np.ndarray | None = None) -> np.ndarray:
+L0728         membership = np.zeros((N, self.n), dtype=float)
+L0729 
+L0730         # If we are working on a subset, the clusters store global indices.
+L0731         # We must reverse-map them to local indices (0 to N-1) to safely build this array.
+L0732         if pop_indices is not None:
+L0733             g2l = {global_idx: local_idx for local_idx, global_idx in enumerate(pop_indices)}
+L0734 
+L0735             for cluster in clusters:
+L0736                 for zone in cluster.zones:
+L0737                     if len(zone.indices) > 0:
+L0738                         local_ids = [g2l[i] for i in zone.indices]
+L0739                         membership[local_ids, cluster.label] = 1.0
+L0740                 if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
+L0741                     membership[g2l[cluster.floor.index], cluster.label] += cluster.floor.percentage
+L0742                 if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
+L0743                     membership[g2l[cluster.ceil.index], cluster.label] += cluster.ceil.percentage
+L0744         else:
+L0745             # Standard execution for the main pop (no mapping needed)
+L0746             for cluster in clusters:
+L0747                 for zone in cluster.zones:
+L0748                     if len(zone.indices) > 0:
+L0749                         membership[zone.indices, cluster.label] = 1.0
+L0750                 if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
+L0751                     membership[cluster.floor.index, cluster.label] += cluster.floor.percentage
+L0752                 if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
+L0753                     membership[cluster.ceil.index, cluster.label] += cluster.ceil.percentage
+L0754 
+L0755         return membership
+L0756 
+L0757     def plot(
+L0758             self,
+L0759             mode: Literal['soft', 'hard'],
+L0760             ax: plt.Axes | None = None,
+L0761             background_gdf=None,
+L0762             show_centroids: bool = False,
+L0763             connect_centroids: bool = False,
+L0764             size_scale: float = 1000.0,
+L0765             figsize: tuple[int, int] = (8, 6),
+L0766             dpi: int = 100,
+L0767             show_zone_sub_hulls: bool = True,
+L0768             show_zone_labels: bool = True
+L0769     ) -> plt.Axes:
+L0770 
+L0771         def _draw_hull(points: np.ndarray, color: str, alpha: float, edge_color: str, lw: float):
+L0772             if points.shape[0] < 3:
+L0773                 return None
+L0774             try:
+L0775                 hull = ConvexHull(points)
+L0776                 vertices = points[hull.vertices]
+L0777             except (QhullError, ValueError):
+L0778                 return None
+L0779             ax.add_patch(Polygon(vertices, closed=True, facecolor=color, alpha=alpha,
+L0780                                  edgecolor=edge_color, lw=lw, zorder=1))
+L0781             return vertices.mean(axis=0)
+L0782 
+L0783         def _draw_zone_centroid_label(points: np.ndarray, label: int):
+L0784             if points.shape[0] == 0:
+L0785                 return
+L0786             # Use geometric mean of all points in the zone
+L0787             centroid = points.mean(axis=0)
+L0788             ax.text(centroid[0], centroid[1], str(label+1),
+L0789                     size=20, weight='bold', color='black',
+L0790                     horizontalalignment='center', verticalalignment='center', zorder=10)
+L0791 
+L0792         if ax is None:
+L0793             _, ax = plt.subplots(figsize=figsize, dpi=dpi)
+L0794 
+L0795         if background_gdf is not None:
+L0796             background_gdf.plot(ax=ax, color="white", edgecolor="black", linewidth=1.5, zorder=0)
+L0797 
+L0798         # Structure data list (adjusted to handle zones)
+L0799         formatted_cluster_data = []
+L0800 
+L0801         if mode == 'hard':
+L0802             if self.labels is None:
+L0803                 raise ValueError("Model not fitted yet.")
+L0804             for i in range(self.n):
+L0805                 idx = np.where(self.labels == i)[0]
+L0806                 formatted_cluster_data.append({
+L0807                     'parent_color': None,  # assigned later
+L0808                     'free_points': {'indices': idx, 'shares': np.ones(len(idx), dtype=float)},
+L0809                     'border_points': {'indices': np.array([], dtype=int), 'shares': np.array([], dtype=float)},
+L0810                     'zones': []
+L0811                 })
+L0812         else:
+L0813             if self.clusters is None:
+L0814                 raise ValueError("Model not fitted yet.")
+L0815             for cluster in self.clusters:
+L0816                 # 1. Identify "Internal" (free) points of the parent cluster
+L0817                 # In your fit_zones logic, these are the original IDs minus parent borders.
+L0818                 zone_ids = [idx for z in cluster.zones for idx in z.indices]
+L0819                 free_ids = np.array(zone_ids, dtype=int)
+L0820 
+L0821                 # 2. Extract border info (remains untouched by zones)
+L0822                 border_indices = []
+L0823                 border_shares = []
+L0824                 if cluster.floor.index != -1 and cluster.floor.percentage > 1e-9:
+L0825                     border_indices.append(cluster.floor.index)
+L0826                     border_shares.append(cluster.floor.percentage)
+L0827                 if cluster.ceil.index != -1 and cluster.ceil.percentage > 1e-9:
+L0828                     border_indices.append(cluster.ceil.index)
+L0829                     border_shares.append(cluster.ceil.percentage)
+L0830 
+L0831                 # 3. Handle specific zone-level points (subpopulation indices)
+L0832                 zones_list = []
+L0833                 # Only use individual zone details if fit_zones was actually called (len > 1)
+L0834                 # and we want to draw sub-convex hulls.
+L0835                 if len(cluster.zones) > 1 and show_zone_sub_hulls:
+L0836                     for zone_index, z in enumerate(cluster.zones):
+L0837                         z_indices = np.array(z.indices, dtype=int)
+L0838                         zones_list.append({
+L0839                             'indices': z_indices,
+L0840                             'shares': np.ones(len(z_indices), dtype=float),
+L0841                             'label': zone_index
+L0842                         })
+L0843 
+L0844                 formatted_cluster_data.append({
+L0845                     'parent_color': None,
+L0846                     'free_points': {'indices': free_ids, 'shares': np.ones(len(free_ids), dtype=float)},
+L0847                     'border_points': {'indices': np.array(border_indices, dtype=int),
+L0848                                       'shares': np.array(border_shares, dtype=float)},
+L0849                     'zones': zones_list
+L0850                 })
+L0851 
+L0852         k = len(formatted_cluster_data)
+L0853 
+L0854         # 1. Calculate Weighted Centroids (used for color sorting AND plotting)
+L0855         centroids = np.full((k, 2), np.nan, float)
+L0856 
+L0857         for i, c_data in enumerate(formatted_cluster_data):
+L0858             all_indices = np.concatenate([c_data['free_points']['indices'], c_data['border_points']['indices']])
+L0859             if len(all_indices) == 0:
+L0860                 continue
+L0861 
+L0862             all_shares = np.concatenate([c_data['free_points']['shares'], c_data['border_points']['shares']])
+L0863 
+L0864             pts = self.pop.coords[all_indices]
+L0865             # Probabilities must be adjusted by sharing weights
+L0866             adjusted_probs = self.pop.inclusions[all_indices] * all_shares
+L0867             s = float(adjusted_probs.sum())
+L0868             centroids[i] = (pts * adjusted_probs[:, None]).sum(axis=0) / s if s > 0 else pts.mean(axis=0)
+L0869 
+L0870         # 2. Spatial Color Assignment (Lexicographical sort)
+L0871         palette_seq = [
+L0872             "#59A14F", "#E15759", "#1F77B4", "#FDD835",
+L0873             "#9467BD", "#8C564B", "#17BECF", "#FF7F0E", "#56B4E9",
+L0874             "#EF5350", "#CC79A7", "#FBC02D", "#7F3C8D", "#11A579",
+L0875             "#EF5350", "#FFC107"
+L0876         ]
+L0877 
+L0878         # Sort spatially (Top-to-bottom, left-to-right)
+L0879         order = np.lexsort((centroids[:, 0], -centroids[:, 1]))
+L0880         for rank, idx in enumerate(order):
+L0881             if rank < len(palette_seq):
+L0882                 formatted_cluster_data[idx]['parent_color'] = palette_seq[rank % len(palette_seq)]
+L0883             else:
+L0884                 formatted_cluster_data[idx]['parent_color'] = "#808080"  # Fallback
+L0885 
+L0886         # 3. Draw Clusters and Zones
+L0887         for i, c_data in enumerate(formatted_cluster_data):
+L0888             c = c_data['parent_color']
+L0889             if c is None:
+L0890                 continue  # Skip empty/invalid clusters
+L0891 
+L0892             # --- Draw Internal Points and Soft Hull ---
+L0893             # Use all relevant indices for the main hull
+L0894             all_indices = np.concatenate([c_data['free_points']['indices'], c_data['border_points']['indices']])
+L0895             coords = self.pop.coords[all_indices]
+L0896             all_shares = np.concatenate([c_data['free_points']['shares'], c_data['border_points']['shares']])
+L0897             probs = self.pop.inclusions[all_indices] * all_shares
+L0898 
+L0899             # The overall structure (Soft border shape) is drawn first (Lowest Z-order)
+L0900             _draw_hull(coords, color=c, alpha=0.15, edge_color="black", lw=1.0)
+L0901 
+L0902             # --- Draw Internal Zones ---
+L0903             if c_data['zones']:
+L0904                 # Plot internal sub-hulls to visualize fit_zones segmentation
+L0905                 for zone in c_data['zones']:
+L0906                     if zone['indices'].size > 0:
+L0907                         zone_coords = self.pop.coords[zone['indices']]
+L0908                         # Sub-hulls use slightly more opacity to differentiate them
+L0909                         _draw_hull(zone_coords, color=c, alpha=0.35, edge_color="none", lw=0.0)
+L0910 
+L0911                         if show_zone_labels:
+L0912                             _draw_zone_centroid_label(zone_coords, zone['label'])
+L0913 
+L0914             # --- Draw Points ---
+L0915             sizes = probs * size_scale
+L0916             if mode == 'soft' and len(c_data['border_points']['indices']) > 0:
+L0917                 is_border = np.isin(all_indices, c_data['border_points']['indices'])
+L0918                 # Free points of the parent cluster
+L0919                 ax.scatter(coords[~is_border, 0], coords[~is_border, 1],
+L0920                            s=sizes[~is_border], color=c,
+L0921                            edgecolors="none", alpha=1.0, zorder=2)
+L0922                 # Border points (Black) - Highest Z-order for points
+L0923                 ax.scatter(coords[is_border, 0], coords[is_border, 1],
+L0924                            s=sizes[is_border], color="black",
+L0925                            edgecolors="none", alpha=1.0, zorder=3)
+L0926             else:
+L0927                 ax.scatter(coords[:, 0], coords[:, 1], s=sizes, color=c,
+L0928                            edgecolors="none", alpha=1.0, zorder=2)
+L0929 
+L0930         # 4. Handle Centroids Visuals (drawn based on parent centroids)
+L0931         if connect_centroids and len(centroids) > 1:
+L0932             ax.plot(centroids[:, 0], centroids[:, 1],
+L0933                     color="black", linestyle="--", linewidth=1.5, alpha=0.7, zorder=4)
+L0934 
+L0935         if show_centroids and len(centroids) > 0:
+L0936             ax.scatter(centroids[:, 0], centroids[:, 1],
+L0937                        marker="^", color="black", s=80, zorder=5, label="Centroids")
+L0938 
+L0939         ax.set_aspect("equal")
+L0940         ax.spines["top"].set_visible(False)
+L0941         ax.spines["right"].set_visible(False)
+L0942         ax.set_xticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+L0943         ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+L0944         ax.set_xlabel(r"$X_1$")
+L0945         ax.set_ylabel(r"$X_2$")
+L0946         ax.set_title(f"FIP Balanced {self.n}-Means {mode.capitalize()} Clustering with Zones")
+L0947         return ax

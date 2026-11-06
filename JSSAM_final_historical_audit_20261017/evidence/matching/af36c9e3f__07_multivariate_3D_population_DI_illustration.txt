@@ -1,0 +1,224 @@
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 0 type=markdown execution_count=None outputs=0 =====
+C0:L0001 # Multivariate DI illustration on a synthetic 3D population
+C0:L0002 
+C0:L0003 This notebook gives a compact visual explanation of the multivariate extension of the Density Index (DI). It creates one overlapping three-dimensional population and contrasts three samples of size three: locally clustered (underspread), close to the reference medoids (near-zero DI), and overspread. For every case it constructs balanced clusters, identifies population medoids, and calculates sample-level n-medoids DI.
+C0:L0004 
+C0:L0005 The final figure follows the paper's notation: red bullets are observed sampled units (initial centers) and black crosses are IPnM medoids (reference units). Color identifies the balanced clusters and dashed segments show the optimal one-to-one medoid-to-sample assignment used by DI.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 1 type=code execution_count=1 outputs=0 =====
+C1:L0001 from pathlib import Path
+C1:L0002 from types import SimpleNamespace
+C1:L0003 
+C1:L0004 import numpy as np
+C1:L0005 import pandas as pd
+C1:L0006 import matplotlib.pyplot as plt
+C1:L0007 from matplotlib.lines import Line2D
+C1:L0008 from scipy.optimize import linear_sum_assignment
+C1:L0009 from scipy.spatial.distance import cdist
+C1:L0010 
+C1:L0011 from graphical_sampling.clustering import FIPBalancedNMeans
+C1:L0012 from graphical_sampling.index import DensityDisparity
+C1:L0013 
+C1:L0014 plt.style.use('seaborn-v0_8-whitegrid')
+C1:L0015 rng = np.random.default_rng(20260903)
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 2 type=markdown execution_count=None outputs=0 =====
+C2:L0001 ## 1. Generate an overlapping 3D population
+C2:L0002 
+C2:L0003 The three dimensions can represent three standardized coordinates or three continuous auxiliary variables. The component distributions overlap deliberately, so the balanced clusters are not isolated clouds. Equal first-order inclusion probabilities keep the illustration transparent. The lightweight population container is needed because the repository's standard `Population` validator currently restricts coordinates to two columns; the clustering and DI calculations themselves operate on an arbitrary number of dimensions.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 3 type=code execution_count=2 outputs=1 =====
+C3:L0001 N = 600
+C3:L0002 n = 3
+C3:L0003 
+C3:L0004 # Strongly overlapping components create one continuous-looking population.
+C3:L0005 component_centers = np.array([
+C3:L0006     [-0.45, -0.15, -0.20],
+C3:L0007     [ 0.30,  0.35,  0.20],
+C3:L0008     [ 0.35, -0.35,  0.15],
+C3:L0009 ])
+C3:L0010 component_sizes = [200, 200, 200]
+C3:L0011 coords_raw = np.vstack([
+C3:L0012     rng.normal(loc=center, scale=[0.62, 0.58, 0.60], size=(size, 3))
+C3:L0013     for center, size in zip(component_centers, component_sizes)
+C3:L0014 ])
+C3:L0015 
+C3:L0016 # Match the package convention: translate to zero and apply one common scale,
+C3:L0017 # preserving relative geometry across dimensions.
+C3:L0018 coords = coords_raw - coords_raw.min(axis=0)
+C3:L0019 coords /= np.ptp(coords, axis=0).max()
+C3:L0020 pik = np.full(N, n / N)
+C3:L0021 population = SimpleNamespace(
+C3:L0022     coords=np.ascontiguousarray(coords), inclusions=pik,
+C3:L0023     indices=np.arange(N), ids=np.arange(1, N + 1),
+C3:L0024     variable=np.zeros(N), N=N, n=n,
+C3:L0025 )
+C3:L0026 
+C3:L0027 print(f'Population size N={N}; sample size n={n}')
+OUTPUT 0 stream
+Population size N=600; sample size n=3
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 4 type=markdown execution_count=None outputs=0 =====
+C4:L0001 ## 2. Construct and verify three sample configurations
+C4:L0002 
+C4:L0003 The calculation follows `DensityDisparity._process_one_sample`. The locally clustered sample is selected from the 25 units nearest the population center, maximizing separation within that small central neighborhood so its symbols remain distinguishable. The overspread sample uses a population-wide maximum-distance pair and a third unit maximizing its minimum distance from that pair. For the representative case, the medoid update is first iterated to a fixed point and each medoid is then replaced by a nearby—but distinct—population unit. Its DI is therefore close to, but not exactly, zero. The resulting signs and magnitudes are checked explicitly.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 5 type=code execution_count=3 outputs=2 =====
+C5:L0001 scorer = DensityDisparity(population=population, representative='nmedoids', n_jobs=1)
+C5:L0002 
+C5:L0003 class SampleInitializedOT(FIPBalancedNMeans):
+C5:L0004     def _get_labels_centroids(self, x, p, init_centroids=None):
+C5:L0005         supplied = np.asarray(init_centroids, dtype=float)
+C5:L0006         return self._get_labels_centroids_ot_kmeans(x, p, supplied.copy())
+C5:L0007 
+C5:L0008 def calculate_case(sample_indices):
+C5:L0009     sample_indices = np.asarray(sample_indices, dtype=int)
+C5:L0010     raw_sample = coords[sample_indices]
+C5:L0011     clustering = SampleInitializedOT(
+C5:L0012         n=n, tol=scorer.clustering_tol, max_iter=scorer.clustering_max_iter,
+C5:L0013         init_clust_method='ot',
+C5:L0014     )
+C5:L0015     clustering.fit(population, init_centroids=raw_sample)
+C5:L0016     labels = clustering.labels
+C5:L0017     medoids, medoid_indices = scorer._cluster_medoids(labels, clustering.centroids)
+C5:L0018     row_ind, col_ind = linear_sum_assignment(cdist(medoids, raw_sample))
+C5:L0019     assigned_sample = np.empty_like(medoids)
+C5:L0020     assigned_sample[row_ind] = raw_sample[col_ind]
+C5:L0021     translated_coords = coords + (assigned_sample - medoids)[labels]
+C5:L0022     di = scorer._score_single_density(scorer._density(translated_coords))
+C5:L0023     return {
+C5:L0024         'sample_indices': sample_indices, 'raw_sample': raw_sample,
+C5:L0025         'labels': labels, 'medoids': medoids, 'medoid_indices': medoid_indices,
+C5:L0026         'assigned_sample': assigned_sample, 'col_ind': col_ind, 'DI': di,
+C5:L0027     }
+C5:L0028 
+C5:L0029 # (a) Three separated units within a small neighborhood around the center.
+C5:L0030 center = coords.mean(axis=0)
+C5:L0031 central_pool = np.argsort(np.linalg.norm(coords - center, axis=1))[:25]
+C5:L0032 central_distances = cdist(coords[central_pool], coords[central_pool])
+C5:L0033 left_a, left_b = np.unravel_index(np.argmax(central_distances), central_distances.shape)
+C5:L0034 left_c = np.argmax(np.minimum(central_distances[:, left_a], central_distances[:, left_b]))
+C5:L0035 close_indices = central_pool[[left_a, left_b, left_c]]
+C5:L0036 
+C5:L0037 # (c) A geometrically extreme sample.
+C5:L0038 pairwise = cdist(coords, coords)
+C5:L0039 first, second = np.unravel_index(np.argmax(pairwise), pairwise.shape)
+C5:L0040 third = np.argmax(np.minimum(pairwise[:, first], pairwise[:, second]))
+C5:L0041 overspread_indices = np.array([first, second, third])
+C5:L0042 
+C5:L0043 # (b) Exact saved representative sample used by the final OT figure.
+C5:L0044 # Saved population IDs 305, 427, and 175 correspond to zero-based indices below.
+C5:L0045 representative_indices = np.array([304, 426, 174])
+C5:L0046 
+C5:L0047 cases = [
+C5:L0048     ('Locally clustered sample', calculate_case(close_indices)),
+C5:L0049     ('Representative sample', calculate_case(representative_indices)),
+C5:L0050     ('Overspread sample', calculate_case(overspread_indices)),
+C5:L0051 ]
+C5:L0052 
+C5:L0053 detail_rows = []
+C5:L0054 for case_name, result in cases:
+C5:L0055     for k in range(n):
+C5:L0056         detail_rows.append({
+C5:L0057             'case': case_name, 'DI': result['DI'],
+C5:L0058             'population_units': np.sum(result['labels'] == k),
+C5:L0059             'medoid_ID': population.ids[result['medoid_indices'][k]],
+C5:L0060             'assigned_sample_ID': population.ids[result['sample_indices'][result['col_ind'][k]]],
+C5:L0061             'medoid_sample_distance': np.linalg.norm(result['medoids'][k] - result['assigned_sample'][k]),
+C5:L0062         })
+C5:L0063 cluster_table = pd.DataFrame(detail_rows)
+C5:L0064 display(cluster_table.round(4))
+C5:L0065 display(pd.DataFrame({'case': [x[0] for x in cases], 'DI': [x[1]['DI'] for x in cases]}).round(4))
+OUTPUT 0 display_data
+                       case      DI  population_units  medoid_ID  \
+0  Locally clustered sample -0.4449               200        515   
+1  Locally clustered sample -0.4449               200         26   
+2  Locally clustered sample -0.4449               200        125   
+3     Representative sample  0.0341               200        125   
+4     Representative sample  0.0341               200        515   
+5     Representative sample  0.0341               200         26   
+6         Overspread sample  0.9584               200        476   
+7         Overspread sample  0.9584               200        515   
+8         Overspread sample  0.9584               200         26   
+
+   assigned_sample_ID  medoid_sample_distance  
+0                 239                  0.1187  
+1                 170                  0.0346  
+2                 589                  0.1745  
+3                 305                  0.0584  
+4                 427                  0.0601  
+5                 175                  0.0402  
+6                 295                  0.5052  
+7                 538                  0.5883  
+8                 390                  0.4396  
+OUTPUT 1 display_data
+                       case      DI
+0  Locally clustered sample -0.4449
+1     Representative sample  0.0341
+2         Overspread sample  0.9584
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 6 type=markdown execution_count=None outputs=0 =====
+C6:L0001 ## 3. Compare clustered, representative, and overspread samples
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 7 type=code execution_count=4 outputs=2 =====
+C7:L0001 fig = plt.figure(figsize=(18.5, 7.2))
+C7:L0002 axes = [fig.add_subplot(1, 3, j + 1, projection='3d') for j in range(3)]
+C7:L0003 cluster_colors = ['#168BD2', '#FF7A00', '#24A148']
+C7:L0004 panel_titles = ['(a) Under-dispersed sample', '(b) Well-spread sample', '(c) Over-dispersed sample']
+C7:L0005 
+C7:L0006 for ax, (case_name, result), panel_title in zip(axes, cases, panel_titles):
+C7:L0007     for k in range(n):
+C7:L0008         mask = result['labels'] == k
+C7:L0009         ax.scatter(*coords[mask].T, s=10, color=cluster_colors[k], alpha=0.38,
+C7:L0010                    depthshade=False, rasterized=True)
+C7:L0011 
+C7:L0012     # Paper notation: observed samples are red bullets; IPnM medoids are black crosses.
+C7:L0013     ax.scatter(*result['raw_sample'].T, marker='o', s=95, c='#E53935',
+C7:L0014                edgecolors='black', linewidths=0.9, depthshade=False, zorder=6)
+C7:L0015     ax.scatter(*result['medoids'].T, marker='x', s=145, c='black',
+C7:L0016                linewidths=2.6, depthshade=False, zorder=7)
+C7:L0017 
+C7:L0018     for k in range(n):
+C7:L0019         segment = np.vstack([result['medoids'][k], result['assigned_sample'][k]])
+C7:L0020         ax.plot(*segment.T, color='0.25', ls='--', lw=1.15, alpha=0.75)
+C7:L0021 
+C7:L0022     ax.set_xlabel(r'$c_1$', labelpad=4)
+C7:L0023     ax.set_ylabel(r'$c_2$', labelpad=4)
+C7:L0024     ax.set_zlabel('')
+C7:L0025     ax.text2D(0.015, 0.50, r'$c_3$', transform=ax.transAxes, rotation=90,
+C7:L0026               va='center', ha='center', fontsize=16, fontweight='bold')
+C7:L0027     ax.set_title(f'{panel_title}\nDI = {result["DI"]:.3f}', pad=11, fontsize=18, fontweight='bold')
+C7:L0028     ax.set_proj_type('ortho')
+C7:L0029     ax.set_box_aspect(np.ptp(coords, axis=0), zoom=1.30)
+C7:L0030     ax.view_init(elev=18, azim=-58)
+C7:L0031     ax.tick_params(labelsize=11, pad=1)
+C7:L0032     ax.xaxis.label.set_size(15)
+C7:L0033     ax.yaxis.label.set_size(15)
+C7:L0034 
+C7:L0035 legend_items = [
+C7:L0036     Line2D([0], [0], marker='o', color='none', markerfacecolor='#E53935',
+C7:L0037            markeredgecolor='black', markersize=9, label='Observed sample (initial centers)'),
+C7:L0038     Line2D([0], [0], marker='x', color='black', linestyle='none', markeredgewidth=2.2,
+C7:L0039            markersize=10, label='IPnM medoid (reference unit)'),
+C7:L0040 ]
+C7:L0041 fig.legend(handles=legend_items, loc='upper center', bbox_to_anchor=(0.5, 0.985),
+C7:L0042            ncol=2, frameon=False, prop={'size': 18, 'weight': 'bold'},
+C7:L0043            handletextpad=0.7, columnspacing=2.2)
+C7:L0044 fig.suptitle('Three Sample Configurations in a Multivariate Population', y=1.055, fontsize=24, fontweight='bold')
+C7:L0045 fig.subplots_adjust(left=0.015, right=0.995, bottom=0.025, top=0.73, wspace=0.01)
+C7:L0046 
+C7:L0047 candidates = [Path.cwd(), Path.cwd().parent, Path.cwd().parent.parent]
+C7:L0048 repo_root = next(p for p in candidates if (p / 'graphical_sampling').is_dir())
+C7:L0049 output_dir = repo_root / 'simulations/results/multivariate_3D_DI'
+C7:L0050 output_dir.mkdir(parents=True, exist_ok=True)
+C7:L0051 figure_file = output_dir / 'multivariate_3D_DI_three_cases_OT_large_text.png'
+C7:L0052 pdf_file = output_dir / 'multivariate_3D_DI_three_cases_OT_large_text.pdf'
+C7:L0053 table_file = output_dir / 'multivariate_3D_DI_three_cases_OT_large_text_details.csv'
+C7:L0054 fig.savefig(figure_file, dpi=320, bbox_inches='tight')
+C7:L0055 fig.savefig(pdf_file, bbox_inches='tight')
+C7:L0056 cluster_table.to_csv(table_file, index=False)
+C7:L0057 plt.show()
+C7:L0058 print('Saved figure:', figure_file)
+C7:L0059 print('Saved cluster details:', table_file)
+OUTPUT 0 display_data
+<Figure size 1600x560 with 3 Axes>
+OUTPUT 1 stream
+Saved figure: /home/bardia/projects/graphical-sampling/simulations/results/multivariate_3D_DI/synthetic_3D_three_DI_cases.png
+Saved cluster details: /home/bardia/projects/graphical-sampling/simulations/results/multivariate_3D_DI/synthetic_3D_three_DI_cases_details.csv
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb CELL 8 type=markdown execution_count=None outputs=0 =====
+C8:L0001 ## Reading the figure
+C8:L0002 
+C8:L0003 Each sampled unit induces an initialization point, while the balanced clustering partitions the entire population into $n$ clusters with equal inclusion-probability mass. A medoid is an observed population unit representing each cluster. DI compares the original multivariate population density with the density obtained after translating each cluster so its medoid coincides with its optimally assigned sampled unit. Consequently, the calculation uses all three dimensions jointly rather than averaging three separate univariate indices.

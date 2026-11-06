@@ -1,0 +1,128 @@
+[
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_10_pik_up.pkl",
+    "cdf_endpoint": 0.9999995827674866,
+    "upper_U_search_index": 155,
+    "rows": 155
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_20_pik_up.pkl",
+    "cdf_endpoint": 0.9999998211860657,
+    "upper_U_search_index": 221,
+    "rows": 221
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_5_pik_ep.pkl",
+    "cdf_endpoint": 0.9999997615814209,
+    "upper_U_search_index": 51,
+    "rows": 51
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_5_pik_up.pkl",
+    "cdf_endpoint": 0.9999993443489075,
+    "upper_U_search_index": 155,
+    "rows": 155
+  },
+  {
+    "path": "simulations/best_designs/meuse/initial_design_df_meuse_20_pik_up.pkl",
+    "cdf_endpoint": 0.9999997615814209,
+    "upper_U_search_index": 155,
+    "rows": 155
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C20Z4_Aggregated1000.pkl",
+    "cdf_endpoint": 0.9999996423721313,
+    "upper_U_search_index": 50,
+    "rows": 50
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C20Z4_RegularPop1000.pkl",
+    "cdf_endpoint": 0.9999996423721313,
+    "upper_U_search_index": 50,
+    "rows": 50
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C20Z4_Aggregated1000_angle_snake_staggered.pkl",
+    "cdf_endpoint": 0.9999996423721313,
+    "upper_U_search_index": 52,
+    "rows": 52
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C20Z4_Regular1000_angle_snake_staggered.pkl",
+    "cdf_endpoint": 0.9999996423721313,
+    "upper_U_search_index": 52,
+    "rows": 52
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_100_pik_ep.pkl",
+    "cdf_endpoint": 0.9999862313270569,
+    "upper_U_search_index": 959,
+    "rows": 959
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_150_pik_ep.pkl",
+    "cdf_endpoint": 0.9999862313270569,
+    "upper_U_search_index": 959,
+    "rows": 959
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_50_pik_ep.pkl",
+    "cdf_endpoint": 0.9999862313270569,
+    "upper_U_search_index": 959,
+    "rows": 959
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_50_pik_up.pkl",
+    "cdf_endpoint": 0.9999998211860657,
+    "upper_U_search_index": 959,
+    "rows": 959
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_100_pik_ep.pkl",
+    "cdf_endpoint": 0.9999862313270569,
+    "upper_U_search_index": 959,
+    "rows": 959
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_100_pik_up.pkl",
+    "cdf_endpoint": 0.9999985694885254,
+    "upper_U_search_index": 3536,
+    "rows": 3536
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_150_pik_ep.pkl",
+    "cdf_endpoint": 0.9999862313270569,
+    "upper_U_search_index": 959,
+    "rows": 959
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_50_pik_ep.pkl",
+    "cdf_endpoint": 0.9999862313270569,
+    "upper_U_search_index": 959,
+    "rows": 959
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_50_pik_up.pkl",
+    "cdf_endpoint": 0.9999978542327881,
+    "upper_U_search_index": 3688,
+    "rows": 3688
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_30_pik_ep.pkl",
+    "cdf_endpoint": 0.9999985694885254,
+    "upper_U_search_index": 729,
+    "rows": 729
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_3_pik_up.pkl",
+    "cdf_endpoint": 0.999999463558197,
+    "upper_U_search_index": 151,
+    "rows": 151
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_swiss_20_pik_ep.pkl",
+    "cdf_endpoint": 0.9999862313270569,
+    "upper_U_search_index": 959,
+    "rows": 959
+  }
+]

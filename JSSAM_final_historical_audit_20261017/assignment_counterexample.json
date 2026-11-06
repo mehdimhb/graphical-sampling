@@ -1,0 +1,154 @@
+{
+  "medoids": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      2.0,
+      0.0
+    ]
+  ],
+  "original_sample": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      1.0,
+      1.0
+    ]
+  ],
+  "shift": [
+    3.0,
+    0.0
+  ],
+  "shifted_sample": [
+    [
+      3.0,
+      0.0
+    ],
+    [
+      4.0,
+      1.0
+    ]
+  ],
+  "interpretation": "rows are fixed medoids; permutation entries select sample columns",
+  "euclidean": {
+    "cost_before": [
+      [
+        0.0,
+        1.4142135623730951
+      ],
+      [
+        2.0,
+        1.4142135623730951
+      ]
+    ],
+    "cost_after": [
+      [
+        3.0,
+        4.123105625617661
+      ],
+      [
+        1.0,
+        2.23606797749979
+      ]
+    ],
+    "assignment_before": [
+      0,
+      1
+    ],
+    "assignment_after": [
+      1,
+      0
+    ],
+    "identity_cost_before": 1.4142135623730951,
+    "swap_cost_before": 3.414213562373095,
+    "identity_cost_after": 5.23606797749979,
+    "swap_cost_after": 5.123105625617661
+  },
+  "sqeuclidean": {
+    "cost_before": [
+      [
+        0.0,
+        2.0
+      ],
+      [
+        4.0,
+        2.0
+      ]
+    ],
+    "cost_after": [
+      [
+        9.0,
+        17.0
+      ],
+      [
+        1.0,
+        5.0
+      ]
+    ],
+    "assignment_before": [
+      0,
+      1
+    ],
+    "assignment_after": [
+      0,
+      1
+    ],
+    "identity_cost_before": 2.0,
+    "swap_cost_before": 6.0,
+    "identity_cost_after": 14.0,
+    "swap_cost_after": 18.0
+  },
+  "euclidean_cluster_translation_changes": [
+    [
+      4.0,
+      1.0
+    ],
+    [
+      2.0,
+      -1.0
+    ]
+  ],
+  "squared_common_additive_term": 12,
+  "unit_square_equivalent": {
+    "medoids": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.4,
+        0.0
+      ]
+    ],
+    "sample": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.2,
+        0.2
+      ]
+    ],
+    "shift": [
+      0.6,
+      0.0
+    ],
+    "shifted": [
+      [
+        0.6,
+        0.0
+      ],
+      [
+        0.8,
+        0.2
+      ]
+    ]
+  },
+  "high_precision_after_gap_identity_minus_swap": "0.112962351882129146587763812757199210293419134237905289872263672315567",
+  "all_checks_passed": true
+}

@@ -1,0 +1,1631 @@
+\documentclass[12pt]{imsart}
+% ---------- Encoding & fonts ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+% ---------- Geometry ----------
+\usepackage[paper=letterpaper,margin=1in,includehead,includefoot]{geometry}
+
+% ---------- Math & theorems ----------
+\usepackage{amsmath,amssymb,amsfonts,bm,amsthm}
+
+% ---------- Algorithms ----------
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\makeatletter
+\renewcommand{\ALG@name}{Algorithm}
+\makeatother
+
+% ---------- Colors ----------
+\usepackage{xcolor}
+
+% \definecolor{MeasurePaper}{HTML}{D32F2F} % vivid red
+
+% % safer for long marked blocks
+% \newcommand{}{\begingroup\color{MeasurePaper}}
+% \newcommand{}{\endgroup}
+% ---------- DOI & text utilities ----------
+
+% ---------- Figures, tables, floats ----------
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{float}
+
+% ---------- Captions ----------
+\usepackage[justification=justified,singlelinecheck=false]{caption}
+\usepackage{subcaption}
+
+% ---------- TikZ / PGFPlots ----------
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes}
+\usepackage{pgfplots}
+%\pgfplotsset{compat=1.18}
+
+% ---------- Colors ----------
+\usepackage{xcolor}
+\definecolor{myblue}{RGB}{129,212,250}
+\definecolor{myred}{RGB}{255,138,128}
+\definecolor{mygreen}{RGB}{46,125,50}
+\definecolor{mygold}{RGB}{255,213,79}
+\makeatletter
+\@ifundefinedcolor{tikz@color}{\definecolor{tikz@color}{rgb}{0,0,0}}{}
+\makeatother
+
+% ---------- Bibliography ----------
+\usepackage[authoryear]{natbib}
+
+% ---------- Hyperlinks ----------
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  allcolors=black
+}
+
+
+% ---------- DOI handling provided by imsart ----------
+
+% ---------- Spacing ----------
+\doublespacing
+
+% ---------- Local definitions ----------
+\startlocaldefs
+\theoremstyle{plain}
+\newtheorem{axiom}{Axiom}
+\newtheorem{claim}[axiom]{Claim}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\theoremstyle{remark}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}{Example}
+\newtheorem*{fact}{Fact}
+\endlocaldefs
+
+\usepackage{amsthm}
+
+\usepackage{amsthm}
+
+\newtheoremstyle{boldexample}%
+  {}{}%
+  {\normalfont}%
+  {}%
+  {\bfseries}%
+  {.}%
+  { }%
+  {}
+
+%\theoremstyle{boldexample}
+%\makeatletter
+%\renewcommand{\examplename}{\textbf{Example}}
+%\makeatother
+% ---------- Bibliography style ----------
+\begin{document}
+\begin{frontmatter}
+\title{Measuring Spatial Spread via n-Means Balanced Clustering}
+%\title{A sample article title with some aDItional note\thanksref{t1}}
+\runtitle{Measuring Spatial Spread via n-Means Balanced Clustering}
+%\thankstext{T1}{A sample aDItional note to the title.}
+
+\begin{aug}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Only one address is permitted per author. %%
+%% Only division, organization and e-mail is %%
+%% included in the address.                  %%
+%% ADItional information can be included in %%
+%% the Acknowledgments section if necessary. %%
+%% ORCID can be inserted by command:         %%
+%% \orcid{0000-0000-0000-0000}               %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \author{
+% \and 
+% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Addresses                                %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{aug}
+
+\begin{abstract}
+This paper introduces a new index for quantifying the spatial spread of
+samples in finite-population sampling. Spatial balance is a
+general concept describing how well the selected units are distributed over
+the finite spatial population; its precise operational meaning depends on the
+criterion used to measure spatial spread. To operationalize
+this concept, we construct an \(n\)-means clustering procedure that forms
+spatially compact groups with cluster masses balanced according to the
+prescribed first-order inclusion probabilities. The resulting clusters
+provide a reference configuration by representing each cluster with a medoid,
+yielding a feasible ideal one-per-cluster configuration of actual population
+units. Spatial quality is then evaluated through the Density Index, a
+bounded and translation-invariant measure that distinguishes under-dispersion,
+spatial balance, and over-dispersion. Simulation results show that the proposed
+framework provides an interpretable and effective tool for assessing spatial
+spread, particularly in settings where spatial autocorrelation makes sample
+dispersion important.
+\end{abstract}
+
+\begin{keyword}[class=MSC]
+\kwd{62D05} % Sampling theory, sample surveys
+\kwd{62H30} % Classification and discrimination; cluster analysis
+\kwd{62H11} % Spatial statistics
+\end{keyword}
+
+\begin{keyword}
+\kwd{spatial balance}
+\kwd{finite population sampling}
+\kwd{balanced clustering}
+\kwd{spatial sampling}
+\kwd{inclusion probabilities}
+\kwd{density index}
+\end{keyword}
+\end{frontmatter}
+\noindent\textbf{Statement of Significance.}
+Spatial surveys often require samples that are well spread over a study region,
+rather than concentrated in only a few areas. Assessing whether a sample is
+well spread is therefore an important part of evaluating spatial survey designs.
+This paper proposes a new measure for quantifying the spatial spread of a
+sample from a finite spatial population. The method first builds a reference
+configuration that represents an ideally well-spread sample and then compares
+the observed sample with this reference. The proposed measure is designed to
+distinguish between samples that are too clustered, well spread, or overly
+dispersed. Simulation results show that the measure gives clear and
+interpretable summaries of spatial spread across different population patterns
+and sampling settings. The approach can help statisticians and practitioners
+compare sampling designs and diagnose the spatial quality of selected samples.
+
+\section{Introduction}
+Well-spread samples improve spatial coverage and may improve precision when the study variable exhibits positive spatial autocorrelation. They may also contribute to approximate auxiliary balance when the auxiliary variables are spatially
+smooth \citep{graf:lund:13}.
+
+A rich literature has developed sampling designs specifically intended to
+produce well-spread samples. These include Generalized Random Tessellation Stratified sampling,
+which uses space-filling mappings and systematic selection to construct
+well-spread samples \citep{Stev:Olse:spat:2004};
+the Local Pivotal Method (LPM) \citep{gra:lun:sch:12}, which induces local
+competition; Spatially Correlated Poisson sampling (SCP) \citep{graf:11},
+which reduces the joint selection of neighbouring units; and Weakly Associated
+Vectors (WAV) \citep{jauslin2020spatial}, which iteratively adjust the
+inclusion-probability vector while preserving first-order probabilities.
+Recursive partitioning also provides an effective route to spatial balance,
+as in Halton Iterative Partitioning \citep{robertson2018halton}, while recent
+optimization-based designs include Dynamic Assignment Sampling
+\citep{robertson2024} and linear assignment sampling with auxiliary variables
+\citep{robertson2025}. Cluster-based approaches are particularly relevant to
+the present work. In particular, \citet{robertson2024onepoint} proposed a
+one-point-per-cluster \(k\)-means design in which compact clusters are first
+constructed and a linear-assignment step is then used to improve spatial
+balance. Since these methods pursue spatial spread through different
+mechanisms, their comparison requires indices that quantify the resulting
+sample configuration.
+
+In practice, spatial dispersion is commonly assessed using indices that
+capture specific structural aspects of the sample, but each has limitations.
+Moran's \(I\) \citep{moran1950notes,til:dic:esp:giu:18} measures spatial
+autocorrelation through a spatial weight matrix and can distinguish clustered,
+random, and negatively associated configurations. However, its interpretation
+depends on the chosen weight matrix, and negative association is treated
+mainly as evidence of spatial spread; it does not provide a separate diagnosis
+of whether the configuration is optimally spread or excessively over-dispersed.
+Coverage-oriented measures, such as the Voronoi index
+\citep{Stev:Olse:spat:2004}, evaluate geometric coverage through the induced
+tessellation of the population, but they are not defined on a fixed
+interpretable scale and may assign similar values to configurations with
+different dispersion patterns. The Balanced Voronoi index
+\citep{prentius2024spatial} further incorporates auxiliary-variable balance;
+however, like other Voronoi-based measures, it is not naturally bounded on a
+scale that directly separates under-dispersion, balance, and over-dispersion.
+
+These limitations motivate the Density Index (DI), a unified
+measure that combines ideas from autocorrelation and tessellation-based
+approaches while providing a bounded and interpretable assessment of spatial
+spread. The DI uses a balanced clustering scheme to accommodate unequal
+inclusion probabilities within a population-specific tessellation framework.
+It compares the density surface induced by the observed sample with translated
+configurations and an adaptive population-specific benchmark. The resulting index is bounded in \([-1,1]\), with
+\(\mathrm{DI}=0\) representing the ideal reference configuration. Negative
+values indicate departures toward under-dispersion, whereas positive values
+indicate departures toward over-dispersion, with the magnitude reflecting the
+degree of departure. Thus, spatial spread is treated as a continuum rather
+than divided by an additional fixed threshold; values close to zero are
+interpreted as approximately well spread. The index is translation invariant, so shifting a sample without changing its internal geometry does not change its value. Thus, DI focuses on the relative spatial arrangement of the sample and
+separates under-dispersion, optimal spread, and over-dispersion on a
+common interpretable scale.
+
+Here, the benchmark refers to an ideal one-per-cluster configuration obtained
+from balanced spatial clustering. To keep this benchmark feasible in
+finite-population sampling, each cluster center is represented by its medoid,
+so that the benchmark points are actual population units rather than abstract
+centroids \citep{kaufman1990finding}.
+
+To formalize the framework, let \(U=\{1,\ldots,N\}\) be a finite
+population and let \[\mathcal S_n=\{s\subset U: |s|=n\},\] denote the
+set of all fixed-size samples of size \(n\). A sampling design is a
+probability distribution
+\[
+\bm p=\{p_s=\Pr(S=s):s\in\mathcal S_n\},
+\]
+satisfying
+\[
+\sum_{s\in\mathcal S_n}p_s=1,
+\qquad
+\sum_{s\in\mathcal S_n:\ell\in s}p_s=\pi_\ell,\quad \ell\in U,
+\]
+where \(\bm\pi=(\pi_1,\ldots,\pi_N)\) is the vector of first-order
+inclusion probabilities (IPs), with \(\sum_{\ell\in U}\pi_\ell=n\). The design
+is called an equal-probability (EP) design when
+\(\pi_\ell=n/N\) for all \(\ell\in U\), and an unequal-probability (UP)
+design otherwise. Let \(y_\ell\) and \(x_\ell\) denote, respectively, a
+study variable and an auxiliary variable attached to unit \(\ell\).
+ Each unit also has a \(d\)-dimensional spatial coordinate
+\[
+\bm c_\ell=(c_{\ell1},\ldots,c_{\ell d})\in\mathbb R^d,
+\qquad d\geq1,
+\]
+and
+\[
+\bm C=\{\bm c_\ell:\ell\in U\}
+\]
+denotes the spatial configuration of the population. All spatial distances
+are Euclidean; specifically, the distance between units \(k\) and \(\ell\)
+is \(\|\bm c_k-\bm c_\ell\|_2\).
+
+ Throughout the paper, spatial balance is treated as a general
+concept concerning how well the selected units are distributed over and
+represent the finite spatial population, while avoiding excessive local
+concentration. Under unequal-probability designs, this representation should
+also respect the prescribed inclusion-probability mass. Its precise operational
+meaning, however, depends on the index used to measure it. For example,
+Moran-type measures describe spatial spread through negative association
+in a sample-indicator vector, whereas Voronoi-based measures assess
+coverage through the inclusion-probability mass of induced tessellation
+cells. The DI used in this paper adopts a complementary density-based
+interpretation, designed to distinguish clustering, well-spread
+configurations, and over-dispersion on a common scale.
+
+The remainder of the paper is organized as follows. Section~\ref{sec:n-means-balanced} presents the clustering method. Section~\ref{Sec:Measure} defines the index and its properties. Section~\ref{Sec:Simulation} reports simulation results. Section~\ref{Sec:Conclusion} concludes.
+
+
+\section{IP-Balanced \(n\)-Means Clustering (IP\(n\)M)}
+\label{sec:n-means-balanced}
+
+Constructing spatially compact clusters that also respect the prescribed
+IP vector is a key problem in finite-population
+spatial sampling. Classical \(k\)-means clustering \citep{lloyd1982least} minimizes
+within-cluster variation, but it does not account for sampling design
+constraints. In spatial coverage and infill sampling, \(k\)-means and related
+clustering methods have been used to construct compact spatial strata or
+clusters from which representative or random units are selected
+\citep{brus2007designing,benedetti2017alternative,brus2022spatial}. Such
+approaches improve geographic coverage, and constrained variants
+\citep{modha2003feature} can regulate cluster sizes, but they do not generally
+enforce exact balance with respect to an arbitrary IP vector. The
+one-point-per-cluster framework of \citet{robertson2024onepoint} provides an
+important recent cluster-based design for producing spatially balanced samples
+under equal-probability settings, by first constructing compact clusters and
+then selecting one unit per cluster. However, this framework is not designed
+to enforce arbitrary unequal inclusion probabilities.
+
+The proposed IP\(n\)M method addresses both EP and UP settings by constructing
+spatially compact clusters whose IP masses are controlled. In the soft
+formulation, each cluster has exact IP mass equal to one, whereas the hard
+formulation produces clusters with IP masses close to one. Thus, IP\(n\)M provides probability-balanced spatial cluster representations
+that can be used as reference configurations for assessing sample spread. Although the method is developed
+here for the IP vector \(\bm\pi\), the same principle can be adapted to other
+auxiliary measures when such balance is required.
+
+IP\(n\)M follows the structure of \(k\)-means with \(k=n\), but replaces
+exclusive assignments by an optimal-transport (OT) formulation that explicitly
+enforces IP balance. Let \(\{\bm o_i\}_{i=1}^n\) denote the cluster centroids,
+and let \(P_{\ell i}\) be the amount of IP mass transported from unit
+\(\ell\), located at \(\bm c_\ell\), to centroid \(\bm o_i\). The preliminary
+OT mass matrix \(P\in\mathbb R^{N\times n}\) is obtained by solving
+\[
+\min_{P\geq 0}
+\sum_{\ell\in U}\sum_{i=1}^{n}
+P_{\ell i}\|\bm c_\ell-\bm o_i\|^2
++
+\varepsilon
+\sum_{\ell\in U}\sum_{i=1}^{n}
+P_{\ell i}(\log P_{\ell i}-1),
+\]
+subject to
+\[
+\sum_{i=1}^{n}P_{\ell i}=\pi_\ell,\qquad \ell\in U,
+\]
+and
+\[
+\sum_{\ell\in U}P_{\ell i}=1,\qquad i=1,\ldots,n .
+\]
+The first constraint preserves the IP mass of each population unit, whereas
+the second forces each preliminary cluster to have total IP mass equal to one.
+Thus, the OT loss retains the squared Euclidean objective of \(k\)-means while
+imposing exact probability balance at the cluster level. The parameter
+\(\varepsilon>0\) controls the smoothness of the soft allocation. 
+To remove dependence on the spatial scale, the squared-distance matrix is
+normalized by its median before solving the OT problem. For the OT implementation, we set \(\varepsilon=0.01\); smaller values yield
+sharper allocations, whereas larger values produce smoother ones. After the OT
+subproblem is solved by Sinkhorn iterations \citep{cuturi2013}, the centroids are updated as
+\[
+\bm o_i
+=
+\frac{\sum_{\ell\in U}P_{\ell i}\bm c_\ell}
+     {\sum_{\ell\in U}P_{\ell i}}
+=
+\sum_{\ell\in U}P_{\ell i}\bm c_\ell,
+\qquad i=1,\ldots,n,
+\]
+where the last equality follows from
+\(\sum_{\ell\in U}P_{\ell i}=1\). The OT and centroid-update steps are
+alternated until convergence. The matrix \(P\) is used to construct a
+preliminary spatially compact and IP-balanced configuration; the final
+clusters are then obtained by an ordered border-splitting step.
+
+The OT solution may assign fractional IP mass from a unit to several
+centroids. Although this guarantees exact IP balance, unrestricted overlap is
+not convenient when the clusters are used as reference cells. IP\(n\)M
+therefore converts the preliminary OT solution into an ordered cluster system
+with minimal overlap, in which only border units may be shared between two
+adjacent clusters.
+
+The preliminary centroids are ordered along an approximate open
+traveling-salesman path \citep{lawler1985traveling}, based on Euclidean distances in
+\(\mathbb{R}^d\), that visits each centroid once while keeping consecutive
+centroids close. The population units are then
+ordered consistently with this centroid path, yielding
+\(\omega=(\omega_1,\ldots,\omega_N)\). This ordering converts the preliminary
+OT solution into a one-dimensional sequence whose cumulative IP mass can be
+cut at the thresholds \(1,\ldots,n-1\). Consequently, only units crossed by
+these thresholds need to be shared, so that each interior cluster has at most
+two border units while spatial compactness is preserved. Define the
+cumulative IP mass
+\[
+T_h=\sum_{q=1}^{h}\pi_{\omega_q},
+\qquad h=1,\ldots,N,
+\qquad T_0=0 .
+\]
+For each cluster boundary \(i=1,\ldots,n-1\), let \(h_i\) be the ordered
+position satisfying
+\[
+T_{h_i-1}< i \leq T_{h_i},
+\]
+and define the corresponding border unit by
+\[
+g_i=\omega_{h_i}.
+\]
+The IP mass of \(g_i\) is split into two complementary parts,
+\[
+\pi_{g_i}=\pi^{-}_{g_i}+\pi^{+}_{g_i},
+\]
+where
+\[
+\pi^{-}_{g_i}=i-T_{h_i-1},
+\qquad
+\pi^{+}_{g_i}=T_{h_i}-i .
+\]
+The component \(\pi^{-}_{g_i}\) completes cluster \(U_i\), whereas
+\(\pi^{+}_{g_i}\) initializes cluster \(U_{i+1}\). All non-border units belong
+entirely to one cluster. Hence the soft IP-balanced cluster system satisfies
+\[
+U=\bigcup_{i=1}^{n}U_i,
+\qquad
+\sum_{\ell\in U_i}\pi_\ell=1,
+\qquad i=1,\ldots,n,
+\]
+where the sums include the fractional contributions of border units.
+
+ Equivalently, if the final refined memberships are denoted by
+\(\mu_{\ell i}\), then non-border units have binary memberships, whereas each
+border unit satisfies
+\[
+\mu_{g_i,i}=\frac{\pi^{-}_{g_i}}{\pi_{g_i}},
+\qquad
+\mu_{g_i,i+1}=\frac{\pi^{+}_{g_i}}{\pi_{g_i}},
+\qquad i=1,\ldots,n-1 .
+\]
+All other membership components of a border unit are zero, and hence
+\(\sum_{i=1}^n \mu_{\ell i}=1\) for every population unit \(\ell\).
+Thus, each soft cluster has total IP mass one, after including the fractional
+contributions of its border units:
+\[
+\sum_{\ell\in U}\mu_{\ell i}\pi_\ell=1,
+\qquad i=1,\ldots,n .
+\]
+In the hard-clustering variant, each border unit is assigned entirely to one
+of its two adjacent clusters, so that \(\mu_{\ell i}\in\{0,1\}\). The resulting
+cluster IP totals are then close to one rather than exactly equal to one.
+
+The soft formulation provides the underlying exactly
+IP-balanced cluster representation, while the hard formulation converts it
+into a genuine partition when unique cluster membership is required. Thus,
+the choice between the two depends on the intended use. In this paper, DI
+uses the hard formulation because each population unit must be associated
+with a unique cluster for the subsequent cluster-wise translation.
+
+Algorithm~\ref{alg:IP_balanced_nmeans} summarizes the full IP\(n\)M
+procedure.
+\begin{figure}[!h]
+\centering
+\includegraphics[width=.9\linewidth]{figures/new_three_pop_with_clusters.pdf}
+\caption{Three simulated populations used to illustrate IP\(n\)M, each with
+\(N=144\) units: gridded, random, and clustered layouts. Each population is
+considered under both EP and UP settings, with the IPs summing to \(n=4\).
+Colored polygons delineate the clusters, and point sizes are proportional to
+the IPs. Border units are shown by black triangles and are connected to their
+adjacent clusters using the corresponding colors. The two annotated values
+give the cluster IP totals under hard and soft clustering, respectively. In
+the hard formulation, each border unit is assigned entirely to the cluster
+with the larger membership, whereas in the soft formulation its IP mass is
+shared between adjacent clusters. In the EP setting, no border units are
+needed because exact cluster IP totals of one can be achieved without
+fractional sharing.}
+\par\small\textit{Alt text: Six panels compare gridded, random, and clustered finite populations under equal and unequal inclusion probabilities, showing compact IP-balanced clusters, point sizes proportional to inclusion probabilities, and border units shared or assigned between adjacent clusters.}
+    \label{fig:three_popu_clusters}
+\end{figure}
+
+To illustrate the behaviour of IP\(n\)M under different spatial structures, we
+consider three simulated populations with \(N=144\): a gridded population, a
+random population, and a clustered population. Each population is examined under both EP and UP settings. Under EP,
+\(\pi_\ell=n/N\) for all \(\ell\), whereas under UP, initial weights are
+generated from a uniform distribution and then normalized so that
+\(\sum_{\ell\in U}\pi_\ell=n=4\).
+Figure~\ref{fig:three_popu_clusters} shows that IP\(n\)M produces spatially
+compact clusters while respecting the prescribed IP structure. In the soft
+formulation, each cluster has exact IP total equal to \(1\), whereas the hard
+formulation yields cluster totals close to \(1\).
+
+
+
+\section{A New Index for Sample Spread}
+\label{Sec:Measure}
+We introduce a population-specific index of spatial spread based on a clustered
+benchmark representation of the population. Let \(s\in\mathcal S_n\) denote the realized sample actually selected by the
+sampling design. The fixed-size assumption ensures that its \(n\) units
+correspond to \(n\) clusters, each having target IP mass one, since
+\(\sum_{\ell\in U}\pi_\ell=n\).  Using the sample locations
+\(\{\bm c_\ell:\ell\in s\}\) as initial centers, we apply the hard IP\(n\)M
+procedure to obtain \(n\) spatially compact clusters
+\[
+U=\bigcup_{i=1}^n U_i,
+\qquad
+U_i\cap U_j=\varnothing,\quad i\neq j .
+\]
+This sample-specific initialization avoids relying on a single fixed global
+\(n\)-means solution as the reference configuration for all samples. Instead,
+the observed sample anchors the clustering step, so that the resulting
+reference configuration is adapted to the spatial arrangement of the sample. After the clusters are
+obtained, each cluster center is represented by a medoid, that is, an actual
+population unit in the corresponding cluster. For each cluster, we define
+\[
+m_i
+\in
+\arg\min_{u\in U_i}
+\sum_{\ell\in U_i}\pi_\ell
+\|\bm c_u-\bm c_\ell\|^2,
+\qquad
+\bm r_i=\bm c_{m_i}.
+\]
+If the medoid is not unique, ties are broken by first selecting the unit with
+the largest first-order inclusion probability; if a tie still remains, the unit
+with the smallest population label is selected. 
+The medoid configuration
+\(\{\bm r_1,\ldots,\bm r_n\}\) defines the sample-adaptive IP\(n\)M
+reference configuration for the observed sample. It represents a feasible
+ideally spread one-per-cluster configuration conditional on the induced
+partition, rather than a unique globally optimal sample. For a given
+population and IP structure, different well-spread samples may induce
+different, but equally or nearly suitable, reference configurations. The
+sample-specific initialization allows each realized sample to induce a
+reference configuration adapted to its spatial arrangement instead of
+imposing a single global benchmark on all samples.
+Figure~\ref{fig:sample_adaptive_reference} illustrates this property.
+% Example~\ref{Exm:different_initial} in the Appendix illustrates why this
+% sample-specific initialization is useful, by showing that a fixed population
+% partition may not provide an appropriate reference configuration for every
+% sample.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\linewidth]
+{figures/adaptive_ipnm_reference.pdf}
+\caption{Sample-adaptive IP\(n\)M reference configurations for three
+    samples of size \(n=2\) drawn from the same population of \(N=1000\)
+    units under equal inclusion probabilities. Red circles indicate the
+    observed sample units used to initialize IP\(n\)M, whereas black crosses
+    labelled \(r_1\) and \(r_2\) indicate the medoids of the resulting
+    clusters. The vertical, horizontal, and diagonal sample arrangements
+    in panels~(a)--(c) induce horizontal, vertical, and diagonal
+    IP-balanced partitions, respectively.}
+    \par\small\textit{Alt text: Three panels show vertical, horizontal, and diagonal two-unit samples from the same square population; each sample induces a correspondingly oriented IP-balanced partition and two medoid reference points.}
+    \label{fig:sample_adaptive_reference}
+\end{figure}
+
+ The sample units are then matched to the medoid reference points by solving the
+assignment problem
+\[
+\tau
+=
+\arg\min_{\tau}
+\sum_{i=1}^n
+\|\bm c_{\tau(i)}-\bm r_i\|^2,
+\qquad
+\tau(i)\in s,
+\]
+where \(\tau\) is a one-to-one mapping from clusters to sampled units. Each
+cluster is then translated so that its medoid reference point coincides with
+the matched sample unit. Thus, for \(\ell\in U_i\), define
+\[
+\widetilde{\bm c}_\ell
+=
+\bm c_\ell+\bigl(\bm c_{\tau(i)}-\bm r_i\bigr),
+\qquad i=1,\ldots,n .
+\]
+
+If the sample is well spread relative to the clustered benchmark, this
+translation produces a population configuration close to the original one.
+Large discrepancies between the original and translated configurations
+therefore indicate departure from the benchmark spatial arrangement.
+
+Spatial agreement is evaluated by comparing multivariate kernel density
+estimates before and after translation \citep{wand1994kernel}. For
+\(\bm c\in\mathbb R^d\), let
+\[
+f(\bm c)
+=
+\frac{1}{N}
+\sum_{\ell\in U}
+K_{\mathbf H}(\bm c-\bm c_\ell),
+\qquad
+K_{\mathbf H}(\bm u)
+=
+|\mathbf H|^{-1/2}
+K(\mathbf H^{-1/2}\bm u),
+\]
+where \(\mathbf H\) is a \(d\times d\) symmetric positive-definite bandwidth
+matrix, selected here using Scott's rule. We use the multivariate uniform
+kernel
+\[
+K(\bm u)
+=
+\frac{1}{2^d}
+\mathbf 1\{\|\bm u\|_\infty\leq1\},
+\qquad \bm u\in\mathbb R^d,
+\]
+where \(\|\cdot\|_\infty\) denotes the infinity norm. Applying the same
+estimator to the translated coordinates
+\(\{\widetilde{\bm c}_\ell:\ell\in U\}\) gives
+\[
+\widetilde f(\bm c)
+=
+\frac{1}{N}
+\sum_{\ell\in U}
+K_{\mathbf H}(\bm c-\widetilde{\bm c}_\ell).
+\]
+
+Figure~\ref{fig:kde_3_sample} illustrates the proposed mechanism under the EP
+setting for three different sample configurations drawn from a clustered
+population. The first column shows the original spatial density surface. The
+second column displays the hard IP\(n\)M partition together with the medoid reference points
+and their matched sample units. The third column shows the translated
+population obtained after shifting each cluster so that its medoid reference point coincides with the
+matched sample unit. The fourth column gives the corresponding
+density--density comparison, where proximity to the \(45^\circ\) identity line
+indicates strong agreement between the original and translated density
+structures.
+
+% \begin{figure}[!htbp]
+%     \centering
+%     \includegraphics[width=.6\linewidth]{figures/kde_all.pdf}
+%     \caption{Illustration of cluster-wise translation and density comparison
+%     for three sample configurations in a clustered population. From left to
+%     right, the columns show: (i) the original spatial density surface;
+%     (ii) the hard IP\(n\)M partition, together with the centroids and their
+%     matched sample units; (iii) the translated population obtained by shifting
+%     each cluster to its matched sample unit; and (iv) the density--density
+%     comparison based on multivariate kernel density estimation, where the
+%     \(45^\circ\) line represents equality between the original and translated
+%     densities. The three rows correspond to different sample arrangements and
+%     illustrate how sample placement affects density distortion.}
+%     \label{fig:kde_3_sample}
+% \end{figure}
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=.82\linewidth]{figures/kde_all.pdf}
+    \caption{\small Cluster-wise translation and density comparison under the EP setting
+for three sample configurations in a clustered population. The columns show
+the original density, the hard IP\(n\)M partition with matched sample units,
+the translated population, and the density--density comparison. The
+\(45^\circ\) line indicates equality between the original and translated
+densities.}
+    \par\footnotesize\textit{Alt text: Three rows compare sample configurations in a clustered population across four columns: original density, hard IP-balanced clusters with matched medoids and sample units, translated population, and the resulting density-density comparison.}
+    \label{fig:kde_3_sample}
+\end{figure}
+
+
+If the sample is well spread relative to the medoid reference configuration, the translated population remains close to the original one, and the points in the density--density plot stay near the identity line.
+Systematic deviation above the line indicates local density inflation, which
+occurs when sampled units are too close to one another, whereas deviation
+below the line indicates local density deflation, which occurs when sampled
+units are too far apart.
+
+To build an index from this comparison, consider
+Figure~\ref{fig:angles}, which provides a more detailed view of the
+density--density plot. For each \(\ell\in U\), define
+\[
+\mathbf f_\ell=
+\bigl(f(\bm c_\ell),\,\widetilde f(\widetilde{\bm c}_\ell)\bigr)^{\top},
+\]
+so that each unit contributes one point to the plot. Although \(\mathbf f_\ell\in\mathbb R^2\), its two components are scalar
+density evaluations. Thus, the two-dimensional density--density
+representation does not restrict the spatial-coordinate dimension \(d\).
+Let \(\alpha_\ell\) denote the oriented angle between \(\mathbf f_\ell\)
+and the identity direction \((1,1)^{\top}\). This angle captures both the direction and the
+magnitude of departure from equality: points above the identity line produce
+negative signed deviation, corresponding to under-dispersion, whereas points
+below the line produce positive signed deviation, corresponding to
+over-dispersion. The sine component reflects signed departure from the
+identity line, while the cosine component measures angular disagreement with
+the benchmark direction.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=.55\linewidth]{figures/index_details.pdf}
+    \caption{\small Angle-based contributions in the density--density plot.
+Each point represents the original and translated density values of one
+population unit. The identity line separates the negative region
+(above; units too close) from the positive region (below; units too far).
+The two highlighted points correspond to distinct population units
+\(\ell\) and \(k\), whose rays form the oriented angles
+\(\alpha_\ell\) and \(\alpha_k\), respectively, with the identity direction.
+Their signed contributions to the Density Index are based on the scaled
+values of \(-\sin(\alpha_\ell)\) and \(-\sin(\alpha_k)\), whereas
+\(1-\cos(\alpha_\ell)\) and \(1-\cos(\alpha_k)\) measure the corresponding
+magnitudes of deviation from the identity direction.}
+    \par\footnotesize\textit{Alt text: A density-density plot shows the 45-degree identity line and two example rays forming signed angles with that line, illustrating negative and positive pointwise contributions and their angular magnitudes.}
+    \label{fig:angles}
+\end{figure}
+
+
+To define the Density Index (DI) for a sample \(s\in\mathcal S_n\), we first
+introduce its scaling rule and two components.
+
+\begin{itemize}
+
+\item \textbf{Scaling and calibration.}
+For \(\beta\in\mathbb R\) and \(\gamma>0\), define
+\[
+\operatorname{scale}(\beta;\gamma)
+=
+\min\!\left\{1,\max\!\left\{-1,\frac{\beta}{\gamma}\right\}\right\}.
+\]
+This function maps \([-\gamma,\gamma]\) linearly onto \([-1,1]\) and
+saturates outside this interval, thereby preserving the direction of the
+deviation while ensuring boundedness.
+
+The constant \(\theta_0\in(0,\pi/4]\) is an angular calibration threshold.
+Since the density--density plot lies in the nonnegative quadrant, the maximum
+possible angular departure from the identity direction is \(\pi/4\).
+Smaller values of \(\theta_0\) produce earlier saturation and therefore a more
+stringent classification, with fewer samples receiving values near zero.
+Larger values scale deviations more gradually and yield a more permissive
+classification. We use
+\[
+\theta_0=\frac{\pi}{8},
+\]
+corresponding to half of the maximum possible angular departure.
+
+\item \textbf{Net deviation.}
+The net deviation is defined as
+\[
+D_{\mathrm{net}}=\frac{D_{+}+D_{-}}{N},
+\]
+where
+\[
+D_{+}
+=
+\sum_{\ell\in U:\,-\sin(\alpha_\ell)\geq0}
+\operatorname{scale}\!\left(
+-\sin(\alpha_\ell);\,\sin(\theta_0)
+\right),
+\]
+and
+\[
+D_{-}
+=
+\sum_{\ell\in U:\,-\sin(\alpha_\ell)<0}
+\operatorname{scale}\!\left(
+-\sin(\alpha_\ell);\,\sin(\theta_0)
+\right).
+\]
+Here, \(D_{+}\) captures positive deviations corresponding to
+over-dispersion, for which sample units are, on average, too far apart,
+whereas \(D_{-}\) captures negative deviations corresponding to
+under-dispersion or local clustering.
+
+The relation \(D_{\mathrm{net}}\approx0\) can arise in two distinct
+situations: (i) the original and translated densities agree closely,
+indicating alignment with the IP\(n\)M medoid reference configuration; or
+(ii) positive and negative contributions offset each other despite
+non-negligible pointwise distortions.
+
+\item \textbf{Dispersion coefficient.}
+To measure the magnitude of angular departures independently of their
+direction, define
+\[
+\eta
+=
+\frac{1}{N}
+\sum_{\ell\in U}
+\operatorname{scale}\!\left(
+1-\cos(\alpha_\ell);\,1-\cos(\theta_0)
+\right).
+\]
+Because \(1-\cos(\alpha_\ell)\geq0\), each scaled contribution lies in
+\([0,1]\), and hence \(\eta\in[0,1]\). The coefficient is small when the
+original and translated densities align closely and increases as the
+density--density scatter departs from the identity line. When
+\(D_{\mathrm{net}}\neq0\), this coefficient increases the magnitude of the
+final index when substantial angular departures are present, thereby reducing
+the effect of near-cancellation between opposing contributions.
+
+\end{itemize}
+
+Combining these components, the Density Index is defined as
+\[
+\mathrm{DI}(s)
+=
+D_{\mathrm{net}}
++
+\bigl(
+\operatorname{sign}(D_{\mathrm{net}})
+-
+D_{\mathrm{net}}
+\bigr)\eta,
+\]
+where
+\[
+\operatorname{sign}(x)
+=
+\begin{cases}
+-1, & x<0,\\
+0,  & x=0,\\
+1,  & x>0.
+\end{cases}
+\]
+Equivalently,
+\[
+\mathrm{DI}(s)
+=
+(1-\eta)D_{\mathrm{net}}
++
+\eta\,\operatorname{sign}(D_{\mathrm{net}}),
+\]
+which shows that \(\mathrm{DI}(s)\in[-1,1]\).
+
+% Putting these elements together, formally, we define the Density Index (DI) for
+% a sample \(s\in\mathcal S_n\) as
+% \[
+% \mathrm{DI}(s)
+% =
+% D_{\mathrm{net}}
+% +
+% \bigl(\operatorname{sign}(D_{\mathrm{net}})-D_{\mathrm{net}}\bigr)\,\eta,
+% \]
+% where \(\operatorname{sign}(x)=-1,0,1\) according as \(x<0\), \(x=0\), or
+% \(x>0\), respectively, and its components are defined as follows:
+% \begin{itemize}
+
+% \item \textbf{Net deviation.}
+% The net deviation is defined as
+% \[
+% D_{\mathrm{net}}=\frac{D_{+}+D_{-}}{N},
+% \]
+% where
+% \[
+% D_{+}
+% =
+% \sum_{\ell:\,-\sin\alpha_\ell \ge 0}
+% \operatorname{scale}\!\left(-\sin\alpha_\ell;\,\sin\!\left(\theta_0\right)\right),
+% \qquad
+% D_{-}
+% =
+% \sum_{\ell:\,-\sin\alpha_\ell < 0}
+% \operatorname{scale}\!\left(-\sin\alpha_\ell;\,\sin\!\left(\theta_0\right)\right).
+% \]
+
+% Here, \(D_{+}\) captures \emph{positive spread}, arising when sample units are,
+% on average, too far apart (points below the identity line), whereas \(D_{-}\)
+% captures \emph{negative spread}, arising when units are too close (points above
+% the identity line).
+
+% Thus, \(D_{\mathrm{net}}\approx 0\) in two distinct situations:
+% (i) densities coincide pointwise, indicating alignment with the IP\(n\)M
+% medoid reference configuration (optimal spread); or
+% (ii) positive and negative deviations offset each other, reflecting balanced
+% but non-negligible distortions.
+
+% \item \textbf{Dispersion coefficient.}
+% To prevent large opposing deviations from yielding an artificially small net
+% value, we define the dispersion coefficient
+% \[
+% \eta
+% =
+% \frac{1}{N}
+% \sum_{\ell\in U}
+% \operatorname{scale}\!\left(1-\cos\alpha_\ell;\,1-\cos\!\left(\theta_0\right)\right).
+% \]
+
+% The quantity \(1-\cos\alpha_\ell\) measures angular dissimilarity from the
+% identity direction independently of sign. Hence, \(\eta\) is small when the
+% translated and original densities align closely, and increases as the
+% density--density scatter departs from the identity line. This term ensures
+% that large but offsetting distortions are penalized.
+
+% \item \textbf{Scaling function.}
+% The scaling function is defined as
+% \[
+% \operatorname{scale}(\beta;\gamma)=
+% \min\!\bigl(1,\max(-1,\beta/\gamma)\bigr),
+% \]
+% which maps \((-\gamma,\gamma)\) linearly to \((-1,1)\) and saturates outside
+% this range. This preserves direction while ensuring boundedness and stability
+% across populations.
+
+%  The constant \(\theta_0\) is an angular calibration threshold. Since the
+% density--density plot lies in the nonnegative quadrant, the maximum possible
+% angular departure from the identity direction is \(\pi/4\). Smaller values of
+% \(\theta_0\) make the DI more conservative: as \(\theta_0\) approaches zero,
+% almost any nonzero departure is saturated near \(-1\) or \(+1\), so fewer
+% samples are regarded as well spread. Larger values of \(\theta_0\), especially
+% values close to \(\pi/4\), make the DI more liberal by scaling deviations more
+% gradually and assigning more samples values close to zero. In this paper, we
+% use the intermediate value \(\theta_0=\pi/8,\) which corresponds to half of the maximum possible angular departure.
+% \end{itemize}
+
+It is worth noting that constructing \(\mathrm{DI}(s)\) in this manner yields
+several advantages:
+\begin{itemize}
+    \item[(i)] inclusion probabilities are explicitly incorporated through
+    IP\(n\)M, ensuring design consistency;
+    
+    \item[(ii)] the index is bounded in \([-1,1]\), facilitating comparability
+    across populations and sampling designs, and is directly interpretable:
+    values close to \(-1\) indicate strong clustering (units too close), values
+    near \(0\) indicate balanced spatial spread relative to the benchmark
+    configuration, and values close to \(+1\) indicate pronounced
+    over-dispersion (units too far apart);
+    
+    \item[(iii)]  The index is translation invariant. Thus, DI evaluates
+dispersion through the relative configuration of the sampled units, rather
+than their absolute geographic location. Different spatial spread indices
+formalize spatial balance from different viewpoints: Moran-based indices focus
+on local spatial autocorrelation, whereas Voronoi-based indices focus on
+spatial coverage and local representation. DI adds a complementary
+configurational interpretation. Because DI uses a sample-adaptive medoid reference configuration, a
+well-spread sample is not penalized merely because its spatial arrangement
+differs from a single fixed global \(n\)-means solution; any departure
+measured by DI is evaluated relative to the sample-induced reference
+configuration illustrated in
+Figure~\ref{fig:sample_adaptive_reference}. The IP\(n\)M medoids define a reference configuration for an ideally well-spread sample; hence, any matched sample configuration that preserves this medoid reference pattern, up to a uniform
+translation, is regarded as equally well spread. In this sense, a sample is
+perfectly balanced when it represents the spatial structure of the population
+by preserving the relative arrangement of the IP\(n\)M reference medoids. DI is not generally rotation invariant; this limitation and
+its interaction with sample-adaptive reference configurations are illustrated
+in Appendix~\ref{Exm:rotation_4x5}.
+\end{itemize}
+The construction is not restricted to two-dimensional coordinates; a
+three-dimensional illustration of under-dispersed, well-spread, and
+over-dispersed sample configurations is provided in
+Appendix~\ref{app:multivariate_DI}.
+
+Algorithmic details for constructing DI are provided in the Appendix,
+Algorithm~\ref{A-alg:DI}. Subsection~\ref{Exm:DI_two_small_popu} presents
+illustrative examples based on two controlled population settings to
+demonstrate the behaviour of DI and compare its performance with existing
+spatial-balance measures.
+
+\section{Simulations}\label{Sec:Simulation}
+In this section, we evaluate the Density Index (DI) using diverse synthetic and real-world populations. The implementations and reproducibility materials are documented in the anonymized software reference \citep{graphical_sampling_2025_blind}.
+
+The simulation study covers three components: the populations, the sampling designs, and the evaluation indices.
+
+\textbf{Populations:} 
+\textit{Three simulated populations}, each with \(N=144\), are shown in
+Figure~\ref{fig:three_popu_clusters}: gridded, random, and clustered
+populations. Each population is examined under both EP and UP settings, with
+sample sizes \(n=4,8,16,32\). Under EP, \(\pi_\ell=n/N\) for all
+\(\ell\in U\). Under UP, initial weights are generated from a uniform
+distribution and then normalized so that
+\[
+\sum_{\ell\in U}\pi_\ell=n .
+\]
+
+\textit{Meuse population}, \(N=155\),
+Figure~\ref{fig:meuse_example}; from the \texttt{sp} package in R
+\citep{packagesp}. Spatial coordinates define the locations, and the UP
+inclusion probabilities are proportional to copper concentration
+(\emph{Cu}).
+
+\textit{Swiss amphibian population} \citep{karch_website}, \(N=959\),
+Figure~\ref{fig:swiss_example}; geographic coordinates define the
+locations, and the UP inclusion probabilities are proportional to
+\emph{Area}.
+
+
+\textbf{Sampling Designs:}
+To assess the behaviour of the proposed measure, we compare it across a small
+set of established and reproducible sampling designs. The selected designs are
+widely used in spatial sampling, are applicable under both EP and UP settings,
+and have available or straightforward implementations. They also represent
+different mechanisms for producing spatial spread, providing a useful benchmark
+for evaluating the sensitivity of DI rather than an exhaustive comparison of
+all spatial sampling methods. The comparisons include WAV, LPM
+(variant~1; \citealp{gra:lun:sch:12}), and SCP.  We also include maximum entropy sampling (MAX) \citep{hajek1981, til:06} as a
+non-spatial baseline. Under UP, MAX corresponds to conditional Poisson
+sampling, whereas under EP it reduces to simple random sampling without
+replacement.
+
+The simulation workflow was implemented in Python, with the competing sampling
+designs generated using R routines called through \texttt{rpy2}
+\citep{rpy2_pkg}. Specifically, SCP and LPM were generated using
+\texttt{BalancedSampling::scps} and \texttt{BalancedSampling::lpm1},
+respectively \citep{graf2016}; WAV used \texttt{WaveSampling::wave}
+\citep{wavesampling_pkg}; and MAX used \texttt{sampling::UPmaxentropy}
+\citep{sampling_pkg}. For each reported population, IP setting, sample size,
+and competing design, \(5{,}000\) Monte Carlo samples were generated.
+
+\textbf{Evaluation Indices:} 
+
+We compare Moran Index (MI), Voronoi Index (VI), Balanced Voronoi Index (BI), and the proposed DI. MI indicates clustering (positive) or spread (negative). VI and BI signal spread/regularity near zero. The DI distinguishes under-dispersion (negative), balance (near zero), and over-dispersion (positive) relative to the IP\(n\)M reference configuration.
+
+\begin{figure}[!htbp]
+    \centering
+    
+    \begin{subfigure}[c]{0.7\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/meuse_IP_clusters.pdf}
+        \caption{Meuse River population. }
+        \label{fig:meuse_example}
+    \end{subfigure}
+    
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[c]{0.7\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/swiss_IP_clusters.pdf}
+        \caption{Swiss amphibian population. }
+        \label{fig:swiss_example}
+    \end{subfigure}
+   
+    \caption{\small
+Examples of IP\(n\)M for the Meuse River and Swiss amphibian populations
+under EP and UP settings. The upper rows show the IP\(n\)M clusters, and the
+lower rows show the population layouts. Point sizes are proportional to the
+IPs, and cluster labels give soft-clustering IP totals; \(1.00\) indicates
+exact IP balance. In the UP setting, the IPs are proportional to copper
+concentration for the Meuse population and to area for the Swiss amphibian
+population.}
+    \par\small\textit{Alt text: Two stacked panels show IP-balanced n-means clustering for the Meuse River and Swiss amphibian populations under equal and unequal inclusion probabilities, with point size indicating inclusion probability and cluster annotations indicating IP mass.}
+    \label{fig:combined_clustering_comparison}
+\end{figure}
+
+\subsection{Results of the Three Simulated Populations}
+
+Figure~\ref{fig:reso_plot_three} presents Monte Carlo results for clustered, random, and gridded populations, comparing sampling designs (MAX, SCP, LPM, WAV) under UP and EP for sample sizes $n=4,8,16,$ and $32$. Bars show Monte Carlo means of the indices, with error bars indicating standard deviations; solid and hatched bars correspond to EP and UP, respectively.
+
+Overall, DI demonstrated a regular pattern in assessing dispersion, largely aligning with other established indices; however, closer inspection revealed notable differences. DI captured the quality of the sampling design in terms of its capability to spread samples, while also reflecting a broader range of variability among the samples.
+
+In the case of MAX, for both EP and UP with small sample sizes, DI showed small negative values, indicating that some sample points may occur close to each other. This behavior reflects the high-entropy nature of the random design, which does not impose spatial separation constraints and therefore allows realizations where a few units lie near each other while other regions remain sparsely sampled. With small samples, such incidental proximity may appear as local clustering or slight under-dispersion, even though it is simply a consequence of randomness (see left plot of Figure~\ref{fig:three_pop_example}). As the sample size increases, however, this random behavior becomes more balanced across the domain. The spatial configuration may simultaneously exhibit locally clustered pairs as well as more widely separated points. In this situation, positive and negative contributions to DI tend to offset each other across
+Monte Carlo samples, resulting in mean DI values generally close to zero. This tendency also reflects that DI, unlike the other indices, is able to capture both over-dispersion and under-dispersion, so that opposite deviations in different realizations balance out over repeated simulations. MAX, in both EP and UP cases, is well known for its high entropy. Compared with MI, DI captures a wider range of dispersion (standard deviation) levels, highlighting its stronger sensitivity to variations in sample spread.
+
+A key observation concerns the consistency of the indices as the sample size increases. A consistent index should reflect improved spatial spread together with reduced variability, indicating that poorly distributed samples become less likely at larger \(n\). DI, MI, and BI show this pattern in terms of their mean values, while the reduction in standard deviation is clearly visible for DI and BI but much less pronounced for MI.
+
+DI showed sensitivity to the specific spatial configuration of the population, as well as the sample size. For instance, in the gridded population (points arranged in a $12\times 12$ grid), samples of size 4 can be perfectly spread across coordinates. This is why the results for DI showed a better level of spread at $n=4$ than at $n=8$.
+
+Generally, upon closer inspection, the specific score generated by DI in each case can be thoroughly explained by the underlying population structure. As an illustration of the capability of DI to detect well-, under-, and over-spread designs, Figure~\ref{fig:three_pop_example} presents three designs on the Random population: MAX, WAV, and LPM, representing under-spread, balanced, and over-spread configurations, respectively. Notably, unlike the other indices, DI correctly identifies all three cases through both the magnitude and the sign of the index. The next subsection shows that DI exhibits more stable behaviour for larger populations and larger sample sizes.
+
+\subsection{Results for the Meuse and Swiss Amphibian Populations}
+Figures~\ref{fig:res_Meuse_plot} and \ref{fig:res_Swiss_plot} present Monte Carlo results for the Meuse dataset and Swiss amphibian population, respectively. When applying WAV, one of the most computationally demanding spread designs, the implementation warned that population sizes above 500 could be time-consuming; simulations for $N=959$ were therefore judged prohibitively slow. Consequently, WAV was omitted for the Swiss amphibian population dataset.
+
+For both real populations, particularly for larger population and sample
+sizes, the index patterns exhibited greater regularity. Similar to the three
+simulated populations, under the MAX design, which has the highest entropy
+among fixed-size designs, the standard deviation of DI, especially for small
+sample sizes, was approximately three to five times that of MI under both UP
+and EP settings. This difference is expected, since MAX does not impose
+spatial repulsion and can therefore generate samples with a wide range of
+spatial configurations. DI captures this variability more clearly than MI,
+despite both indices being bounded between \(-1\) and \(+1\). For designs
+specifically intended to spread the sample, DI also reflected the improved
+spatial spread, although its standard deviation remained comparatively larger
+for smaller sample sizes. This suggests that DI captures additional aspects of
+the sample configuration beyond those summarized by the other indices.
+
+For the MAX design, the mean DI values are centered close to zero under both
+EP and UP settings. This should not be interpreted as evidence that MAX
+typically produces well-spread samples. Rather, because MAX imposes no
+explicit spatial repulsion, individual samples can exhibit either
+under-dispersion or over-dispersion. Their negative and positive DI values
+therefore tend to offset one another over repeated Monte Carlo samples,
+producing a mean close to zero. The comparatively large standard deviation
+reflects this sample-to-sample variability. The empirical distributions of sample-level DI values for the Meuse population, reported in
+Figure~\ref{fig:max_DI_distribution} in the Appendix, illustrate this
+behaviour directly.
+
+For larger sample sizes, the variability of DI under MAX decreases and its
+mean values remain close to zero. A similar tendency is observed for BI.
+However, the comparatively larger variability of DI under MAX highlights again
+the greater sensitivity of DI to fluctuations in the spatial configuration of
+the sample.
+\begin{figure}[!htbp]
+		\centering
+\includegraphics[width=.85\linewidth]
+{figures/three_pop_example.pdf} 
+\caption{Examples of spatial samples and their corresponding balance measures (DI, MI, VI, BI) for a population with sample size $n=4$. Gray points denote population units and red points indicate the selected samples.}\par\small\textit{Alt text: Several sample configurations of size four are plotted over the same finite population, with the corresponding DI, Moran, Voronoi, and Balanced Voronoi index values shown for each configuration.}
+    \label{fig:three_pop_example}
+        \end{figure}
+       
+
+
+\begin{figure}[!htbp]
+		\centering
+\includegraphics[width=.84\linewidth]
+{figures/simulated_result_measure_medoid.pdf} 
+		\caption{\small Monte Carlo results for the three simulated populations (Clustered, Random, and Gridded). Bars represent the Monte Carlo means of the indices, and vertical error bars indicate their standard deviations. Solid bars correspond to equal inclusion probabilities (EP), while hatched bars represent unequal probabilities (UP). Results are shown for sample sizes $n=4,8,16,32$ across the MAX, SCP, LPM, and WAV sampling designs.}\par\footnotesize\textit{Alt text: Bar charts compare mean DI, Moran, Voronoi, and Balanced Voronoi indices with standard-deviation error bars across clustered, random, and gridded populations, four sample sizes, four sampling designs, and equal versus unequal probabilities.}
+    \label{fig:reso_plot_three}
+        \end{figure}
+
+\begin{figure}[!htbp]
+    \centering
+    
+    % --- Top Plot (Meuse) ---
+    \begin{subfigure}{\linewidth} % Use \linewidth to take up full width of the figure
+        \centering
+        \includegraphics[width=0.85\linewidth]{figures/meuse_balance_indices_measure_medoid.pdf}
+        \caption{Results for the Meuse dataset.}
+        \label{fig:res_Meuse_plot}
+    \end{subfigure}
+    
+    \vspace{0.5cm} % Add some vertical space between the plots
+    
+    % --- Bottom Plot (Swiss) ---
+    \begin{subfigure}{\linewidth} % Use \linewidth to take up full width of the figure
+        \centering
+        \includegraphics[width=0.85\linewidth]{figures/swiss_balance_indices_measure_medoid.pdf}
+        \caption{Results for the Swiss amphibian population.}
+        \label{fig:res_Swiss_plot}
+    \end{subfigure}
+    
+    % --- Combined Main Caption ---
+        \caption{Comparison of Monte Carlo results on the real populations. The means (bars) $\pm$ standard deviations (error bars) are shown for different sample sizes across different designs, evaluated on the four spread measures.}
+
+    \par\small\textit{Alt text: Two stacked sets of bar charts summarize Monte Carlo mean and standard deviation of four spatial-spread indices for the Meuse and Swiss populations across sampling designs, sample sizes, and equal or unequal inclusion probabilities.}
+    \label{fig:stacked_comparison_reso_plots}
+\end{figure}
+
+\section{Conclusion}
+\label{Sec:Conclusion}
+
+This paper introduced the DI, a population-specific measure
+for assessing spatial spread in finite-population sampling. The index is based
+on an IP\(n\)M reference configuration, which provides spatially compact
+clusters consistent with the prescribed first-order inclusion probabilities.
+By comparing the original population density with the cluster-wise translated
+density induced by a sample, DI quantifies the extent to which the sample
+departs from the benchmark spatial configuration.
+
+The proposed index is bounded, translation invariant, and directly
+interpretable. Negative values indicate under-dispersion or local clustering,
+values near zero indicate agreement with the idealized spatially balanced sample configuration, and
+positive values indicate over-dispersion. Simulation results on synthetic populations, as well as on the Meuse and Swiss
+amphibian populations, show that DI provides complementary information to Moran-, Voronoi-, and
+balance-based indices. In particular, DI captures both the direction and the
+magnitude of departures from spatial spread, allowing it to distinguish
+well-spread, under-spread, and over-spread sample configurations.
+
+The current formulation is not generally rotation invariant,
+and its numerical behaviour may depend on the kernel, bandwidth, and angular
+calibration parameter \(\theta_0\). Developing more rotation-robust and less
+tuning-sensitive versions of DI would be an interesting direction for future
+research.
+
+Overall, DI provides a useful diagnostic tool for comparing spatial sampling
+designs and for understanding the spatial quality of selected samples under
+both equal- and unequal-probability settings.
+
+\clearpage
+\appendix
+\section{Additional Examples and Algorithms}
+
+\subsection{Alternative optimal configurations and rotation}
+\label{Exm:rotation_4x5}
+
+
+Figure~\ref{fig:rotation_4x5} illustrates two related properties of DI using a
+regular \(20\times20\) population with \(n=20\). Panel~(a) shows the initial
+\(5\times4\) well-spread configuration, for which \(\mathrm{DI}=0\).
+In panel~(b), a uniform translation is applied to all sample units and DI
+remains unchanged, confirming translation invariance.
+
+More importantly, panel~(c) rotates the sample by \(90^\circ\), transforming
+the \(5\times4\) arrangement into the alternative \(4\times5\) configuration.
+Because IP\(n\)M is initialized by the observed sample, the rotated sample
+induces a correspondingly rotated IP-balanced reference configuration, and
+again \(\mathrm{DI}=0\). Thus, the construction does not require a single
+arbitrarily chosen global configuration to represent the unique optimal
+sample.
+
+This should not be interpreted as general rotation invariance. In panel~(d),
+a \(45^\circ\) rotation produces weaker coverage of the upper-left and
+lower-right regions of the population and yields
+\(\mathrm{DI}=-0.14\), indicating under-dispersion relative to the
+sample-adaptive reference. Thus, arbitrary rotations may change DI, whereas
+different orientations corresponding to equally suitable balanced
+configurations can receive the same optimal value. In this example, DI is
+also among the least affected of the four considered indices by the
+\(45^\circ\) rotation.
+
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/DI_rotation_4x5.pdf}
+    \caption{\small
+    Translation and rotation properties for a regular \(20\times20\)
+    population with \(n=20\). Panel~(a) shows the initial \(5\times4\)
+    well-spread configuration. Panel~(b) applies a uniform translation,
+    leaving \(\mathrm{DI}=0\). Panel~(c) applies a \(90^\circ\) rotation,
+    transforming the sample into the alternative \(4\times5\) configuration
+    while retaining \(\mathrm{DI}=0\). Panel~(d) applies a \(45^\circ\)
+    rotation, producing weaker coverage of two opposite regions and
+    \(\mathrm{DI}=-0.14\). The corresponding Moran (MI), Voronoi (VI), and
+    Balanced Voronoi (BI) indices are shown for comparison.}
+    \par\small\textit{Alt text: Four panels show an initial five-by-four sample pattern, a translated version, a 90-degree rotation yielding a four-by-five pattern, and a 45-degree rotation; arrows, original positions, medoids, matches, and four index values are displayed.}
+    \label{fig:rotation_4x5}
+\end{figure}
+
+\subsection{Diagnostic comparison on controlled configurations}
+\label{Exm:DI_two_small_popu}
+To examine the behaviour of existing spatial-balance indices relative to the
+proposed Density Index (DI), we consider two controlled population
+configurations shown in Figure~\ref{fig:Four_Three}. These examples are kept
+intentionally simple so that geometric differences among samples are
+transparent and interpretation is unambiguous.
+
+Panel~(a) consists of three well-separated clusters located at large mutual
+distances. Panel~(b) consists of four compact clusters arranged symmetrically
+in close proximity. For each configuration, representative samples are
+evaluated using DI, the Voronoi Index (VI), the Balanced Voronoi Index (BI),
+and the Moran Index (MI). Numerical results are reported in
+Table~\ref{tab:Four_Three}.
+
+\paragraph{Three-cluster configuration.}
+
+In panel~(a), VI and MI assign identical values to all samples
+(\(\mathrm{VI}=0\), \(\mathrm{MI}=-1\)), regardless of whether the sample is
+entirely concentrated within one cluster, such as \texttt{aaa}, partially
+dispersed, such as \texttt{aac}, or maximally separated, such as
+\texttt{ccc}. Hence, in this separated-cluster setting, VI and MI do not
+distinguish structurally different sample configurations.
+
+BI varies across configurations, from \(0.00\) to \(0.26\), and therefore
+detects differences in the magnitude of imbalance. However, it is unsigned:
+configurations such as \texttt{aaa} (strong concentration) and \texttt{ccc}
+(maximal dispersion) both receive positive values without directional
+interpretation. Consequently, BI does not distinguish whether the deviation
+arises from under-dispersion or over-dispersion.
+
+DI produces a coherent and interpretable ordering across all ten samples.
+Values range from \(-0.84\) for \texttt{aaa} to \(0.74\) for \texttt{ccc},
+with intermediate configurations such as \texttt{aac} (\(-0.37\)) and
+\texttt{abc} (\(-0.12\)) lying between these extremes. This range reflects
+graded departures from balance while preserving directional information.
+Unlike VI and MI, DI does not collapse structurally distinct layouts into a
+single equivalence class.
+
+\paragraph{Four-cluster configuration.}
+
+Panel~(b) illustrates behaviour in a more compact and symmetric setting. The
+first three samples,
+\texttt{e1 e2 e3 e4}, \texttt{a1 a2 a3 a4}, and \texttt{d1 d2 d3 d4},
+are translations of the same relative configuration. DI assigns \(0.00\) to
+all three, consistent with its translation-invariance property. In contrast,
+VI and BI vary across these geometrically equivalent samples, and MI ranges
+from \(-1.00\) to \(-0.59\), indicating sensitivity to the absolute position
+of the sample within the finite population rather than to the relative
+configuration alone.
+
+The sample \texttt{f1 h2 d3 b4}, which approximates a rotation of the
+reference configuration, receives \(\mathrm{DI}=0.11\), reflecting near
+balance. VI assigns \(0.00\), and MI remains negative (\(-0.75\)), providing
+limited differentiation.
+
+When one unit is displaced outward (\texttt{b1 f2 h3 d4}) or inward
+(\texttt{h1 d2 b3 f4}), DI captures both magnitude and direction
+(\(0.78\) versus \(-0.71\)). BI increases in magnitude, about \(0.26\), but
+does not indicate direction. VI remains \(0.00\) in both cases. MI yields
+moderate negative values (\(-0.50\) and \(-0.69\)), and does not distinguish
+the outward displacement from the inward displacement.
+
+The extreme proximity case \texttt{a1 d1 b1 e1} produces the lowest DI
+(\(-0.86\)), correctly reflecting strong concentration. MI also detects
+clustering in this case (\(0.61\)), and VI increases to \(0.73\), indicating
+sensitivity in extreme cases. However, MI and VI show limited resolution
+across intermediate configurations, whereas DI varies smoothly across all ten
+cases.
+
+\paragraph{Summary.}
+
+Across both configurations, three structural distinctions emerge:
+\begin{itemize}
+\item \textbf{Discrimination.} VI and MI may assign identical values to
+structurally distinct samples in separated-cluster settings, whereas DI
+differentiates consistently across the configurations.
+
+\item \textbf{Directionality.} BI measures the magnitude of imbalance but is
+unsigned. DI provides signed information, distinguishing under-dispersion from
+over-dispersion.
+
+\item \textbf{Geometric coherence.} DI respects translation invariance while
+remaining sensitive to relative cluster displacement. Other indices may vary
+across geometrically equivalent configurations or fail to detect intermediate
+distortions.
+\end{itemize}
+
+These controlled examples demonstrate that DI responds coherently to both
+global separation and local concentration, offering a structurally
+interpretable diagnostic of spatial spread.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=.7\linewidth]{figures/Four_Three.pdf}
+\caption{Controlled configurations used to compare spatial-balance indices.
+Panel~(a) shows three well-separated clusters, and panel~(b) shows four
+compact clusters arranged symmetrically.}
+\par\small\textit{Alt text: Two controlled spatial layouts are shown: three widely separated clusters and four compact symmetric clusters, with labeled candidate sample locations used for comparing spatial-balance indices.}
+    \label{fig:Four_Three}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering
+\caption{Index values for the example samples in Figure~\ref{fig:Four_Three}.
+Columns report the Density Index (DI), Balanced Voronoi Index (BI), Voronoi
+Index (VI), and Moran Index (MI). The left block corresponds to panel~(a) with
+three clusters, and the right block corresponds to panel~(b) with four
+clusters.}
+\label{tab:Four_Three}
+\small
+\resizebox{\textwidth}{!}{
+\scriptsize
+\begin{tabular}{ccccrrrr @{\hspace{2em}} cccc rrrr}
+\toprule
+\multicolumn{8}{c}{\textbf{(a) 3 clusters}} & \multicolumn{8}{c}{\textbf{(b) 4 clusters}} \\
+\cmidrule(lr){1-8}\cmidrule(l){9-16}
+\multicolumn{4}{c}{Sample} & DI & BI & VI & MI &
+\multicolumn{4}{c}{Sample} & DI & BI & VI & MI \\
+\midrule
+a & a & a &   & -0.84 & 0.26 & 0.00 & -1.00 & e1 & e2 & e3 & e4 &  0.00 & 0.00 & 0.00 & -1.00 \\
+a & a & b &   & -0.69 & 0.21 & 0.00 & -1.00 & a1 & a2 & a3 & a4 &  0.00 & 0.43 & 0.11 & -0.59 \\
+a & a & c &   & -0.37 & 0.26 & 0.00 & -1.00 & d1 & d2 & d3 & d4 &  0.00 & 0.28 & 0.02 & -0.83 \\
+a & b & b &   & -0.41 & 0.15 & 0.00 & -1.00 & f1 & h2 & d3 & b4 &  0.11 & 0.19 & 0.00 & -0.75 \\
+a & b & c &   & -0.12 & 0.21 & 0.00 & -1.00 & b1 & f2 & h3 & d4 &  0.78 & 0.26 & 0.00 & -0.50 \\
+a & c & c &   &  0.21 & 0.26 & 0.00 & -1.00 & h1 & d2 & b3 & f4 & -0.71 & 0.26 & 0.00 & -0.69 \\
+b & b & b &   &  0.00 & 0.00 & 0.00 & -1.00 & a1 & d1 & b1 & e1 & -0.86 & 1.01 & 0.73 &  0.61 \\
+b & b & c &   &  0.30 & 0.15 & 0.00 & -1.00 & a1 & c1 & g1 & i1 & -0.70 & 0.85 & 0.58 &  0.38 \\
+b & c & c &   &  0.56 & 0.21 & 0.00 & -1.00 & c1 & c2 & g3 & g4 &  0.56 & 0.36 & 0.00 & -0.40 \\
+c & c & c &   &  0.74 & 0.26 & 0.00 & -1.00 & i1 & a2 & a3 & i4 & -0.51 & 0.36 & 0.00 & -0.05 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\subsection{Sample-level behaviour of DI under maximum entropy sampling}
+\label{app:max_DI}
+
+Figure~\ref{fig:max_DI_distribution} shows the empirical distributions of
+sample-level DI values under MAX for the Meuse population. For \(n=5\) and
+\(n=10\), substantial variation occurs on both sides of zero, so a mean DI
+near zero does not imply that individual samples are themselves close to
+spatially balanced. Rather, negative and positive DI values partly offset
+when averaged. As \(n\) increases, the distribution becomes more concentrated
+around zero, with similar behaviour under EP and UP sampling.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/max_DI_distribution.pdf}
+    \caption{Empirical distributions of sample-level DI values under MAX for
+    the Meuse population, for \(n=5,10,\) and \(20\). The upper and lower rows
+    correspond to EP and UP sampling, respectively. The vertical line marks
+    \(\mathrm{DI}=0\). For smaller \(n\), values occur widely on both sides of
+    zero and may offset in the Monte Carlo mean; as \(n\) increases, the
+    distribution becomes more concentrated around zero.}
+    \par\small\textit{Alt text: Six distribution plots show sample-level DI values under maximum-entropy sampling for the Meuse population at sample sizes 5, 10, and 20 under equal and unequal probabilities, with a vertical reference line at zero.}
+    \label{fig:max_DI_distribution}
+\end{figure}
+\subsection{Three-dimensional illustration of DI}
+\label{app:multivariate_DI}
+
+The formulation of DI is not restricted to two-dimensional coordinates.
+Figure~\ref{fig:multivariate_DI} illustrates its behaviour for a
+three-dimensional population. As in the two-dimensional setting, negative,
+near-zero, and positive values identify under-dispersed, well-spread, and
+over-dispersed sample configurations, respectively.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/multivariate_3D_DI_three_cases.pdf}
+    \caption{Illustration of DI for three sample configurations in a
+three-dimensional population: (a) an under-dispersed sample,
+\(\mathrm{DI}=-0.423\); (b) a well-spread sample,
+\(\mathrm{DI}=0.078\); and (c) an over-dispersed sample,
+\(\mathrm{DI}=0.955\). Red circles indicate the observed sample units and
+black crosses the corresponding IP\(n\)M medoid reference units.}
+    \par\small\textit{Alt text: Three three-dimensional scatterplots show under-dispersed, well-spread, and over-dispersed samples, with observed sample units and their IP-balanced medoid reference units highlighted and the corresponding DI value reported.}
+    \label{fig:multivariate_DI}
+\end{figure}
+\begin{algorithm}[H]
+\caption{IP-Balanced \(n\)-Means Clustering (IP\(n\)M)}
+\label{alg:IP_balanced_nmeans}
+\small
+\begin{algorithmic}[1]
+
+\Require Coordinates \(\{\bm c_\ell\}_{\ell\in U}\), IP vector
+\(\bm\pi=(\pi_1,\ldots,\pi_N)\) with \(\sum_{\ell\in U}\pi_\ell=n\),
+regularization parameter \(\varepsilon>0\) (default \(0.01\)), clustering type: soft or hard
+\Ensure Membership matrix \(\mu=(\mu_{\ell i})\in\mathbb R^{N\times n}\)
+
+\Statex \textbf{Phase I: OT-based preliminary clustering}
+
+\State Initialize centroids \(\{\bm o_i\}_{i=1}^n\)
+
+\Repeat
+\State Compute \(C_{\ell i}=\|\bm c_\ell-\bm o_i\|^2\)
+\State Normalize
+\(
+C\gets C/\{\operatorname{median}(C)+10^{-12}\}.
+\)
+\State Solve the entropic OT problem using Sinkhorn iterations
+\[
+\min_{P\ge 0}
+\sum_{\ell\in U}\sum_{i=1}^n P_{\ell i}C_{\ell i}
++
+\varepsilon
+\sum_{\ell\in U}\sum_{i=1}^n
+P_{\ell i}(\log P_{\ell i}-1),
+\]
+subject to
+\[
+\sum_{i=1}^n P_{\ell i}=\pi_\ell,\quad \ell\in U,
+\qquad
+\sum_{\ell\in U}P_{\ell i}=1,\quad i=1,\ldots,n .
+\]
+
+\State Update centroids
+\[
+\bm o_i
+\gets
+\frac{\sum_{\ell\in U}P_{\ell i}\bm c_\ell}
+     {\sum_{\ell\in U}P_{\ell i}},
+\qquad i=1,\ldots,n .
+\]
+
+\Until{convergence}
+
+\Statex \textbf{Phase II: Ordered IP-balanced partition}
+
+\State Set \(a_\ell=\arg\max_{1\le i\le n}P_{\ell i}\), \(\ell\in U\).
+\State Arrange the centroids along an approximate open traveling-salesman
+path \(\sigma=(i_1,\ldots,i_n)\).
+\State Order the units within the preliminary clusters according to
+\(\sigma\), and concatenate them to obtain
+\[
+\omega=(\omega_1,\ldots,\omega_N).
+\]
+
+\State Compute cumulative IP masses
+\[
+T_0=0,
+\qquad
+T_h=\sum_{q=1}^{h}\pi_{\omega_q},
+\qquad h=1,\ldots,N .
+\]
+
+\For{\(i=1,\ldots,n\)}
+\For{\(h=1,\ldots,N\)}
+\State Set
+\[
+\mu_{\omega_h i}
+\gets
+\frac{
+\max\!\left\{
+\min\{T_h,i\}-\max\{T_{h-1},i-1\},\,0
+\right\}
+}
+{\pi_{\omega_h}} .
+\]
+\EndFor
+\EndFor
+
+\If{hard clustering is selected}
+\For{\(\ell\in U\)}
+\State Let \(i^\ast(\ell)=\arg\max_{1\le i\le n}\mu_{\ell i}\), and set
+\[
+\mu_{\ell i^\ast(\ell)}\gets 1,
+\qquad
+\mu_{\ell i}\gets 0
+\quad (i\neq i^\ast(\ell)).
+\]
+\EndFor
+\EndIf
+
+\State \Return \(\mu=(\mu_{\ell i})\)
+
+\end{algorithmic}
+\end{algorithm}
+\begin{algorithm}[H]
+\caption{Density Index (DI)}
+\label{A-alg:DI}
+\small
+\begin{algorithmic}[1]
+
+\Require Population \(U=\{1,\dots,N\}\) with \(d\)-dimensional coordinates
+\(\{\bm c_\ell\in\mathbb R^d\}_{\ell\in U}\); inclusion probabilities
+\(\bm\pi=(\pi_\ell)_{\ell\in U}\) with \(\sum_{\ell\in U}\pi_\ell=n\);
+sample \(s=\{i_1,\dots,i_n\}\subset U\); reference type
+\(\rho\in\{\textsc{medoid},\textsc{centroid}\}\), with default
+\(\rho=\textsc{medoid}\); multivariate kernel density estimator
+\(\textsc{MKDE}(\cdot)\).
+
+\Ensure Density Index \(\mathrm{DI}(s)\in[-1,1]\).
+
+\Statex \textbf{Clustering and reference points}
+\State Apply Algorithm~\ref{alg:IP_balanced_nmeans} using its hard-clustering
+variant on \(U\), initialized by the sample units \(s\).
+\label{line:upbkm}
+\State Let \(\{U_i\}_{i=1}^n\) be the resulting clusters, whose IP totals are close to one.
+\label{line:clusters}
+\State  For each cluster \(U_i\), define the reference point \(\bm q_i\) by
+\[
+\bm q_i
+=
+\begin{cases}
+\bm c_{m_i}, &
+\rho=\textsc{medoid},\quad
+m_i\in\displaystyle\arg\min_{u\in U_i}
+\sum_{\ell\in U_i}\pi_\ell\|\bm c_u-\bm c_\ell\|^2, \\[2ex]
+\displaystyle
+\frac{\sum_{\ell\in U_i}\pi_\ell\bm c_\ell}
+{\sum_{\ell\in U_i}\pi_\ell}, &
+\rho=\textsc{centroid}.
+\end{cases}
+\]
+For the medoid option, ties are broken by largest IP and then smallest label.
+
+\Statex \textbf{Assignment and translation}
+\State Match the reference points to the sampled units by solving
+\[
+\tau
+=
+\arg\min_{\tau}
+\sum_{i=1}^n
+\|\bm c_{\tau(i)}-\bm q_i\|^2,
+\qquad
+\tau(i)\in s,
+\]
+where \(\tau\) is one-to-one.
+\label{line:hungarian}
+
+\For{\(i=1,\ldots,n\)}
+\State Define the translated coordinates for all \(\ell\in U_i\) by
+\(
+\widetilde{\bm c}_\ell
+=
+\bm c_\ell+\bigl(\bm c_{\tau(i)}-\bm q_i\bigr).
+\)
+\EndFor
+\label{line:T}
+
+\Statex \textbf{Density estimation}
+\State Estimate the spatial density at the original and translated locations:
+
+\[
+f_\ell
+\gets
+\textsc{MKDE}\bigl(\bm c_\ell;\{\bm c_m\}_{m\in U}\bigr),
+\qquad
+\widetilde f_\ell
+\gets
+\textsc{MKDE}\bigl(\widetilde{\bm c}_\ell;
+\{\widetilde{\bm c}_m\}_{m\in U}\bigr).
+\]
+\label{line:mkde}
+
+\Statex \textbf{Pointwise angles}
+\State For each \(\ell\in U\), compute
+\[
+\sin(\alpha_\ell)
+=
+\frac{\widetilde f_\ell-f_\ell}
+{\sqrt{2}\sqrt{\widetilde f_\ell^{\,2}+f_\ell^{\,2}}},
+\qquad
+\cos(\alpha_\ell)
+=
+\frac{\widetilde f_\ell+f_\ell}
+{\sqrt{2}\sqrt{\widetilde f_\ell^{\,2}+f_\ell^{\,2}}}.
+\]
+\label{line:angles}
+
+\Statex \textbf{Aggregation}
+\State Set the angular calibration threshold \(\theta_0=\pi/8\).
+\State Define: $\operatorname{scale}(\beta;\gamma)
+=
+\min\!\left\{1,\max\!\left\{-1,\frac{\beta}{\gamma}\right\}\right\},
+\qquad \beta\in\mathbb R,\ \gamma>0.$
+\State Net deviation:
+\(
+D_{\mathrm{net}}
+\gets
+\frac{1}{N}
+\sum_{\ell\in U}
+\operatorname{scale}\!\left(-\sin(\alpha_\ell);\,\sin(\theta_0)\right).
+\)
+\label{line:nd}
+
+\State Dispersion coefficient:
+\(
+\eta
+\gets
+\frac{1}{N}
+\sum_{\ell\in U}
+\operatorname{scale}\!\left(1-\cos(\alpha_\ell);\,1-\cos(\theta_0)\right).
+\)
+\label{line:eta}
+
+\Statex \textbf{Index}
+\State Compute
+\(
+\mathrm{DI}(s)
+\gets
+D_{\mathrm{net}}
++
+\bigl(\operatorname{sign}(D_{\mathrm{net}})-D_{\mathrm{net}}\bigr)\eta .
+\)
+\label{line:ddi}
+
+\State \Return \(\mathrm{DI}(s)\).
+
+\end{algorithmic}
+\end{algorithm}
+
+\section*{Disclosure Statement}
+No funding was received for this work, and the authors declare no conflicts of interest.
+
+\section*{Data Availability}
+The data and code required to reproduce the numerical studies are available
+through a public Python package and repository described in the anonymized
+software reference \citep{graphical_sampling_2025_blind}. Identifying web
+addresses are anonymized for double-blind review and will be restored in the
+final version.
+\bibliographystyle{imsart-nameyear}
+\bibliography{spreadGFSspread_blind}
+
+\section*{Figure Captions}
+\noindent\textbf{Figure 1.} Three simulated populations used to illustrate IP\(n\)M, each with \(N=144\) units: gridded, random, and clustered layouts. Each population is considered under both EP and UP settings, with the IPs summing to \(n=4\). Colored polygons delineate the clusters, point sizes are proportional to the IPs, and border units are identified. The annotated values give hard- and soft-clustering IP totals.\par\medskip
+\noindent\textbf{Figure 2.} Sample-adaptive IP\(n\)M reference configurations for three samples of size \(n=2\) from the same population under equal inclusion probabilities. Vertical, horizontal, and diagonal samples induce correspondingly oriented IP-balanced partitions and medoid references.\par\medskip
+\noindent\textbf{Figure 3.} Cluster-wise translation and density comparison under the EP setting for three sample configurations in a clustered population. Columns show the original density, hard IP\(n\)M partition with matched sample units, translated population, and density--density comparison.\par\medskip
+\noindent\textbf{Figure 4.} Angle-based contributions in the density--density plot. The identity line separates negative and positive contributions; highlighted rays illustrate the signed angle contribution and angular magnitude used by DI.\par\medskip
+\noindent\textbf{Figure 5.} Examples of IP\(n\)M for the Meuse River and Swiss amphibian populations under EP and UP settings. Point sizes are proportional to the IPs, and cluster labels give soft-clustering IP totals.\par\medskip
+\noindent\textbf{Figure 6.} Examples of spatial samples and their corresponding balance measures (DI, MI, VI, BI) for a population with sample size \(n=4\).\par\medskip
+\noindent\textbf{Figure 7.} Monte Carlo results for the three simulated populations. Bars show index means and error bars show standard deviations across sample sizes, designs, and EP/UP settings.\par\medskip
+\noindent\textbf{Figure 8.} Comparison of Monte Carlo results on the real populations. Means and standard deviations are shown for different sample sizes and designs using the four spread measures.\par\medskip
+\noindent\textbf{Figure 9.} Translation and rotation properties for a regular \(20\times20\) population with \(n=20\), including the initial sample, a uniform translation, a \(90^\circ\) rotation, and a \(45^\circ\) rotation.\par\medskip
+\noindent\textbf{Figure 10.} Controlled configurations used to compare spatial-balance indices: three well-separated clusters and four compact clusters arranged symmetrically.\par\medskip
+\noindent\textbf{Figure 11.} Empirical distributions of sample-level DI values under MAX for the Meuse population for \(n=5,10,20\), under EP and UP sampling.\par\medskip
+\noindent\textbf{Figure 12.} Illustration of DI for under-dispersed, well-spread, and over-dispersed sample configurations in a three-dimensional population.\par\medskip
+
+
+
+\end{document}

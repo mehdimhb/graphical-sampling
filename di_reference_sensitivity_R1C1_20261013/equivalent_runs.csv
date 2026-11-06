@@ -1,0 +1,13 @@
+sample,reference_hash,representative,runs,count,DI_range,native_OT_loss_range,Qsoft_range
+S1,b2385e2375fad420cdc4594d21b852c087d660f3dac99aa9ff729a23824671ed,s1_official_00,"[""s1_official_00"", ""s1_official_01"", ""s1_official_02"", ""s1_official_03"", ""s1_official_04"", ""s1_official_05"", ""s1_official_06"", ""s1_official_07"", ""s1_stress_09""]",9,0,1.9852682275889322e-09,0
+S1,385864bfba3459d2ad2cfc6bda1be37a16ad8181fe987518a92f7c281a56590d,s1_official_08,"[""s1_official_08"", ""s1_official_09"", ""s1_stress_03""]",3,0,7.71715469305434e-11,5.6898930012039273e-16
+S1,fd95179e1835f1237071f52debf34fc38d76ce167467931a565226a6ed0dde2f,s1_stress_00,"[""s1_stress_00"", ""s1_stress_02"", ""s1_stress_05"", ""s1_stress_08""]",4,0,4.7018073878746236e-09,2.2204460492503131e-16
+S1,362768527a923bc989524ad295aea93cbf81babade9e7025c18463dbd9fdfea5,s1_stress_01,"[""s1_stress_01""]",1,0,0,0
+S1,a6f9a80028a552ca01f8d64e6249658ae672ca0b72c60cf7b8624cda8f434984,s1_stress_04,"[""s1_stress_04"", ""s1_stress_06""]",2,0,2.9405674539795257e-07,0
+S1,a52eb02b06ada740236989252e4118bcbe42765eee1f19b2f4b73e8611d2033f,s1_stress_07,"[""s1_stress_07""]",1,0,0,0
+S2,385864bfba3459d2ad2cfc6bda1be37a16ad8181fe987518a92f7c281a56590d,s2_official_00,"[""s2_official_00"", ""s2_official_01"", ""s2_official_03"", ""s2_official_06"", ""s2_stress_03""]",5,0,1.0388895299584533e-10,5.5511151231257827e-16
+S2,b2385e2375fad420cdc4594d21b852c087d660f3dac99aa9ff729a23824671ed,s2_official_02,"[""s2_official_02"", ""s2_official_04"", ""s2_official_05"", ""s2_official_07"", ""s2_official_08"", ""s2_official_09"", ""s2_stress_09""]",7,0,2.0119856336542341e-09,3.3306690738754696e-16
+S2,fd95179e1835f1237071f52debf34fc38d76ce167467931a565226a6ed0dde2f,s2_stress_00,"[""s2_stress_00"", ""s2_stress_02"", ""s2_stress_05"", ""s2_stress_08""]",4,0,4.7018073878746236e-09,2.2204460492503131e-16
+S2,362768527a923bc989524ad295aea93cbf81babade9e7025c18463dbd9fdfea5,s2_stress_01,"[""s2_stress_01""]",1,0,0,0
+S2,a6f9a80028a552ca01f8d64e6249658ae672ca0b72c60cf7b8624cda8f434984,s2_stress_04,"[""s2_stress_04"", ""s2_stress_06""]",2,0,2.9405674539795257e-07,0
+S2,a52eb02b06ada740236989252e4118bcbe42765eee1f19b2f4b73e8611d2033f,s2_stress_07,"[""s2_stress_07""]",1,0,0,0

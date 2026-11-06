@@ -1,0 +1,7 @@
+{
+  "reason": "Removed unused inherited fixed_controls helper; controls.py supplies the actual density-only control. No scientific function or settings changed.",
+  "original_method_SHA256": "826bb6b987179261d89795953c15474ec38f229b1603658004923dc179a6a64a",
+  "current_method_SHA256": "42e95c98b367946fb591cf8cd87369f3523a4bc418b492744b0a9255e84d52b6",
+  "archived_executed_source": "executed_source/method.py",
+  "archived_configuration": "executed_source/config.json"
+}

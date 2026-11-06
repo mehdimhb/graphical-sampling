@@ -1,0 +1,11 @@
+{
+  "all_checks_passed": true,
+  "source_graphics_preserved_byte_for_byte_after_old_text_removal": true,
+  "original_source_unchanged": true,
+  "pdf_pages": 1,
+  "panels_in_one_row": 4,
+  "legend_at_bottom": true,
+  "duplicate_hidden_headings": false,
+  "scientific_calculations_rerun": 0,
+  "rendering_threads": 8
+}

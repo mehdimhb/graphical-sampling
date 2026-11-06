@@ -1,0 +1,23 @@
+{
+  "checked_UTC": "2026-10-16T06:56:28.698972+00:00",
+  "main_SHA": "dc2881af84a41e4f7658b6d21401e58470871b55",
+  "correction_SHA": "902ed8ef49edf4042ea8c30afefaa9aa974ad9ea",
+  "main_behind_correction_commits": 7,
+  "main_ahead_of_correction_commits": 0,
+  "full_merge_changed_paths": 527,
+  "focused_correction_changed_paths": 34,
+  "clean_committed_package_tests": {
+    "passed": 105,
+    "failed": 0
+  },
+  "main_plus_correction_tests": {
+    "passed": 68,
+    "failed": 0
+  },
+  "backup_remote_branch": "origin/backup/main-before-di-20261016",
+  "backup_SHA": "dc2881af84a41e4f7658b6d21401e58470871b55",
+  "main_updated": false,
+  "merge_performed": false,
+  "release_performed": false,
+  "note": "Earlier missing-notebook failures were caused by the dirty local checkout; clean committed package tests pass. Twelve untracked exact-double-stratified notebook tests are not part of the committed branch test suite."
+}

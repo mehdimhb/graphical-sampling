@@ -1,0 +1,75 @@
+{
+  "authority": "sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+  "N": 144,
+  "n": 8,
+  "IP_setting": "UP",
+  "IP_min": 0.0013055336238199503,
+  "IP_max": 0.11113707169197493,
+  "IP_sum": 8.000000000000002,
+  "coordinate_origin": [
+    0.0137993846435714,
+    0.1106895043585586
+  ],
+  "coordinate_scale": 1.053898621114514,
+  "normalization": "(raw-origin)/scale, same common scale on both axes",
+  "inverse": "raw_translated=normalized_translated*scale+origin",
+  "kernel": "unweighted uniform box with inclusive infinity-norm support and self-neighbors",
+  "Scott_h": 0.43679023236814946,
+  "H_normalized": [
+    [
+      0.014607191623791389,
+      0.002443112336174653
+    ],
+    [
+      0.002443112336174653,
+      0.0070985827919559565
+    ]
+  ],
+  "H_original": [
+    [
+      0.016224241385482906,
+      0.002713570499711185
+    ],
+    [
+      0.002713570499711185,
+      0.007884412259229045
+    ]
+  ],
+  "H_symmetric_inverse_root_normalized": [
+    [
+      8.436129338007467,
+      -1.2135189745639623
+    ],
+    [
+      -1.213518974563962,
+      12.165732416463477
+    ]
+  ],
+  "density_normalized_to_original": "divide by scale**2",
+  "all_scoring_settings_fixed": true,
+  "OT_epsilon": 0.01,
+  "OT_cost_normalization": "current median squared distance+1e-12 each iteration",
+  "OT_marginal_tolerance": 1e-10,
+  "OT_outer_tolerance": 1e-07,
+  "OT_outer_limit": 200,
+  "OT_sinkhorn_update_limit": 1000000,
+  "final_OT_fixed_point_check": 2e-07,
+  "TSP_restarts": 15,
+  "medoid_tie_rtol": 1e-12,
+  "medoid_tie_atol": 1e-14,
+  "medoid_tie_rule": "largest exact IP then smallest one-based source-row ID",
+  "angular_theta0": 0.39269908169872414,
+  "DI_formula": "(1-eta)*Dnet + eta*sign(Dnet); unchanged actual package score method",
+  "python": "3.12.13",
+  "versions": {
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "pandas": "3.0.2",
+    "scikit-learn": "1.8.0",
+    "numba": "0.65.0",
+    "matplotlib": "3.10.8",
+    "joblib": "1.5.3"
+  },
+  "LaTeX_proposals_compiled_successfully": true,
+  "LaTeX_validation_log": "/tmp/r1c1-tex-check/compile.stdout"
+}

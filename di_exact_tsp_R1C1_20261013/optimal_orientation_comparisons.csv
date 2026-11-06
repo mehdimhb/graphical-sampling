@@ -1,0 +1,3 @@
+sample,oriented_path_index,path_is_reversal,same_preliminary_transport,same_hard_partition,partition_IP_disagreement,changed_hard_units,same_reference_hash,same_medoids,same_matching,same_translated_coordinates,soft_membership_max_abs_difference,same_densities,Dnet_difference,eta_difference,DI_difference
+S1,1,True,True,True,0,0,True,True,True,True,2.0276835765997703e-13,True,0,0,0
+S2,1,True,True,True,0,0,True,True,True,True,2.0276835765997703e-13,True,0,0,0

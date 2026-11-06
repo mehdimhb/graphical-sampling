@@ -1,0 +1,11 @@
+Population,Probability,n_values,MC_designs,MC_setting_rows,saved_output_label_2000,exact_linked_DI_pairs_inferred_2000,saved_mean_discrepancy_rows,MC_rows_no_setting_output,old_MC_metadata_5000,finite_design_rows,finite_enumeration_rows,MC_effective_count_directly_logged
+Clustered,EP,4;8;16;32,LPV;MAX;SCP;WAV,16,16,16,0,0,16,0,0,0
+Clustered,UP,4;8;16;32,LPV;MAX;SCP;WAV,16,0,0,0,16,16,0,0,0
+Gridded,EP,4;8;16;32,LPV;MAX;SCP;WAV,16,16,16,0,0,16,0,0,0
+Gridded,UP,4;8;16;32,LPV;MAX;SCP;WAV,16,16,16,0,0,16,0,0,0
+Random,EP,4;8;16;32,LPV;MAX;SCP;WAV,16,16,15,1,0,16,0,0,0
+Random,UP,4;8;16;32,LPV;MAX;SCP;WAV,16,0,0,0,16,16,0,0,0
+meuse,EP,5;10;20,LPV;MAX;SCP;WAV,12,12,11,1,0,12,6,530,0
+meuse,UP,5;10;20,LPV;MAX;SCP;WAV,12,12,12,0,0,12,6,1596,0
+swiss,EP,50;100;150,LPV;MAX;SCP,9,9,9,0,0,9,6,5754,0
+swiss,UP,50;100;150,LPV;MAX;SCP,9,9,9,0,0,9,6,13488,0

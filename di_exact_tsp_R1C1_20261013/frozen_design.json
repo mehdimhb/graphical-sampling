@@ -1,0 +1,171 @@
+{
+  "created_utc": "2026-10-13T18:08:16.030397+00:00",
+  "scope": "exact open-TSP ordering only; no alternative initialization",
+  "samples": [
+    [
+      13,
+      16,
+      33,
+      50,
+      59,
+      75,
+      97,
+      127
+    ],
+    [
+      10,
+      12,
+      13,
+      26,
+      66,
+      122,
+      123,
+      144
+    ]
+  ],
+  "source_population": "/home/bardia/projects/graphical-sampling/simulations/populations/simulated/clust_N144_perm.csv",
+  "manuscript": "/home/bardia/Downloads/Measuring_Spatial_Spread_current_2026-10-12.tex",
+  "settings_unchanged": {
+    "authority": "sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+    "N": 144,
+    "n": 8,
+    "IP_setting": "UP",
+    "IP_min": 0.0013055336238199503,
+    "IP_max": 0.11113707169197493,
+    "IP_sum": 8.000000000000002,
+    "coordinate_origin": [
+      0.0137993846435714,
+      0.1106895043585586
+    ],
+    "coordinate_scale": 1.053898621114514,
+    "normalization": "(raw-origin)/scale, same common scale on both axes",
+    "inverse": "raw_translated=normalized_translated*scale+origin",
+    "kernel": "unweighted uniform box with inclusive infinity-norm support and self-neighbors",
+    "Scott_h": 0.43679023236814946,
+    "H_normalized": [
+      [
+        0.014607191623791389,
+        0.002443112336174653
+      ],
+      [
+        0.002443112336174653,
+        0.0070985827919559565
+      ]
+    ],
+    "H_original": [
+      [
+        0.016224241385482906,
+        0.002713570499711185
+      ],
+      [
+        0.002713570499711185,
+        0.007884412259229045
+      ]
+    ],
+    "H_symmetric_inverse_root_normalized": [
+      [
+        8.436129338007467,
+        -1.2135189745639623
+      ],
+      [
+        -1.213518974563962,
+        12.165732416463477
+      ]
+    ],
+    "density_normalized_to_original": "divide by scale**2",
+    "all_scoring_settings_fixed": true,
+    "OT_epsilon": 0.01,
+    "OT_cost_normalization": "current median squared distance+1e-12 each iteration",
+    "OT_marginal_tolerance": 1e-10,
+    "OT_outer_tolerance": 1e-07,
+    "OT_outer_limit": 200,
+    "OT_sinkhorn_update_limit": 1000000,
+    "final_OT_fixed_point_check": 2e-07,
+    "TSP_restarts": 15,
+    "medoid_tie_rtol": 1e-12,
+    "medoid_tie_atol": 1e-14,
+    "medoid_tie_rule": "largest exact IP then smallest one-based source-row ID",
+    "angular_theta0": 0.39269908169872414,
+    "DI_formula": "(1-eta)*Dnet + eta*sign(Dnet); unchanged actual package score method",
+    "python": "3.12.13",
+    "versions": {
+      "numpy": "2.4.4",
+      "scipy": "1.17.1",
+      "pandas": "3.0.2",
+      "scikit-learn": "1.8.0",
+      "numba": "0.65.0",
+      "matplotlib": "3.10.8",
+      "joblib": "1.5.3"
+    },
+    "LaTeX_proposals_compiled_successfully": true,
+    "LaTeX_validation_log": "/tmp/r1c1-tex-check/compile.stdout"
+  },
+  "repeated_rng_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "tie_policy": "Canonicalize nodes by lexicographic centroid coordinates; enumerate all 20160 reversal-canonical open paths; compute Euclidean lengths at80 decimal digits; identify unresolved ties within1e-60 and choose lexicographically smallest canonical rank sequence; independently check float64 enumeration and higher precision.",
+  "reversal_check": "Recompute the complete pipeline once for every nonselected oriented optimal path, including the reverse; report separately.",
+  "source_hashes": {
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/__init__.py": "ca28e532b85d89410ce455548188841982e6cb4424b52f123aa2d6dfa997797e",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/clustering/__init__.py": "97830c0886544c4d54a151b2fb9510128fe3d9fec068477119cb7fb746e472f9",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/clustering/fip_balanced_nmeans.py": "3f4243e04a830888f86303cd601414818e4f43d17f3f6d9eb362ddcd920e74f9",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/criteria/__init__.py": "a3d6b9ec37b0046fbc684b31873c9cd3d2cf9aa265708df81e26cad81040d6ca",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/criteria/criteria.py": "b9cd3c246e551ac05496359a5c6aa4ec5b1474976c6ccdbb42e08d761e22acf7",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/criteria/multi_objective.py": "2ece78e5237f65a8854950f58f830456f43c50743e761fe8201f8a7b2ccc1fa6",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/design.py": "eaaf3a973a2a9bf9127639f6802630cf87d2afb73bdb8bc3d6bb04c051c9ec8a",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/__init__.py": "6f5520b573dd5e3a514f73625c5d21e225af28999a27437eeaa5ec2ab4d48069",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/density_disparity.py": "a0c28d8d8968358828ab1ae908d8aaa87e8163eb25113ff5c2a783f832e06e43",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/local_balance.py": "71e624ea0d2f57d01e2777e4f74098f361e83695e199b050e32f98c6d4377574",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/moran.py": "48561e983446bf52352db9f74bcf9d49933b147b71e59693f2644cad1c7c7194",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/store/density.py": "0fc2c0d2afe9dbe76d613a0b9947534c8ef2243ae1fde80804207238f3a96339",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/store/local_balance_r.py": "87680bd29a1567664316a1826bb0e4854ed7966fc6946cae2c6effa373dd634b",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/store/moran_r.py": "6502b7f9f5df0adec8da4ecbe4270bab9de8f796ed10067582bdd44bea63c467",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/store/voronoi_r.py": "be531aa8dd313a9723fde6c884e0a643ff68f15d6ce7aaa0906d4f46a89ff77e",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/index/voronoi.py": "659529083f34fb1ea1a1466d8ede10c437e5129e3fe46258972da66f2dc27498",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/maxent/__init__.py": "6d0be430309b7769cbe1821dbec6a186c0894d3833aff764357ecdd03acfc306",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/maxent/constraints.py": "312c1c205478498c0152d10bb12308e09bfbcdf33b09e5929dd646bdeafd73c2",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/maxent/diagnostics.py": "169f25def33368c08f41967fb1826366841fdf7dc72b292d965068c209aec1fa",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/maxent/discrete.py": "6ca61b4e7bc5f54e375e55a2ec0bd911c0ca71c267775fa4bf58b0050c2555f7",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/maxent/finite_population.py": "621f2df15befad3f6dcbff15733f77cdaf166c5148ee03b2229b4e70d66841b5",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/order.py": "30e2563b1381d9f002b3205690afe3f40d0b9cf9a146e1ebf3dc204a0fb130d6",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/population.py": "9353fef9ae32f645a67d5507272a92cae9c38ee5c3db993fd244b360d655ebf2",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/random/__init__.py": "2bc306618cfdb2f35157f830a97ba780615de1fea003a23534ac4c9c94b24404",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/random/generator.py": "a4467d763bf7bf5e93fdb1701fd167fce99dc34e57ae75676667e3fafaf6354c",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/__init__.py": "02762dd513ff837f125566fa82d5a9572e0d4b4d51968ecfb7d2402e0a03873c",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/border.py": "2ae52b3d1691a67d57f67cc53257fff53b20b9e7aadc7eb556aa1dd173f57af2",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/builder.py": "0398b39f7adf322b7d247694fa3d2abe7def1f994b3c135e6f3f21182c5c0fef",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/entity.py": "4f531dc5d14cd61798fe61fa3e9371fe98c8792bc6770db2ff3bd48df1c4bde0",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/kmeans_sampler.py": "1c7e6aa53eb4306bbb1d2ec89c2845e9082b03d96fe547db4133c9d44b14677e",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/kmeans_sampling_old.py": "ee538dbec766bfa2420bc26d3f19010395fcf5b173ac4d22b54c90495004772e",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/order.py": "eaf5082b004a270382e62736287e5c97d089ae9025f87c985c843bdc7ec0c877",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/organizer.py": "3ade2db3481e288b5af479b44abdc47006623f6e6fe903326a732a373a3cf000",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/sampling/random_sampling.py": "22de4ba945921c16bef475ade25800f1149b34c00473f09768748dc52d2b26bb",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/search/__init__.py": "88cfaed6038ff87de12d68dce60a68170ac1eccd2764222775e462242ead4e8c",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/search/gbfs.py": "c4425ca56608c0772a9ec4a873a8faea0c7893ba0fc087986ab2123692412625",
+    "/home/bardia/projects/graphical-sampling/graphical_sampling/structs.py": "5df373a8157fa3d67ddfdb17327d54cb97e554b7902b8846c06b9c3e6fadd00b",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/adapter.py": "1cf66ab1c8188c1f7e104615203807832a10c1af6ed8c3dffb26907b9ce9fa0c",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/analyze.py": "4783d459499c49c93e9082b5bbabceb02dab35629a1716068991a9483d9fbf52",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/deliver.py": "e87668ad141eca84ca07ed81d9f7bdb6555cb68a267c1a493afd4d90528d54bb",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/density_helper.py": "b1547f0ca4c6c7cee4a1a7c06a8921c0f2ca7f373822487cdec60379586075d7",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/make_figure.py": "ff58e5b4c390c2b91b443d09df62589b05c3b068d12f792add61b9c1bbcf173f",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/ot_adapter.py": "435cc3558ab1023269c4715589062558d049b95bf5059c8a0515d9ffdf86bc3e",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/reproduce_selected.py": "104a7517cbd62991fb54ad7668c47b000cba2ce7d184ec401f96f00e5fefea93",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/run_experiment.py": "ae74a1466681573ca1b311e782f8ec14746935a53c2fd4c30fe16dfa20a13bd7",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/verify.py": "5ec536fe162f9827d40d10243ddf9c97ca25615475ea88462ccf16123bb8b710",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/write_deliverables.py": "ed8bcc2ebf7ad574b4b9256c1f7d4db8a2bc48587b2e56b23577132eabaa118a",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/results.csv": "a303e2dce1620f062869da654d0f4a5ed5233e356c7c5c580df3668954a9e9f2",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/preselection.json": "a9bee00c32fac62628d9c0034e98b8ce3503d4e6615e9a0d60de76ba144e50a3",
+    "/home/bardia/projects/graphical-sampling/di_reference_sensitivity_R1C1_20261013/settings.json": "18cbea204cd077bde228649a1f4f9b72cb6bd1495a772a8512aff5c0d6b24821",
+    "/home/bardia/projects/graphical-sampling/simulations/populations/simulated/clust_N144_perm.csv": "af612c0dc9df3b9296202d217d6d836c0f1e3ba9faf481691c9f7b6fec6c36a3",
+    "/home/bardia/Downloads/Measuring_Spatial_Spread_current_2026-10-12.tex": "d91765e63c588fa646be268ca62d8fed8b69fd5bec99995f8bfb6a1c2c8a5baa"
+  }
+}

@@ -857,9 +857,9 @@ class Order:
         if len(missing_ids) > 0:
             final_ids = np.concatenate([final_ids, missing_ids])
             
-        # 3. Handle num_splits cleanly without shattering units across the map
+        # 3. Subdivide each full unit bar into adjacent pieces, preserving its IP.
         if num_splits > 1:
-            final_ids = np.tile(final_ids, num_splits)
+            final_ids = np.repeat(final_ids, num_splits)
             final_shares = np.full_like(final_ids, 1.0 / num_splits, dtype=float)
         else:
             final_shares = np.ones_like(final_ids, dtype=float)

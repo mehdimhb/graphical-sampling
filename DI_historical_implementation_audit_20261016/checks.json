@@ -1,0 +1,238 @@
+{
+  "CSV_links": [
+    {
+      "comparison": "June-1 clean CSV -> current All_DI",
+      "matched_rows": 138,
+      "maximum_absolute_DI_mean_SD_difference": 0.0,
+      "exact_matching_rows": 138,
+      "different_rows": 0
+    },
+    {
+      "comparison": "June-1 plotting input -> current All_DI",
+      "matched_rows": 162,
+      "maximum_absolute_DI_mean_SD_difference": 0.0,
+      "exact_matching_rows": 162,
+      "different_rows": 0
+    },
+    {
+      "comparison": "June-1 plotting input -> June-1 updated master",
+      "matched_rows": 162,
+      "maximum_absolute_DI_mean_SD_difference": 0.0,
+      "exact_matching_rows": 162,
+      "different_rows": 0
+    },
+    {
+      "comparison": "June-1 clean CSV -> current Store copy",
+      "matched_rows": 138,
+      "maximum_absolute_DI_mean_SD_difference": 0.0,
+      "exact_matching_rows": 138,
+      "different_rows": 0
+    }
+  ],
+  "saved_execution_outputs": {
+    "comparison": "June-1 retained notebook execution outputs -> All_DI",
+    "matched_rows": 106,
+    "maximum_absolute_DI_mean_SD_difference": 0.0005000000000000004,
+    "exact_matching_rows": 104,
+    "different_rows": 2,
+    "replications": [
+      2000
+    ],
+    "by_probability": {
+      "EP": 69,
+      "UP": 37
+    },
+    "source_cells": [
+      19,
+      20
+    ],
+    "unmatched_MC_cells": 32
+  },
+  "package_history": [
+    {
+      "revision": "d047278fc",
+      "commit": "d047278fcfa1c8f6237b17b6096af9d88754d8bf",
+      "preliminary_methods": [
+        "expanded"
+      ],
+      "nmedoids_option": false
+    },
+    {
+      "revision": "a6102e6cc",
+      "commit": "a6102e6cce06e5693d8224efcaffac78e02b30f8",
+      "preliminary_methods": [
+        "weighted"
+      ],
+      "nmedoids_option": false
+    },
+    {
+      "revision": "e71d6935b",
+      "commit": "e71d6935bfe824e72a7b722067a24775ed160610",
+      "preliminary_methods": [
+        "weighted"
+      ],
+      "nmedoids_option": true
+    },
+    {
+      "revision": "v1.0.0",
+      "commit": "7c61dbeafa6808e9eafa0b1fc678a25c077109cc",
+      "preliminary_methods": [
+        "weighted"
+      ],
+      "nmedoids_option": true
+    },
+    {
+      "revision": "HEAD",
+      "commit": "7e20e9ccbf4eb09e13464899f89e681e0bb1b864",
+      "preliminary_methods": [
+        "weighted"
+      ],
+      "nmedoids_option": true
+    }
+  ],
+  "June1_scorer": {
+    "cell": 7,
+    "execution_count": 29,
+    "methods": [
+      "weighted"
+    ]
+  },
+  "June5_HEAD_scorer": {
+    "cell": 8,
+    "execution_count": 5,
+    "methods": [
+      "ot"
+    ]
+  },
+  "n_inference_reconstruction": {
+    "settings": 36,
+    "shortfall_settings": 18,
+    "numpy": "2.4.4",
+    "no_actual_historical_cluster_counts_logged": true
+  },
+  "committed_figure_links": [
+    {
+      "name": "simulated_result_measure_medoid.pdf",
+      "historical_commit": "e71d6935b",
+      "SHA256": "49e23ca54d8fdbdba69ca3ea0df4d441fb7fe556cc76c124f44642fc59d15b57",
+      "current_plot_byte_identical": true
+    },
+    {
+      "name": "meuse_balance_indices_measure_medoid.pdf",
+      "historical_commit": "e71d6935b",
+      "SHA256": "20a79b14694b06a5da87f58cfa9adf3f5593728c400ee62548e99377b731afc5",
+      "current_plot_byte_identical": true
+    },
+    {
+      "name": "swiss_balance_indices_measure_medoid.pdf",
+      "historical_commit": "e71d6935b",
+      "SHA256": "43ad531388bc9bedf5bceaf307b3c4af37a5eab8bb45455b43fba14c3994fde3",
+      "current_plot_byte_identical": true
+    }
+  ],
+  "notebook_anchors": [
+    {
+      "source": "June1_measure",
+      "cell": 7,
+      "execution_count": 29,
+      "anchor": "class DensityDisparityFlexible"
+    },
+    {
+      "source": "June1_measure",
+      "cell": 7,
+      "execution_count": 29,
+      "anchor": "init_clust_method=\"weighted\""
+    },
+    {
+      "source": "June1_measure",
+      "cell": 12,
+      "execution_count": 32,
+      "anchor": "\"D\": DensityDisparityFlexible"
+    },
+    {
+      "source": "June1_measure",
+      "cell": 17,
+      "execution_count": 34,
+      "anchor": "SAMPLE_CNT_TEST = 2000"
+    },
+    {
+      "source": "June1_measure",
+      "cell": 19,
+      "execution_count": 37,
+      "anchor": "SAMPLE_CNT_TEST = 2000"
+    },
+    {
+      "source": "June1_measure",
+      "cell": 20,
+      "execution_count": 40,
+      "anchor": "SAMPLE_CNT_TEST = 2000"
+    },
+    {
+      "source": "June1_measure",
+      "cell": 22,
+      "execution_count": 41,
+      "anchor": "def exact_di_for_design"
+    },
+    {
+      "source": "June1_plots",
+      "cell": 34,
+      "execution_count": 40,
+      "anchor": "master_summary.loc[replace_mask, \"Dm\"]"
+    },
+    {
+      "source": "June1_plots",
+      "cell": 34,
+      "execution_count": 40,
+      "anchor": "nmedoids_selected_populations.csv"
+    },
+    {
+      "source": "June1_plots",
+      "cell": 39,
+      "execution_count": 27,
+      "anchor": "simulated_result_measure.pdf"
+    },
+    {
+      "source": "HEAD_measure",
+      "cell": 8,
+      "execution_count": 5,
+      "anchor": "class DensityDisparityFlexible"
+    },
+    {
+      "source": "HEAD_measure",
+      "cell": 8,
+      "execution_count": 5,
+      "anchor": "init_clust_method=\"ot\""
+    },
+    {
+      "source": "HEAD_measure",
+      "cell": 13,
+      "execution_count": 8,
+      "anchor": "\"D\": DensityDisparityFlexible"
+    },
+    {
+      "source": "HEAD_measure",
+      "cell": 17,
+      "execution_count": null,
+      "anchor": "SAMPLE_CNT_TEST = 2000"
+    },
+    {
+      "source": "HEAD_measure",
+      "cell": 19,
+      "execution_count": null,
+      "anchor": "def exact_di_for_design"
+    }
+  ],
+  "checked_UTC": "2026-10-15T21:21:20.874496+00:00",
+  "current_git_HEAD": "7e20e9ccbf4eb09e13464899f89e681e0bb1b864",
+  "new_sampling_runs": 0,
+  "new_DI_evaluations": 0,
+  "new_OT_or_TSP_searches": 0,
+  "input_SHA256": {
+    "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/AUDIT.md": "2dd85fc4e772b7b697fb0efb53eb8f73305ff5957e32dba2e69730900416ae4e",
+    "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/REPORT.md": "8f7ccc499a97650867f47a8957fb110b14391316f1fa8cbfdabbeb26fc5b4727",
+    "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex": "d91765e63c588fa646be268ca62d8fed8b69fd5bec99995f8bfb6a1c2c8a5baa",
+    "/home/bardia/latex-projects/GFS-Spread-Sample-JSSAM/1- Measure.tex": "4246a88a4f90a5c280dbad33b7760df07e60c38489e687d530b0848a65a3ec21",
+    "/home/bardia/latex-projects/GFS-Spread-Sample-JSSAM/0- FullPaperGFSS.tex": "edc4f240498be11dcbf54051398998c316b013843889a10ef1847316abc00869",
+    "/home/bardia/Downloads/Code and Notebooks/measure_calculation_nmedoids_clean.ipynb": "e069e04b365053625ca4010f4eb662898136d057d8666fe1c0a17e5184be2958"
+  }
+}

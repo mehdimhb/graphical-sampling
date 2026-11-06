@@ -1,0 +1,338 @@
+[
+  {
+    "ref": "b612f9e7c4a24bf2fa6381ac4366f08b4a15ff69",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "90d60fe9c2b5e4e690005a91384fd976f4e75c3e1b590b811730d390f175ac3f",
+    "extraction": "b612f9e7c__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "1f376e9fc1394feac1d02888b0ba0053fb48bceb",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "90d60fe9c2b5e4e690005a91384fd976f4e75c3e1b590b811730d390f175ac3f",
+    "extraction": "1f376e9fc__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "d57f9341e13da86d2cd555aebd9f5886c3f2fbfa",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "21650e3c14bdb06923220e0155f2174fda8f7957224c7f577b0678024e9872a8",
+    "extraction": "d57f9341e__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "247d9422e390d1a163a25df802523429308da286",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "7633517fd30724c2a35d86a47ea86ab5a6e2e19bc9e101e9824725633149319e",
+    "extraction": "247d9422e__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "902ed8ef49edf4042ea8c30afefaa9aa974ad9ea",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "92eb05736a93bca0f95b1af69cb4534ebdc7efa7f1656c26871a53288679d475",
+    "extraction": "902ed8ef4__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "d047278fcfa1c8f6237b17b6096af9d88754d8bf",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "21650e3c14bdb06923220e0155f2174fda8f7957224c7f577b0678024e9872a8",
+    "extraction": "d047278fc__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "a6102e6cce06e5693d8224efcaffac78e02b30f8",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "280615848c6dac9cb38911b1cbf05b165d268574841585a2ba9485623b81566c",
+    "extraction": "a6102e6cc__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "a6102e6cce06e5693d8224efcaffac78e02b30f8",
+    "path": "simulations/jupyters/paper_plots.ipynb",
+    "blob_sha256": "7a9c3cf2c39712da791b0cafd9e54c730dc2497b14b26f2ef6f369aa726f5d7c",
+    "extraction": "a6102e6cc__paper_plots.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "e71d6935bfe824e72a7b722067a24775ed160610",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "a0c28d8d8968358828ab1ae908d8aaa87e8163eb25113ff5c2a783f832e06e43",
+    "extraction": "e71d6935b__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "e71d6935bfe824e72a7b722067a24775ed160610",
+    "path": "simulations/jupyters/measure_calculation_nmedoids_clean.ipynb",
+    "blob_sha256": "e67613d13d44ad4aa2ec1ce052bc4f6137ee001955bad3b3f174d120e2772a21",
+    "extraction": "e71d6935b__measure_calculation_nmedoids_clean.txt",
+    "matching_cells": [
+      3,
+      7
+    ]
+  },
+  {
+    "ref": "e71d6935bfe824e72a7b722067a24775ed160610",
+    "path": "simulations/jupyters/paper_plots.ipynb",
+    "blob_sha256": "1283feef47f022c90142e4dea87b339652e13ebc681526b278b3e5aa894ab24b",
+    "extraction": "e71d6935b__paper_plots.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "b255918ea99e579742d97808000d51c13b8c4112",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "a0c28d8d8968358828ab1ae908d8aaa87e8163eb25113ff5c2a783f832e06e43",
+    "extraction": "b255918ea__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "b255918ea99e579742d97808000d51c13b8c4112",
+    "path": "simulations/jupyters/measure_calculation.ipynb",
+    "blob_sha256": "f4e60c896b39bb3f625520c3594c12c5f02e77cc538727ca1fa735ad2aec0382",
+    "extraction": "b255918ea__measure_calculation.txt",
+    "matching_cells": [
+      3,
+      7
+    ]
+  },
+  {
+    "ref": "b255918ea99e579742d97808000d51c13b8c4112",
+    "path": "simulations/jupyters/paper_plots.ipynb",
+    "blob_sha256": "4e1ecbd6ef8816bac299750c69f9ddfa100f16eb918d7f48f200270259de4ed4",
+    "extraction": "b255918ea__paper_plots.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "82a7eca7d7b98cad9b01c6ace8dcda3f77f5079e",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "a0c28d8d8968358828ab1ae908d8aaa87e8163eb25113ff5c2a783f832e06e43",
+    "extraction": "82a7eca7d__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "82a7eca7d7b98cad9b01c6ace8dcda3f77f5079e",
+    "path": "simulations/Store/jupyter/handy_jupyters/measure_calculation.ipynb",
+    "blob_sha256": "f4e60c896b39bb3f625520c3594c12c5f02e77cc538727ca1fa735ad2aec0382",
+    "extraction": "82a7eca7d__measure_calculation.txt",
+    "matching_cells": [
+      3,
+      7
+    ]
+  },
+  {
+    "ref": "82a7eca7d7b98cad9b01c6ace8dcda3f77f5079e",
+    "path": "simulations/Store/jupyter/handy_jupyters/paper_plots.ipynb",
+    "blob_sha256": "4e1ecbd6ef8816bac299750c69f9ddfa100f16eb918d7f48f200270259de4ed4",
+    "extraction": "82a7eca7d__paper_plots.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "82a7eca7d7b98cad9b01c6ace8dcda3f77f5079e",
+    "path": "simulations/jupyters/01_measure_calculation_spreadness_indices.ipynb",
+    "blob_sha256": "adb72be1158d19cfaa11b73ca0d93d2c39f9970e8b5563f7837626dd2e3358ab",
+    "extraction": "82a7eca7d__01_measure_calculation_spreadness_indices.txt",
+    "matching_cells": [
+      4,
+      8
+    ]
+  },
+  {
+    "ref": "82a7eca7d7b98cad9b01c6ace8dcda3f77f5079e",
+    "path": "simulations/jupyters/03_variance_estimation_NHT.ipynb",
+    "blob_sha256": "b37a3a0a6902c6e0a48f70e3bc335791c55a0c0e4b2998d1ef04fc5c4b876c0e",
+    "extraction": "82a7eca7d__03_variance_estimation_NHT.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "82a7eca7d7b98cad9b01c6ace8dcda3f77f5079e",
+    "path": "simulations/jupyters/04_paper_plots_and_tables.ipynb",
+    "blob_sha256": "4dcfe6320b4d4933f358eafc19946a6208695e3a5ebc197c9fe4c8baa107f137",
+    "extraction": "82a7eca7d__04_paper_plots_and_tables.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "7c61dbeafa6808e9eafa0b1fc678a25c077109cc",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "a0c28d8d8968358828ab1ae908d8aaa87e8163eb25113ff5c2a783f832e06e43",
+    "extraction": "7c61dbeaf__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "7c61dbeafa6808e9eafa0b1fc678a25c077109cc",
+    "path": "simulations/Store/jupyter/handy_jupyters/measure_calculation.ipynb",
+    "blob_sha256": "f4e60c896b39bb3f625520c3594c12c5f02e77cc538727ca1fa735ad2aec0382",
+    "extraction": "7c61dbeaf__measure_calculation.txt",
+    "matching_cells": [
+      3,
+      7
+    ]
+  },
+  {
+    "ref": "7c61dbeafa6808e9eafa0b1fc678a25c077109cc",
+    "path": "simulations/Store/jupyter/handy_jupyters/paper_plots.ipynb",
+    "blob_sha256": "4e1ecbd6ef8816bac299750c69f9ddfa100f16eb918d7f48f200270259de4ed4",
+    "extraction": "7c61dbeaf__paper_plots.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "7c61dbeafa6808e9eafa0b1fc678a25c077109cc",
+    "path": "simulations/jupyters/01_measure_calculation_spreadness_indices.ipynb",
+    "blob_sha256": "adb72be1158d19cfaa11b73ca0d93d2c39f9970e8b5563f7837626dd2e3358ab",
+    "extraction": "7c61dbeaf__01_measure_calculation_spreadness_indices.txt",
+    "matching_cells": [
+      4,
+      8
+    ]
+  },
+  {
+    "ref": "7c61dbeafa6808e9eafa0b1fc678a25c077109cc",
+    "path": "simulations/jupyters/03_variance_estimation_NHT.ipynb",
+    "blob_sha256": "b37a3a0a6902c6e0a48f70e3bc335791c55a0c0e4b2998d1ef04fc5c4b876c0e",
+    "extraction": "7c61dbeaf__03_variance_estimation_NHT.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "7c61dbeafa6808e9eafa0b1fc678a25c077109cc",
+    "path": "simulations/jupyters/04_paper_plots_and_tables.ipynb",
+    "blob_sha256": "4dcfe6320b4d4933f358eafc19946a6208695e3a5ebc197c9fe4c8baa107f137",
+    "extraction": "7c61dbeaf__04_paper_plots_and_tables.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "graphical_sampling/index/density_disparity.py",
+    "blob_sha256": "92eb05736a93bca0f95b1af69cb4534ebdc7efa7f1656c26871a53288679d475",
+    "extraction": "af36c9e3f__density_disparity.txt",
+    "matching_cells": [
+      0
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/Store/jupyter/handy_jupyters/measure_calculation.ipynb",
+    "blob_sha256": "f4e60c896b39bb3f625520c3594c12c5f02e77cc538727ca1fa735ad2aec0382",
+    "extraction": "af36c9e3f__measure_calculation.txt",
+    "matching_cells": [
+      3,
+      7
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/Store/jupyter/handy_jupyters/paper_plots.ipynb",
+    "blob_sha256": "4e1ecbd6ef8816bac299750c69f9ddfa100f16eb918d7f48f200270259de4ed4",
+    "extraction": "af36c9e3f__paper_plots.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/01_measure_calculation_spreadness_indices.ipynb",
+    "blob_sha256": "adb72be1158d19cfaa11b73ca0d93d2c39f9970e8b5563f7837626dd2e3358ab",
+    "extraction": "af36c9e3f__01_measure_calculation_spreadness_indices.txt",
+    "matching_cells": [
+      4,
+      8
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/03_variance_estimation_NHT.ipynb",
+    "blob_sha256": "b37a3a0a6902c6e0a48f70e3bc335791c55a0c0e4b2998d1ef04fc5c4b876c0e",
+    "extraction": "af36c9e3f__03_variance_estimation_NHT.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/04_paper_plots_and_tables.ipynb",
+    "blob_sha256": "4dcfe6320b4d4933f358eafc19946a6208695e3a5ebc197c9fe4c8baa107f137",
+    "extraction": "af36c9e3f__04_paper_plots_and_tables.txt",
+    "matching_cells": []
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/07_multivariate_3D_population_DI_illustration.ipynb",
+    "blob_sha256": "c527af7fcca22bfb1b07e8049e3d4b9cda35b09b5b52ed54ad61f02075f56c09",
+    "extraction": "af36c9e3f__07_multivariate_3D_population_DI_illustration.txt",
+    "matching_cells": [
+      1,
+      5
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/08_2D_DI_relative_rotation.ipynb",
+    "blob_sha256": "18ac57a05826affe4cc52d46289885d5bc0b0869bdfa831fac2a0e0567285ccb",
+    "extraction": "af36c9e3f__08_2D_DI_relative_rotation.txt",
+    "matching_cells": [
+      1
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/09_2D_OT_DI_transformation_configurations.ipynb",
+    "blob_sha256": "dff0bf6eb2f8fd5bbff46785199ddd15e79814fc36273dcd27ba291260c9bde6",
+    "extraction": "af36c9e3f__09_2D_OT_DI_transformation_configurations.txt",
+    "matching_cells": [
+      1
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/10_3D_DI_translation_rotation.ipynb",
+    "blob_sha256": "b9c4eba4d105be7835958ec058f3f597aded409e831bebbd205bfcf3fbca734d",
+    "extraction": "af36c9e3f__10_3D_DI_translation_rotation.txt",
+    "matching_cells": [
+      1
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/11_compare_IPnM_initializations.ipynb",
+    "blob_sha256": "c3d9e74027da10f544d426cf478b8a4314140f82397b68b4741b79f6d8e6a5fe",
+    "extraction": "af36c9e3f__11_compare_IPnM_initializations.txt",
+    "matching_cells": [
+      1
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/12_measure_DI_OT_robustness.ipynb",
+    "blob_sha256": "be4abf5df6b43c129e7e937fbf6f78dbd59089e7d49bfb082497d896a86a1f8b",
+    "extraction": "af36c9e3f__12_measure_DI_OT_robustness.txt",
+    "matching_cells": [
+      1
+    ]
+  },
+  {
+    "ref": "af36c9e3ff36f957243188ade01a1e01400f3709",
+    "path": "simulations/jupyters/13_2D_grid_DI_translation_rotation.ipynb",
+    "blob_sha256": "948a4f6b0d05a4d8a39142eebdba2cd332776034ebba3654cf7b72cdab4dde3e",
+    "extraction": "af36c9e3f__13_2D_grid_DI_translation_rotation.txt",
+    "matching_cells": [
+      1
+    ]
+  }
+]

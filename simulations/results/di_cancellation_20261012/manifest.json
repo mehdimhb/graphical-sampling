@@ -1,0 +1,57 @@
+{
+  "seed": 12345,
+  "N": 144,
+  "n": 4,
+  "M": 5000,
+  "source": "simulations/populations/simulated/clust_N144_perm.csv",
+  "source_sha256": "af612c0dc9df3b9296202d217d6d836c0f1e3ba9faf481691c9f7b6fec6c36a3",
+  "python": "3.12.13",
+  "versions": {
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.8.0",
+    "numba": "0.65.0",
+    "graphical-sampling": "1.0.0"
+  },
+  "unique_random_samples": 5000,
+  "high_eta_count": 1146,
+  "threshold_count": 5,
+  "min_abs_Dnet_high_eta": 0.0005941840778730513,
+  "max_formula_error": 1.1102230246251565e-16,
+  "local_evaluations": 3360,
+  "unique_pipeline_evaluations": 8359,
+  "illustrated_pairs": [
+    {
+      "anchor_draw": 2437,
+      "removed_id": 74,
+      "added_id": 5,
+      "replacement_distance": 0.03221860279329885,
+      "Dnet_A": -0.0005941840778730513,
+      "eta_A": 0.35037273225371657,
+      "DI_A": -0.35075873043276357,
+      "Dnet_B": 0.00040132483542619653,
+      "eta_B": 0.3444879482817334,
+      "DI_B": 0.34475102154800913,
+      "max_abs_Dnet": 0.0005941840778730513,
+      "DI_gap": 0.6955097519807727,
+      "sample_A": "[19, 56, 60, 73]",
+      "sample_B": "[4, 19, 56, 60]"
+    },
+    {
+      "anchor_draw": 4318,
+      "removed_id": 67,
+      "added_id": 125,
+      "replacement_distance": 0.012038363832856362,
+      "Dnet_A": 0.0019007546713664977,
+      "eta_A": 0.3680217093163145,
+      "DI_A": 0.36922294500453373,
+      "Dnet_B": -0.0009514893838714067,
+      "eta_B": 0.3663832660983592,
+      "DI_B": -0.3669861456941099,
+      "max_abs_Dnet": 0.0019007546713664977,
+      "DI_gap": 0.7362090906986436,
+      "sample_A": "[48, 66, 111, 122]",
+      "sample_B": "[48, 111, 122, 124]"
+    }
+  ]
+}

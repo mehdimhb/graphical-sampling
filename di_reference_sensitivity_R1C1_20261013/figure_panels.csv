@@ -1,0 +1,4 @@
+panel,run_id,source_population_csv,source_matching_csv,xmin,xmax,ymin,ymax,color_field,color_vmin,color_vmax,colormap
+"Official, TSP seed 0",s2_official_00,runs/s2_official_00/population_density.csv,runs/s2_official_00/reference_matching.csv,-0.028356560201009164,1.1098539506026659,0.068533559513978021,1.0131076816119351,signed_contribution,-1,1,coolwarm
+"Official, TSP seed 2",s2_official_02,runs/s2_official_02/population_density.csv,runs/s2_official_02/reference_matching.csv,-0.028356560201009164,1.1098539506026659,0.068533559513978021,1.0131076816119351,signed_contribution,-1,1,coolwarm
+Alternative initialization 4 (stress test),s2_stress_04,runs/s2_stress_04/population_density.csv,runs/s2_stress_04/reference_matching.csv,-0.028356560201009164,1.1098539506026659,0.068533559513978021,1.0131076816119351,signed_contribution,-1,1,coolwarm

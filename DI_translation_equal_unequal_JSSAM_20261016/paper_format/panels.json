@@ -1,0 +1,82 @@
+[
+  {
+    "panel": "a",
+    "run_id": "dispersed_equal_original",
+    "scenario": 1,
+    "probabilities": "EP",
+    "DI": 0.19846301543517045,
+    "eta": 0.05528990820449883,
+    "DI_difference": null,
+    "displayed_difference": null
+  },
+  {
+    "panel": "b",
+    "run_id": "dispersed_equal_shifted",
+    "scenario": 1,
+    "probabilities": "EP",
+    "DI": 0.19846301543517045,
+    "eta": 0.05528990820449883,
+    "DI_difference": 0.0,
+    "displayed_difference": "0.0000"
+  },
+  {
+    "panel": "c",
+    "run_id": "dispersed_unequal_original",
+    "scenario": 1,
+    "probabilities": "UP",
+    "DI": 0.2477547995580966,
+    "eta": 0.1148216542678203,
+    "DI_difference": null,
+    "displayed_difference": null
+  },
+  {
+    "panel": "d",
+    "run_id": "dispersed_unequal_shifted",
+    "scenario": 1,
+    "probabilities": "UP",
+    "DI": 0.2477547995580966,
+    "eta": 0.1148216542678203,
+    "DI_difference": 0.0,
+    "displayed_difference": "0.0000"
+  },
+  {
+    "panel": "e",
+    "run_id": "compact_equal_original",
+    "scenario": 2,
+    "probabilities": "EP",
+    "DI": -0.9977095004212614,
+    "eta": 0.934274077520571,
+    "DI_difference": null,
+    "displayed_difference": null
+  },
+  {
+    "panel": "f",
+    "run_id": "compact_equal_shifted",
+    "scenario": 2,
+    "probabilities": "EP",
+    "DI": -0.9977095004212614,
+    "eta": 0.934274077520571,
+    "DI_difference": 0.0,
+    "displayed_difference": "0.0000"
+  },
+  {
+    "panel": "g",
+    "run_id": "compact_unequal_original",
+    "scenario": 2,
+    "probabilities": "UP",
+    "DI": -0.9981491390239877,
+    "eta": 0.9405572584936023,
+    "DI_difference": null,
+    "displayed_difference": null
+  },
+  {
+    "panel": "h",
+    "run_id": "compact_unequal_shifted",
+    "scenario": 2,
+    "probabilities": "UP",
+    "DI": -0.9981491390239877,
+    "eta": 0.9405572584936023,
+    "DI_difference": 0.0,
+    "displayed_difference": "0.0000"
+  }
+]

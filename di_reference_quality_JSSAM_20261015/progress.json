@@ -1,0 +1,127 @@
+{
+  "phase": "pilot",
+  "overall_percent": 7.322175732217573,
+  "completed_attempts": 35,
+  "planned_attempts": 478,
+  "successful_DI_runs": 33,
+  "failed_attempts": 2,
+  "skipped_dependent_runs": 2,
+  "elapsed_seconds": 459.75252056121826,
+  "estimated_remaining_seconds": null,
+  "active_workers": 8,
+  "runnable_workers": 8,
+  "cpu_percent": 43.2,
+  "rolling_30s_cpu_percent": 48.26,
+  "memory_percent": 14.3,
+  "current": [
+    "S100/baseline00",
+    "S100/B03",
+    "S100/B04",
+    "C32/B05",
+    "S100/B05",
+    "M10/C02",
+    "C32/C02",
+    "C16/C03"
+  ],
+  "last_status": "C16_C_02: completed",
+  "groups": [
+    {
+      "scenario": "C16",
+      "experiment": "A",
+      "completed_attempts": 5,
+      "successful_runs": 5,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "C16",
+      "experiment": "B",
+      "completed_attempts": 5,
+      "successful_runs": 5,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "C16",
+      "experiment": "C",
+      "completed_attempts": 2,
+      "successful_runs": 2,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "C32",
+      "experiment": "A",
+      "completed_attempts": 5,
+      "successful_runs": 5,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "C32",
+      "experiment": "B",
+      "completed_attempts": 4,
+      "successful_runs": 4,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "C32",
+      "experiment": "C",
+      "completed_attempts": 1,
+      "successful_runs": 1,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "M10",
+      "experiment": "A",
+      "completed_attempts": 5,
+      "successful_runs": 5,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "M10",
+      "experiment": "B",
+      "completed_attempts": 5,
+      "successful_runs": 5,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "M10",
+      "experiment": "C",
+      "completed_attempts": 1,
+      "successful_runs": 1,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "S100",
+      "experiment": "A",
+      "completed_attempts": 0,
+      "successful_runs": 0,
+      "planned_runs": 40,
+      "failed_attempts": 0
+    },
+    {
+      "scenario": "S100",
+      "experiment": "B",
+      "completed_attempts": 2,
+      "successful_runs": 0,
+      "planned_runs": 40,
+      "failed_attempts": 2
+    },
+    {
+      "scenario": "S100",
+      "experiment": "C",
+      "completed_attempts": 0,
+      "successful_runs": 0,
+      "planned_runs": 38,
+      "failed_attempts": 0
+    }
+  ],
+  "budget_revisions": [],
+  "progress_definition": "Completed real run attempts, including separately identified OT/other failures. Blocked/uncomputed dependent runs are excluded transparently, never counted as computations."
+}

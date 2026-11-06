@@ -1,0 +1,14 @@
+Overall 7.3% | 35/478 actual attempts | validDI 33 | failed 2
+pilot | Current S100/baseline00,S100/B03,S100/B04 | valid DI 33, failed 2 | workers 8/8 | CPU 43.2% | ETA pilot pending
+C16 A: 5/40 attempts, 5 valid
+C16 B: 5/40 attempts, 5 valid
+C16 C: 2/40 attempts, 2 valid
+C32 A: 5/40 attempts, 5 valid
+C32 B: 4/40 attempts, 4 valid
+C32 C: 1/40 attempts, 1 valid
+M10 A: 5/40 attempts, 5 valid
+M10 B: 5/40 attempts, 5 valid
+M10 C: 1/40 attempts, 1 valid
+S100 A: 0/40 attempts, 0 valid
+S100 B: 2/40 attempts, 0 valid
+S100 C: 0/38 attempts, 0 valid

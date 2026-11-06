@@ -1,0 +1,22 @@
+{
+  "all_checks_passed": true,
+  "independently_verified_fits": 14,
+  "primary_panels": 8,
+  "exact_membership_arithmetic": true,
+  "exhaustive_8_point_matching_and_path_checks": true,
+  "direct_spherical_counts_verified": true,
+  "zero_densities": 0,
+  "minimum_preliminary_assignment_gap": 0.0028647355593855034,
+  "max_density_component_error": 9.992007221626409e-16,
+  "max_row_error": 3.7470027081099033e-16,
+  "max_column_error": 1.1102230246251565e-15,
+  "max_fixed_point_residual": 3.340352222012135e-11,
+  "max_dual_stationarity_residual": 1.3183898417423734e-15,
+  "tight_unequal_controls_passed": true,
+  "same_seed_replay_passed": true,
+  "joint_coordinate_control_passed": true,
+  "unchanged_old_equal_results": true,
+  "protected_files_unchanged": 5526,
+  "changed_partition_pairs": 0,
+  "max_absolute_DI_shift_difference": 0.0
+}

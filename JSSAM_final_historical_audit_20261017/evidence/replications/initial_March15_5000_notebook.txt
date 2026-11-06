@@ -1,0 +1,1076 @@
+CELL 0 execution_count=None type=markdown
+### Imports and R Environment Setup
+
+END_SOURCE
+END_CELL
+
+CELL 1 execution_count=1 type=code
+%load_ext autoreload
+%autoreload 2
+END_SOURCE
+END_CELL
+
+CELL 2 execution_count=2 type=code
+import warnings
+
+# Filter out the specific rpy2 environment variable warnings
+warnings.filterwarnings("ignore", category=UserWarning, message='.*Environment variable ".*" redefined by R.*')
+END_SOURCE
+END_CELL
+
+CELL 3 execution_count=3 type=code
+import os
+import numpy as np
+import pandas as pd
+# from tqdm import tqdm
+
+# Core project imports
+# from graphical_sampling.sampling import KMeansSampler
+from graphical_sampling.population import Population
+from package_sampling.utils import inclusion_probabilities
+
+# Your Python-based index modules from the index folder
+from graphical_sampling.index import Density
+from graphical_sampling.index import Moran
+from graphical_sampling.index import Voronoi
+from graphical_sampling.index import LocalBalance
+END_SOURCE
+END_CELL
+
+CELL 4 execution_count=None type=markdown
+### Optimized Sampling Functions
+END_SOURCE
+END_CELL
+
+CELL 5 execution_count=4 type=code
+# B
+import numpy as np
+import rpy2.robjects as ro
+from rpy2.robjects import numpy2ri, pandas2ri
+from rpy2.robjects.conversion import localconverter
+
+# Define the converter context for rpy2
+combined_converter = ro.default_converter + numpy2ri.converter + pandas2ri.converter
+
+def run_sampling_design(method, coords, probs, n, num_samples):
+    N = len(coords)
+
+    # 1. Python Methods (Nmcs and Rand)
+    if method == "Nmcs":
+        # Create the population and sampler
+        pop = Population(coords=coords, probs=probs)
+        sampler = KMeansSampler(
+            population=pop,
+            n=n,
+            n_zones=(3, 3),
+            zone_builder="sweep",
+            units_order="spiral",
+            zones_order="spiral"
+        )
+        # Return samples for simulation AND the sampler for math
+        return sampler.sample(num_samples), sampler
+
+    if method == "Rand":
+        samples_idx = np.zeros((num_samples, n), dtype=int)
+        for i in range(num_samples):
+            samples_idx[i] = np.random.choice(N, n, replace=False) #
+        return samples_idx, None
+
+    # 2. R Methods (Lopi, Wave, Maxe, Scps)
+    samples_idx = np.zeros((num_samples, n), dtype=int)
+
+    with localconverter(combined_converter):
+        ro.globalenv['coords_r'] = coords
+        ro.globalenv['probs_r'] = probs
+
+        ro.r("library(BalancedSampling)")
+        ro.r("library(WaveSampling)")
+        ro.r("library(sampling)")
+
+        for i in range(num_samples):
+            if method == "Lopi":
+                samples_idx[i] = np.array(ro.r("lpm2(probs_r, coords_r)")) - 1 #
+            elif method == "Scps":
+                samples_idx[i] = np.array(ro.r("scps(probs_r, coords_r)")) - 1 #
+            elif method == "Wave":
+                mask = ro.r("wave(coords_r, probs_r)") #
+                samples_idx[i] = np.where(np.array(mask).astype(bool))[0] #
+            elif method == "Maxe":
+                mask = ro.r("sampling::UPmaxentropy(probs_r)") #
+                samples_idx[i] = np.where(np.array(mask).astype(bool))[0] #
+
+    return samples_idx, None
+END_SOURCE
+END_CELL
+
+CELL 6 execution_count=None type=markdown
+### Metrics and Spread Calculation
+END_SOURCE
+END_CELL
+
+CELL 7 execution_count=5 type=code
+# C
+import numpy as np
+
+def calculate_all_scores(coords, probs, sample_idx, n, N, scorers, y_val, method):
+    """
+    Calculates spatial and statistical scores using Python modules.
+
+    Args:
+        coords: Population coordinates.
+        probs: Inclusion probabilities.
+        sample_idx: 1D array of selected unit indices.
+        n: Sample size.
+        N: Population size.
+        scorers: Dictionary of initialized Density, Moran, Voronoi, and LocalBalance objects.
+        y_val: The variable of interest for estimation.
+        method: The name of the sampling method.
+    """
+    # 1. Prepare index for Python (ensure 2D shape for .score method)
+    s_idx_2d = sample_idx.reshape(1, -1)
+
+    # 2. Estimator Calculation
+    if method == "Rand":
+        # SRS Estimator for random sampling
+        est_val = N * np.mean(y_val[sample_idx])
+    else:
+        # HT Estimator: Sum(y_i / pi_i)
+        est_val = np.sum(y_val[sample_idx] / probs[sample_idx])
+
+    # 3. Calculate Spatial Scores using Python modules
+    # Accessing pre-initialized scorers from the dictionary to avoid re-calculation
+    dens_score = scorers['D'].score(s_idx_2d)[0]
+    moran_score = scorers['M'].score(s_idx_2d)[0]
+    voronoi_score = scorers['V'].score(s_idx_2d)[0]
+    lb_score = scorers['L'].score(s_idx_2d)[0]
+
+    # Return Order: Density, Voronoi, Moran, Local Balance, Estimator
+    return (
+        dens_score,
+        voronoi_score,
+        moran_score,
+        lb_score,
+        est_val
+    )
+END_SOURCE
+END_CELL
+
+CELL 8 execution_count=None type=markdown
+### The Main Execution Loop
+END_SOURCE
+END_CELL
+
+CELL 9 execution_count=6 type=code
+if 0 ==1:
+    # --- High-Efficiency Main Configuration and Loop ---
+    import os
+    import warnings
+    import numpy as np
+    import pandas as pd
+    # from tqdm import tqdm
+
+    # (Assuming your custom imports like Population, Density, Moran, Voronoi,
+    # LocalBalance, run_sampling_design, inclusion_probabilities are up here)
+
+    # 1. Configuration Switches & Setup
+    INCLUDE_NMCS_IN_SIM = False  # Use theoretical math for Nmcs to save time
+    FIND_PIK_EXPLOSION = False
+    sample_cnt = 5000            # Increased sample count improves simulation stability
+
+    pop_names = ['grid_N144_perm', 'clust_N144_perm']
+    # pop_names = ['swiss']
+    # n_sizes = [4,5, 15,16, 30,32, 60,64]
+    n_sizes = [4, 8, 16, 32]
+    # Silence rpy2 warnings
+    warnings.filterwarnings("ignore", category=UserWarning, module="rpy2")
+
+    # --- Smart Folder Setup ---
+    data_folder = "populations"
+    for _ in range(3):
+        if os.path.exists(data_folder):
+            break
+        data_folder = "../" + data_folder
+
+    base_dir = os.path.dirname(data_folder) if os.path.dirname(data_folder) else "."
+    results_folder = os.path.join(base_dir, "simulations", "results")
+    os.makedirs(results_folder, exist_ok=True) # Ensure results folder exists
+
+    # (Make sure pop_names and n_sizes are defined in your notebook!)
+    # Example: pop_names = ["meuse", "swiss", "rand"]
+    # Example: n_sizes = [10]
+    inclusion = "unequal"
+    for name in pop_names:
+        for n_size in n_sizes:
+            n = n_size
+            # 2. Load and Prep Data
+            file_path = os.path.join(data_folder, f"{name}.csv")
+            if not os.path.exists(file_path):
+                print(f"File not found: {file_path}")
+                continue
+
+            df = pd.read_csv(file_path)
+            # df = df[0:30]
+            coords = df[["x", "y"]].values.astype(float)
+
+            # Assign target variable and inclusion probabilities
+            if name == 'meuse':
+                y_values = df["cadmium"].values
+                pik = inclusion_probabilities(df["copper"].values, n_size)
+            elif name == 'swiss':
+                y_values = df["AREA_A"].values
+                y_values = y_values.clip(5,100)
+                p_values = df["AREA"].values.clip(5, 100)
+                pik = inclusion_probabilities(p_values, n_size)
+                # print("y_value",y_values)
+                # print("p_value",p_values)
+            else:
+                y_values = df['z.90'].values
+                pik = inclusion_probabilities(df["prob"].values, n_size)
+
+            N = len(df)
+            true_sum_y = np.sum(y_values)
+            if inclusion == "equal":
+                pik = inclusion_probabilities(np.ones(N), n_size)
+                rho = 0
+            else:
+                rho = np.corrcoef(y_values, pik)[0, 1]
+
+            # # 1. Force probabilities slightly away from absolute 0 and 1
+            # pik = np.clip(pik, 1e-7, 1 - 1e-7)
+
+            # # 2. Force the array to sum exactly to 'n' to fix floating-point drift
+            # pik = pik * (n / np.sum(pik))
+
+
+
+
+
+            print(f"\n--- Processing {name} (N={N}, n={n}, True Total={true_sum_y:.3f}, Rho={rho:.3f}) ---")
+
+            # --- DEBUG BLOCK: Theoretical SRS Benchmark ---
+            S2_y = np.var(y_values, ddof=1)
+            theoretical_srs_var = (N**2) * (1 - n/N) * (S2_y / n)
+            print(f"DEBUG: Theoretical SRS Total Variance: {theoretical_srs_var:.2f}")
+
+            # 3. Setup Metrics (One-time initialization)
+            pop_wrapped = Population(coords=coords, probs=pik)
+            scorer_D = Density(population=pop_wrapped, n=n)
+            scorer_M = Moran(population=pop_wrapped)
+            scorer_V = Voronoi(population=pop_wrapped)
+            scorer_L = LocalBalance(population=pop_wrapped)
+
+            # 4. Sampling and Scoring Loop
+            all_data = []
+            methods = ["Wave", "Lopi", "Scps", "Rand", "Maxe",  ]
+            # methods = ["Wave"]
+            if INCLUDE_NMCS_IN_SIM:
+                methods.insert(0, "Nmcs")
+
+            for m in methods:
+                print(f"Running simulation for {m}...")
+
+                samples, _ = run_sampling_design(m, coords, pik, n, sample_cnt)
+                print('onja?')
+                # Vectorized scoring (High Efficiency)
+                d_scores = scorer_D.score(samples)
+                m_scores = scorer_M.score(samples)
+                v_scores = scorer_V.score(samples)
+                l_scores = scorer_L.score(samples)
+
+                # Calculate Estimators
+                if m == "Rand":
+                    est_scores = N * np.mean(y_values[samples], axis=1)
+                else:
+                    est_scores = np.sum(y_values[samples] / pik[samples], axis=1)
+
+                # Store results for EVERY iteration
+                for i in range(sample_cnt):
+                    if m == 'Wave': # & (i + 1) %  == 0):
+                        print(f"    {m}: {i+1} / {sample_cnt} iterations completed")
+                    all_data.append([N, n, sample_cnt, rho, m, d_scores[i], v_scores[i], m_scores[i], l_scores[i], est_scores[i]])
+
+                    # --- TRACKING RARE EXTREME ESTIMATES ---
+                    if FIND_PIK_EXPLOSION:
+                        error_margin = abs(est_scores[i] - true_sum_y) / true_sum_y
+                        if error_margin > 0.5:
+                            print(f"\n[ALERT] Method: {m} | Iteration: {i}")
+                            print(f"Estimate: {est_scores[i]:.2f} | True Total: {true_sum_y:.2f} | Error: {error_margin:.2%}")
+
+                            bad_sample_idx = samples[i]
+                            bad_y = y_values[bad_sample_idx]
+                            bad_pik = pik[bad_sample_idx]
+
+                            contributions = bad_y / bad_pik
+                            culprit_local_idx = np.argmax(contributions)
+                            culprit_pop_idx = bad_sample_idx[culprit_local_idx]
+
+                            print(f"Sample Indices: {bad_sample_idx}")
+                            print(f"Exploded Unit Index: {culprit_pop_idx} | y: {bad_y[culprit_local_idx]} | pik: {bad_pik[culprit_local_idx]}")
+
+            # 5. Data Processing & Aggregation
+            res_df = pd.DataFrame(all_data, columns=["N", "n", "ite" ,"rho", "Method", "D", "V", "M", "L", "HT"])
+
+            # Aggregate simulation results (ignores N, n, rho because we group by Method only on target cols)
+            summary = res_df.groupby("Method").agg({
+                "D": ["mean", "std"],
+                "V": ["mean", "std"],
+                "M": ["mean", "std"],
+                "L": ["mean", "std"],
+                "HT": ["mean", "var"]
+            })
+
+            # CRITICAL: Force column order before renaming
+            summary = summary[["D", "V", "M", "L", "HT"]]
+            summary.columns = ["Dm", "Ds", "Vm", "Vs", "Mm", "Ms", "Lm", "Ls", "HTm", "HTv"]
+
+            # 6. Inject Theoretical Nmcs row (If available)
+            theoretical_results = None
+            if theoretical_results:
+                t = theoretical_results
+                summary.loc["Nmcs"] = [
+                    t['Exp_Density'], t['SD_Density'],
+                    t['Exp_Voronoi'], t['SD_Voronoi'],
+                    t['Exp_Moran'], t['SD_Moran'],
+                    t['Exp_Local'], t['SD_Local'],
+                    true_sum_y, t['HT_Variance']
+                ]
+
+            # 7. Final Metrics: RB and Efficiency (Eff)
+            summary["RB"] = (summary["HTm"] - true_sum_y) / true_sum_y
+            if "Rand" in summary.index:
+                rand_var = summary.loc["Rand", "HTv"]
+                summary["Eff"] = rand_var / summary["HTv"].replace(0, np.nan)
+            else:
+                summary["Eff"] = np.nan
+
+            summary['rho'] = rho
+            summary['ite'] = sample_cnt
+            summary['n'] = n
+            summary['N'] = N
+            # Final Table Output formatting
+            final_cols = ['N', 'n', 'ite','rho', "HTm", "HTv" ,"Eff", "RB", "Dm", "Ds", "Vm", "Vs", "Mm", "Ms", "Lm", "Ls"]
+            summary = summary.reindex(columns=final_cols)
+            print(summary.round(3))
+
+            # 8. Save Data
+            # A. Save individual summary
+            summary_file = os.path.join(results_folder, f"summary_{name}_n={n}_corr={rho:.1f}.csv")
+            summary.to_csv(summary_file)
+
+            # B. Save extended raw iterations (Append Mode)
+            extended_file = os.path.join(results_folder, "all_iterations_extended.csv")
+            res_df.to_csv(extended_file, mode='a', index=False, header=not os.path.exists(extended_file))
+
+    print("\nAll simulations completed and saved!")
+END_SOURCE
+END_CELL
+
+CELL 10 execution_count=None type=markdown
+### Plot some examples
+END_SOURCE
+END_CELL
+
+CELL 11 execution_count=7 type=code
+# ==========================================================
+# VISUAL DIAGNOSTIC: 9 SAMPLE PLOTS (3 POPULATIONS × 3 METHODS)
+# ==========================================================
+
+pop_names = ['grid_N144_perm', 'rand_N144_perm', 'clust_N144_perm']
+
+# publication population names
+pop_labels = {
+    "grid_N144_perm": "Gridded",
+    "rand_N144_perm": "Random",
+    "clust_N144_perm": "Clustered"
+}
+
+# rename designs for paper
+design_labels = {
+    "Wave": "WAV",
+    "Lopi": "LPV",
+    "Scps": "SCP",
+    "Rand": "SRS",
+    "Maxe": "MAX"
+}
+
+data_folder = "populations"
+for _ in range(3):
+    if os.path.exists(data_folder):
+        break
+    data_folder = "../" + data_folder
+
+n = 4
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+import random
+
+rand_plot = random.randint(1, 10000)
+print(rand_plot)
+
+np.random.seed(rand_plot)
+
+# method_choices = np.random.choice(["Wave","Lopi","Scps","Rand","Maxe"], 3, replace=False)
+method_choices = ["Maxe","Wave","Lopi",]
+print("Selected populations:", pop_names)
+print("Selected methods:", method_choices)
+
+# journal-friendly plotting parameters
+plt.rcParams.update({
+    "font.size": 7,
+    "axes.titlesize": 7
+})
+
+fig, axes = plt.subplots(3,3, figsize=(6.5,6.2), dpi=100)
+
+for i,pop_name in enumerate(pop_names):
+
+    file_path = os.path.join(data_folder, f"{pop_name}.csv")
+    df = pd.read_csv(file_path)
+    N = len(df)
+    coords = df[["x","y"]].values.astype(float)
+
+    if pop_name == 'meuse':
+        pik = inclusion_probabilities(df["copper"].values, n)
+    elif pop_name == 'swiss':
+        p_values = df["AREA"].values.clip(5,100)
+        pik = inclusion_probabilities(p_values, n)
+    else:
+        pik = inclusion_probabilities(df["prob"].values, n)
+    pik = np.repeat(n/N, N)
+    pop_wrapped = Population(coords=coords, probs=pik)
+
+    scorer_D = Density(population=pop_wrapped, n=n)
+    scorer_M = Moran(population=pop_wrapped)
+    scorer_V = Voronoi(population=pop_wrapped)
+    scorer_L = LocalBalance(population=pop_wrapped)
+
+    for j,method in enumerate(method_choices):
+
+        ax = axes[i,j]
+
+        samples,_ = run_sampling_design(method, coords, pik, n, 1)
+        s = samples[0]
+        print('j=',j, 'pop_name=',pop_name,'Method=',method,'sample=', s)
+        D = scorer_D.score(samples)[0]
+        V = scorer_V.score(samples)[0]
+        M = scorer_M.score(samples)[0]
+        L = scorer_L.score(samples)[0]
+
+        # smaller markers
+        ax.scatter(coords[:,0], coords[:,1], c="lightgray", s=3)
+        ax.scatter(coords[s,0], coords[s,1], c="red", s=10)
+
+        txt = (
+    f"D = {D: .2f}, "
+    f"M = {M: .2f}\n"
+    f"V = {V: .2f}, "
+    f"L = {L: .2f}"
+)
+
+
+        ax.text(
+            0.03,0.97,txt,
+            transform=ax.transAxes,
+            fontsize=8,
+            va="top",
+            bbox=dict(boxstyle="round,pad=0.15", facecolor="white", alpha=0.5)
+        )
+
+        ax.set_title(f"{pop_labels[pop_name]} | {design_labels[method]}")
+
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+# title
+plt.suptitle(
+    f"Examples of Spatial Samples and Balance Measures (n={n})",
+    fontsize=9
+)
+
+plt.tight_layout(rect=[0,0,1,0.96])
+plt.show()
+
+# save for paper
+# plt.savefig("spatial_balance_examples.pdf", bbox_inches="tight")
+
+END_SOURCE
+OUTPUT 0 type=stream
+6866
+Selected populations: ['grid_N144_perm', 'rand_N144_perm', 'clust_N144_perm']
+Selected methods: ['Maxe', 'Wave', 'Lopi']
+
+OUTPUT 1 type=stream
+R callback write-console: Loading required package: Matrix
+  
+
+OUTPUT 2 type=stream
+j= 0 pop_name= grid_N144_perm Method= Maxe sample= [ 39  69  83 142]
+j= 1 pop_name= grid_N144_perm Method= Wave sample= [ 19  50  93 125]
+j= 2 pop_name= grid_N144_perm Method= Lopi sample= [  9  96 103 136]
+j= 0 pop_name= rand_N144_perm Method= Maxe sample= [ 56  96 138 139]
+j= 1 pop_name= rand_N144_perm Method= Wave sample= [ 27  37 126 139]
+j= 2 pop_name= rand_N144_perm Method= Lopi sample= [ 24  30  85 125]
+j= 0 pop_name= clust_N144_perm Method= Maxe sample= [  3  77 127 129]
+j= 1 pop_name= clust_N144_perm Method= Wave sample= [10 14 41 56]
+j= 2 pop_name= clust_N144_perm Method= Lopi sample= [28 31 84 95]
+
+OUTPUT 3 type=display_data
+<Figure size 650x620 with 9 Axes>
+END_CELL
+
+CELL 12 execution_count=9 type=code
+# ==========================================================
+# BEAUTIFUL VISUAL DIAGNOSTIC PLOTS
+# ==========================================================
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+import random
+
+plt.style.use("seaborn-v0_8-white")
+
+# journal-quality typography
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.size": 11,
+    "axes.titlesize": 11,
+    "axes.labelsize": 10,
+})
+
+fig, axes = plt.subplots(1,3, figsize=(10,3.2), dpi=300, gridspec_kw={"wspace":0, "hspace":0})
+
+for i,pop_name in enumerate(pop_names):
+
+    file_path = os.path.join(data_folder, f"{pop_name}.csv")
+    df = pd.read_csv(file_path)
+
+    N = len(df)
+    coords = df[["x","y"]].values.astype(float)
+
+    pik = np.repeat(n/N, N)
+    pop_wrapped = Population(coords=coords, probs=pik)
+
+    scorer_D = Density(population=pop_wrapped, n=n)
+    scorer_M = Moran(population=pop_wrapped)
+    scorer_V = Voronoi(population=pop_wrapped)
+    scorer_L = LocalBalance(population=pop_wrapped)
+    manual_samples = [
+    np.array([33,  81, 107, 112]),
+    np.array([ 63,  86,  95, 127]),
+    np.array([8, 62, 121, 124])
+]
+
+    for j,method in enumerate(method_choices):
+
+        ax = axes[j]
+
+        samples,_ = run_sampling_design(method, coords, pik, n, 1)
+        # s = samples[0]
+        s = manual_samples[j]
+        samples = [s]
+
+        D = scorer_D.score(samples)[0]
+        V = scorer_V.score(samples)[0]
+        M = scorer_M.score(samples)[0]
+        L = scorer_L.score(samples)[0]
+
+        # population points
+        ax.scatter(
+            coords[:,0], coords[:,1],
+            color="#8FA8B8",
+            s=10,
+            alpha=0.7,
+            linewidth=0
+        )
+
+        # sampled units
+        ax.scatter(
+            coords[s,0], coords[s,1],
+            color="#D62728",
+            edgecolor="black",
+            linewidth=0.4,
+            s=60,
+            zorder=3
+        )
+
+        txt = (
+    rf"$\mathbf{{DI}}={D:.2f},  $   $\mathbf{{MI}}={M:.2f}$" "\n"
+    rf"$\mathbf{{VI}}={V:.2f},  $   $\mathbf{{LI}}={L:.2f}$"
+)
+
+
+        ax.text(
+            0.03, 0.03, txt,
+            transform=ax.transAxes,
+            fontsize=10,
+            va="bottom",
+            bbox=dict(
+                boxstyle="round,pad=0.3",
+                facecolor="white",
+                edgecolor="0.8",
+                alpha=0.95
+            )
+        )
+
+        ax.set_title(f"{design_labels[method]}", pad=4, fontweight='bold', fontsize=10)
+
+        ax.set_aspect("equal")
+        ax.set_ylim(-.25, 1.02)
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        # clean frame
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+# global title
+fig.suptitle(
+    rf"Examples on the Random Population, $n={n}$",
+    fontsize=15,
+    y=1.02,
+    fontweight='bold'
+)
+
+# plt.tight_layout()
+plt.show()
+
+# save for paper
+# plt.savefig("spatial_balance_examples.pdf", dpi=600, bbox_inches="tight")
+
+END_SOURCE
+OUTPUT 0 type=display_data
+<Figure size 3000x960 with 3 Axes>
+END_CELL
+
+CELL 13 execution_count=None type=markdown
+# Store
+END_SOURCE
+END_CELL
+
+CELL 14 execution_count=10 type=code
+# This cell acts as a barrier
+raise SystemExit("Stopping Run All: Archived cells below.")
+END_SOURCE
+OUTPUT 0 type=error
+{"ename": "SystemExit", "evalue": "Stopping Run All: Archived cells below.", "traceback": ["An exception has occurred, use %tb to see the full traceback.\n", "\u001b[0;31mSystemExit\u001b[0m\u001b[0;31m:\u001b[0m Stopping Run All: Archived cells below.\n"]}
+
+OUTPUT 1 type=stream
+/home/bardia/graphical-sampling/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py:3587: UserWarning: To exit: use 'exit', 'quit', or Ctrl-D.
+  warn("To exit: use 'exit', 'quit', or Ctrl-D.", stacklevel=1)
+
+END_CELL
+
+CELL 15 execution_count=None type=code
+# ==========================================================
+# VISUAL DIAGNOSTIC: 9 SAMPLE PLOTS (3 POPULATIONS × 3 METHODS)
+# ==========================================================
+
+pop_names = ['rand_N144_perm', ]
+
+# publication population names
+pop_labels = {
+    "grid_N144_perm": "Gridded",
+    "rand_N144_perm": "Random",
+    "clust_N144_perm": "Clustered"
+}
+
+# rename designs for paper
+design_labels = {
+    "Wave": "WAV",
+    "Lopi": "LPV",
+    "Scps": "SCP",
+    "Rand": "SRS",
+    "Maxe": "MAX"
+}
+
+data_folder = "populations"
+for _ in range(3):
+    if os.path.exists(data_folder):
+        break
+    data_folder = "../" + data_folder
+
+n = 4
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+import random
+
+rand_plot = random.randint(1, 10000)
+print(rand_plot)
+
+np.random.seed(rand_plot)
+
+# method_choices = np.random.choice(["Wave","Lopi","Scps","Rand","Maxe"], 3, replace=False)
+method_choices = ["Maxe","Wave","Lopi",]
+print("Selected populations:", pop_names)
+print("Selected methods:", method_choices)
+
+# journal-friendly plotting parameters
+plt.rcParams.update({
+    "font.size": 10,
+    "axes.titlesize": 10
+})
+
+fig, axes = plt.subplots(1,3, figsize=(9,3), dpi=100)
+
+for i,pop_name in enumerate(pop_names):
+
+    file_path = os.path.join(data_folder, f"{pop_name}.csv")
+    df = pd.read_csv(file_path)
+    N = len(df)
+    coords = df[["x","y"]].values.astype(float)
+
+    if pop_name == 'meuse':
+        pik = inclusion_probabilities(df["copper"].values, n)
+    elif pop_name == 'swiss':
+        p_values = df["AREA"].values.clip(5,100)
+        pik = inclusion_probabilities(p_values, n)
+    else:
+        pik = inclusion_probabilities(df["prob"].values, n)
+    pik = np.repeat(n/N, N)
+    pop_wrapped = Population(coords=coords, probs=pik)
+
+    scorer_D = Density(population=pop_wrapped, n=n)
+    scorer_M = Moran(population=pop_wrapped)
+    scorer_V = Voronoi(population=pop_wrapped)
+    scorer_L = LocalBalance(population=pop_wrapped)
+
+    for j,method in enumerate(method_choices):
+
+        ax = axes[j]
+
+        samples,_ = run_sampling_design(method, coords, pik, n, 1)
+        s = samples[0]
+        print('j=',j, 'pop_name=',pop_name,'Method=',method,'sample=', s)
+        D = scorer_D.score(samples)[0]
+        V = scorer_V.score(samples)[0]
+        M = scorer_M.score(samples)[0]
+        L = scorer_L.score(samples)[0]
+
+        # smaller markers
+        ax.scatter(coords[:,0], coords[:,1], c="lightgray", s=3)
+        ax.scatter(coords[s,0], coords[s,1], c="red", s=10)
+
+        txt = (
+    f"D = {D: .2f}, "
+    f"M = {M: .2f}\n"
+    f"V = {V: .2f}, "
+    f"L = {L: .2f}"
+)
+
+
+        ax.text(
+            0.03,0.97,txt,
+            transform=ax.transAxes,
+            fontsize=8,
+            va="top",
+            bbox=dict(boxstyle="round,pad=0.15", facecolor="white", alpha=0.5)
+        )
+
+        ax.set_title(f"{pop_labels[pop_name]} | {design_labels[method]}")
+        ax.set_ylim(-.05,1.2)
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+# title
+plt.suptitle(
+    f"Examples of Spatial Samples and Balance Measures (n={n})",
+    fontsize=9
+)
+
+plt.tight_layout(rect=[0,0,1,0.96])
+plt.show()
+
+# save for paper
+# plt.savefig("spatial_balance_examples.pdf", bbox_inches="tight")
+
+END_SOURCE
+END_CELL
+
+CELL 16 execution_count=None type=code
+# j= 0 pop_name= rand_N144_perm Method= Maxe sample= [ 33  81 107 112] clustered!
+# j= 0 pop_name= rand_N144_perm Method= Maxe sample= [  6  51  95 110]
+
+# j= 2 pop_name= rand_N144_perm Method= Lopi sample= [ 11  74  88 106] over-spread!
+# j= 1 pop_name= rand_N144_perm Method= Wave sample= [  8  62 121 124] over-spread!
+
+# j= 1 pop_name= rand_N144_perm Method= Wave sample= [ 17  65  83 113] balanced
+# j= 1 pop_name= rand_N144_perm Method= Wave sample= [ 18  65  96 101] balanced
+# j= 2 pop_name= rand_N144_perm Method= Lopi sample= [  1  77  90 136]
+# j= 1 pop_name= rand_N144_perm Method= Wave sample= [ 63  86  95 127]
+# j= 1 pop_name= rand_N144_perm Method= Wave sample= [ 10  26  72 116]
+
+END_SOURCE
+END_CELL
+
+CELL 17 execution_count=None type=code
+
+import pandas as pd
+import os
+
+folder = "/config/ws/graphical-sampling/populations"
+populations = ['clust', 'grid', 'rand', 'meuse', 'swiss']
+
+dfs = {}
+for pop in populations:
+    path = os.path.join(folder, f'{pop}.csv')
+    dfs[pop] = pd.read_csv(path)
+    # Changed 'df' to 'dfs[pop]' to match the loaded data
+    corr_matrix = dfs[pop].corr(numeric_only=True)
+
+    # Updated print to show the name and the matrix clearly
+    print('\n', pop, 'Correlation Matrix = \n', corr_matrix.round(2))
+END_SOURCE
+END_CELL
+
+CELL 18 execution_count=None type=code
+import pandas as pd
+import os
+
+folder = "/config/ws/graphical-sampling/populationssss"
+
+# --- 1. Process Meuse ---
+meuse_path = os.path.join(folder, "meuse_full.csv")
+if os.path.exists(meuse_path):
+    df_meuse = pd.read_csv(meuse_path)
+    # Keep only the requested columns
+    df_meuse = df_meuse[['x', 'y', 'copper', 'cadmium', 'lead', 'zinc']]
+    # Save back to folder
+    df_meuse.to_csv(os.path.join(folder, "meuse.csv"), index=False)
+    print("✅ Meuse modified and saved.")
+
+# --- 2. Process Swiss ---
+swiss_path = os.path.join(folder, "swiss_full.csv")
+if os.path.exists(swiss_path):
+    df_swiss = pd.read_csv(swiss_path)
+    # Keep specific columns
+    df_swiss = df_swiss[['COORD_X', 'COORD_Y', 'AREA', 'AREA_A', 'AREA_B']]
+    # Rename coordinates to x and y
+    df_swiss = df_swiss.rename(columns={'COORD_X': 'x', 'COORD_Y': 'y'})
+    # Save back to folder
+    df_swiss.to_csv(os.path.join(folder, "swiss.csv"), index=False)
+    print("✅ Swiss modified and saved.")
+END_SOURCE
+END_CELL
+
+CELL 19 execution_count=None type=code
+import numpy as np
+import pandas as pd
+import os
+
+# 1. Define your file list based on the image provided
+# Note: I am assuming the folder name is 'data_samples' based on previous context.
+# If they are in the current directory, change folder to "."
+folder = "/config/ws/graphical-sampling/populations"
+
+pop_files = {
+    'clust_eq':   'clust_eq_N=100.csv',
+    'clust_uneq': 'clust_uneq_N=100.csv',
+    'grid_eq':    'grid_eq_N=100.csv',
+    'grid_uneq':  'grid_uneq_N=100.csv',
+    'random_eq':  'random_eq_N=100.csv',
+    'random_uneq':'random_uneq_N=100.csv',
+}
+
+# Helper function to generate correlated variables
+def generate_correlated_variable(v, correlation, seed=None):
+    """Generates a new variable correlated with vector v at a specific r."""
+    if seed: np.random.seed(seed)
+    # 1. Create random noise
+    noise = np.random.normal(0, 1, len(v))
+
+    # 2. Standardize target v to remove mean/scale effects for calculation
+    v_norm = (v - np.mean(v)) / np.std(v)
+
+    # 3. Residualize noise (make it orthogonal to v)
+    # This step ensures exact mathematical control over correlation
+    noise_resid = noise - (np.dot(noise, v_norm) / np.dot(v_norm, v_norm)) * v_norm
+    noise_norm = noise_resid / np.std(noise_resid)
+
+    # 4. Combine to get desired correlation
+    # New = r * Old + sqrt(1-r^2) * Noise
+    new_var = correlation * v_norm + np.sqrt(1 - correlation**2) * noise_norm
+
+    # 5. Rescale back to original range (optional, but good for probability-like vars)
+    # Here we just shift it to be positive to act as a "size" variable
+    new_var = new_var - np.min(new_var) + 0.1
+    return new_var
+
+data_store = {}
+
+print("--- Loading & Processing Data ---")
+for key, fname in pop_files.items():
+    path = os.path.join(folder, fname)
+
+    if os.path.exists(path):
+        df = pd.read_csv(path)
+
+        # Basic extractions
+        coords = df[['x', 'y']].values
+        probs = df['prob'].values
+        N = len(df)
+
+        # --- LOGIC: Handle "uneq" vs "eq" files ---
+        # We look for "uneq" in the key name
+        if "uneq" in key:
+            print(f"Processing {key}: Generating correlated auxiliaries...")
+
+            # Generate the 3 auxiliary variables
+            # These act as 'Target Y' variables with different correlations to inclusion probs
+            y_70 = generate_correlated_variable(probs, 0.70, seed=42)
+            y_80 = generate_correlated_variable(probs, 0.80, seed=43)
+            y_90 = generate_correlated_variable(probs, 0.90, seed=44)
+
+            # Store them so we can loop over them later
+            targets_dict = {
+                'y_70': y_70,
+                'y_80': y_80,
+                'y_90': y_90
+            }
+        else:
+            # For Equal Probability (EP), Prob is constant.
+            # Correlation with a constant is undefined/zero.
+            # We just create one synthetic target to test spatial balance.
+            print(f"Processing {key}: Standard EP file.")
+            synthetic_y = (df['x'] + df['y']) + np.random.normal(0, 1, N)
+            targets_dict = {'y_synthetic': synthetic_y}
+
+        # Save to data_store
+        data_store[key] = {
+            'coords': coords,
+            'probs': probs,
+            'targets': targets_dict, # Now holds multiple Ys
+            'N': N
+        }
+    else:
+        print(f"⚠️ Warning: File {fname} not found in {folder}. Skipping.")
+
+print("✅ Data Loaded Successfully.")
+END_SOURCE
+END_CELL
+
+CELL 20 execution_count=None type=code
+# Save the modified data to new CSVs
+output_folder = "modified_populations"
+os.makedirs(output_folder, exist_ok=True)
+
+print("\n--- Saving All Generated Variables ---")
+for key, data in data_store.items():
+    # 1. Start with the base spatial and probability data
+    df_output = pd.DataFrame(data['coords'], columns=['x', 'y'])
+    df_output['prob'] = data['probs']
+
+    # 2. Add every target stored in the dictionary
+    for target_name, target_values in data['targets'].items():
+        # Map the internal name (y_70) to your requested format (z.70)
+        # We split by underscore and join with a dot
+        formatted_name = target_name.replace("y_", "z.")
+
+        df_output[formatted_name] = target_values
+
+    # 3. Save the file
+    save_path = os.path.join(output_folder, f"{key}_modified.csv")
+    df_output.to_csv(save_path, index=False)
+
+    # 4. Feedback on what was saved
+    saved_cols = [c for c in df_output.columns if 'z.' in c or 'synthetic' in c]
+    print(f"Saved {key}: Included variables {saved_cols}")
+
+print(f"\n✅ All files saved successfully in: {output_folder}")
+END_SOURCE
+END_CELL
+
+CELL 21 execution_count=None type=code
+%load_ext rpy2.ipython
+END_SOURCE
+END_CELL
+
+CELL 22 execution_count=None type=code
+%%R
+library(sp)
+data(meuse)        # Loads the dataframe
+data(meuse.grid)   # Loads the prediction grid
+data(meuse.riv)    # Loads the river boundaries
+
+# Convert to simple features (modern format)
+library(sf)
+meuse_sf <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992)
+meuse_sf
+END_SOURCE
+END_CELL
+
+CELL 23 execution_count=None type=code
+%%R
+# Drop geometry
+meuse_df <- st_drop_geometry(meuse_sf)
+
+# Keep only numeric columns
+numeric_vars <- meuse_df[sapply(meuse_df, is.numeric)]
+
+# Compute correlation matrix
+cor_matrix <- cor(numeric_vars, use = "complete.obs")
+
+cor_matrix
+
+END_SOURCE
+END_CELL
+
+CELL 24 execution_count=None type=code
+%%R
+# Extract coordinates
+coords <- st_coordinates(meuse_sf)
+
+# Drop geometry and bind coordinates
+meuse_df <- cbind(
+  st_drop_geometry(meuse_sf),
+  x = coords[,1],
+  y = coords[,2]
+)
+
+# Convert to plain data frame (optional but safe)
+meuse_df <- as.data.frame(meuse_df)
+
+head(meuse_df)
+
+
+END_SOURCE
+END_CELL
+
+CELL 25 execution_count=None type=code
+%%R
+# Extract coordinates and drop geometry column
+coords <- st_coordinates(meuse_sf)
+meuse_df <- cbind(st_drop_geometry(meuse_sf), x = coords[,1], y = coords[,2])
+
+# Save it as a CSV (in your working directory)
+write.csv(meuse_df, "meuse_with_coords.csv", row.names = FALSE)
+
+END_SOURCE
+END_CELL
+
+CELL 26 execution_count=None type=code
+import os
+import pandas as pd
+
+# Load your final CSV from R
+meuse_df = pd.read_csv("meuse_with_coords.csv")
+
+# Create folder
+output_folder = "modified_populations"
+os.makedirs(output_folder, exist_ok=True)
+
+# Save it
+meuse_df.to_csv(f"{output_folder}/meuse_modified.csv", index=False)
+
+print("Saved successfully.")
+
+END_SOURCE
+END_CELL
+

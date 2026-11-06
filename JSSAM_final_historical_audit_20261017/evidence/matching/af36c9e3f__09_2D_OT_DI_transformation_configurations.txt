@@ -1,0 +1,160 @@
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/09_2D_OT_DI_transformation_configurations.ipynb CELL 0 type=markdown execution_count=None outputs=0 =====
+C0:L0001 # Two-dimensional OT/IPnM transformation configurations
+C0:L0002 
+C0:L0003 Reproducible notebook version of `simulations/temporary_2D_OT_DI_four_configurations.py`. Run the code cell from the repository root.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/09_2D_OT_DI_transformation_configurations.ipynb CELL 1 type=code execution_count=None outputs=0 =====
+C1:L0001 """Publication-style 2x3 illustration of translation and rotation DI (n=4)."""
+C1:L0002 from pathlib import Path
+C1:L0003 from types import SimpleNamespace
+C1:L0004 
+C1:L0005 import matplotlib
+C1:L0006 matplotlib.use("Agg")
+C1:L0007 import matplotlib.pyplot as plt
+C1:L0008 from matplotlib.lines import Line2D
+C1:L0009 import numpy as np
+C1:L0010 from scipy.optimize import linear_sum_assignment
+C1:L0011 from scipy.spatial.distance import cdist
+C1:L0012 
+C1:L0013 from graphical_sampling.clustering import FIPBalancedNMeans
+C1:L0014 from graphical_sampling.index import DensityDisparity
+C1:L0015 
+C1:L0016 ROOT = Path(__file__).resolve().parents[1]
+C1:L0017 OUT = ROOT / "simulations/results/temporary_2D_relative_rotation/2D_DI_six_sample_configurations_n2_column_groups.png"
+C1:L0018 OUT_PDF = OUT.with_suffix(".pdf")
+C1:L0019 
+C1:L0020 # Regular-square population used by the sample-adaptive reference illustration.
+C1:L0021 xx, yy = np.meshgrid(np.linspace(0, 1, 30), np.linspace(0, 1, 20))
+C1:L0022 coords = np.column_stack([xx.ravel(), yy.ravel()])
+C1:L0023 N, n = len(coords), 2
+C1:L0024 pik = np.full(N, n / N)
+C1:L0025 population = SimpleNamespace(
+C1:L0026     coords=np.ascontiguousarray(coords), inclusions=pik, indices=np.arange(N),
+C1:L0027     ids=np.arange(N), variable=np.zeros(N), N=N, n=n,
+C1:L0028 )
+C1:L0029 scorer = DensityDisparity(population, representative="nmedoids", n_jobs=1)
+C1:L0030 
+C1:L0031 
+C1:L0032 class SampleInitializedOT(FIPBalancedNMeans):
+C1:L0033     def _get_labels_centroids(self, x, p, init_centroids=None):
+C1:L0034         supplied = np.asarray(init_centroids, dtype=float)
+C1:L0035         assert np.array_equal(supplied, self._supplied)
+C1:L0036         return self._get_labels_centroids_ot_kmeans(x, p, supplied.copy())
+C1:L0037 
+C1:L0038     def fit_sample(self, pop, sample):
+C1:L0039         self._supplied = np.asarray(sample, dtype=float).copy()
+C1:L0040         return self.fit(pop, init_centroids=self._supplied)
+C1:L0041 
+C1:L0042 
+C1:L0043 def fit_ot(sample):
+C1:L0044     # _get_labels_centroids_ot_kmeans constructs Sinkhorn with epsilon=0.01.
+C1:L0045     fit = SampleInitializedOT(n=n, init_clust_method="ot")
+C1:L0046     fit.fit_sample(population, sample)
+C1:L0047     return fit
+C1:L0048 
+C1:L0049 
+C1:L0050 def get_reference():
+C1:L0051     # Aligned initial centers yield two vertical balanced regions. Rotating this
+C1:L0052     # medoid pattern creates genuinely different OT attraction basins.
+C1:L0053     centers = np.column_stack([np.linspace(.20, .80, n), np.full(n, .5)])
+C1:L0054     for _ in range(12):
+C1:L0055         fit = fit_ot(centers)
+C1:L0056         medoids, _ = scorer._cluster_medoids(fit.labels, fit.centroids)
+C1:L0057         if np.allclose(centers, medoids):
+C1:L0058             break
+C1:L0059         centers = medoids
+C1:L0060     return medoids
+C1:L0061 
+C1:L0062 
+C1:L0063 def transform(refs, angle, scale, shift):
+C1:L0064     pivot = refs.mean(axis=0)
+C1:L0065     a = np.deg2rad(angle)
+C1:L0066     R = np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]])
+C1:L0067     targets = pivot + scale*(refs-pivot)@R.T + shift
+C1:L0068     # A realized sample must consist of population units. Select distinct nearest
+C1:L0069     # grid units to the ideal transformed locations by one-to-one assignment.
+C1:L0070     target_rows, population_cols = linear_sum_assignment(cdist(targets, coords))
+C1:L0071     sample = np.empty_like(targets)
+C1:L0072     sample[target_rows] = coords[population_cols]
+C1:L0073     return sample
+C1:L0074 
+C1:L0075 
+C1:L0076 def evaluate(sample):
+C1:L0077     fit = fit_ot(sample)
+C1:L0078     medoids, _ = scorer._cluster_medoids(fit.labels, fit.centroids)
+C1:L0079     rows, cols = linear_sum_assignment(cdist(medoids, sample))
+C1:L0080     assigned = np.empty_like(medoids); assigned[rows] = sample[cols]
+C1:L0081     translated = coords + (assigned-medoids)[fit.labels]
+C1:L0082     di = scorer._score_single_density(scorer._density(translated))
+C1:L0083     return fit.labels, medoids, assigned, float(di)
+C1:L0084 
+C1:L0085 
+C1:L0086 refs = get_reference()
+C1:L0087 # Two exact grid increments right and one grid increment down.
+C1:L0088 shift_1 = np.array([2/29, -1/19])
+C1:L0089 shift_2 = np.array([-2/29, 2/19])
+C1:L0090 specs = [
+C1:L0091     # Row-major order gives one transformation family per figure column.
+C1:L0092     ("(a) Shifted sample", 0, shift_1, "Moved right and down"),
+C1:L0093     ("(c) Rotated sample", 45, np.zeros(2), r"Rotated $45^\circ$ counterclockwise"),
+C1:L0094     ("(e) Rotated and shifted sample", 45, shift_1,
+C1:L0095      r"Rotated $45^\circ$, then moved right and down"),
+C1:L0096     ("(b) Shifted sample", 0, shift_2, "Moved left and up"),
+C1:L0097     ("(d) Rotated sample", 75, np.zeros(2), r"Rotated $75^\circ$ counterclockwise"),
+C1:L0098     ("(f) Rotated and shifted sample", 75, shift_2,
+C1:L0099      r"Rotated $75^\circ$, then moved left and up"),
+C1:L0100 ]
+C1:L0101 colors = ["#168BD2", "#FF7A00", "#24A148", "#9C4DCC"]
+C1:L0102 
+C1:L0103 fig, axes = plt.subplots(2, 3, figsize=(14.8, 8.6), sharex=True, sharey=True)
+C1:L0104 outcomes = []
+C1:L0105 all_labels = []
+C1:L0106 for ax, (heading, angle, shift, description) in zip(axes.flat, specs):
+C1:L0107     sample = transform(refs, angle, 1.0, shift)
+C1:L0108     labels, medoids, assigned, di = evaluate(sample)
+C1:L0109     outcomes.append((heading, angle, shift.copy(), di))
+C1:L0110     all_labels.append(labels.copy())
+C1:L0111     for k, color in enumerate(colors):
+C1:L0112         mask = labels == k
+C1:L0113         ax.scatter(coords[mask,0], coords[mask,1], s=11, color=color,
+C1:L0114                    alpha=.52, edgecolors="none", rasterized=True, zorder=1)
+C1:L0115     ax.scatter(sample[:,0], sample[:,1], s=105, marker="o", color="#E53935",
+C1:L0116                edgecolors="black", linewidths=.9, zorder=5)
+C1:L0117     ax.scatter(medoids[:,0], medoids[:,1], s=145, marker="x", color="black",
+C1:L0118                linewidths=2.6, zorder=6)
+C1:L0119     for k in range(n):
+C1:L0120         ax.plot([medoids[k,0], assigned[k,0]], [medoids[k,1], assigned[k,1]],
+C1:L0121                 ls="--", lw=1.1, color=".20", alpha=.75, zorder=3)
+C1:L0122     ax.set_title(f"{heading}\n{description};  DI = {di:.3f}", fontsize=11.5)
+C1:L0123     ax.set_xlim(-.08, 1.14); ax.set_ylim(-.12, 1.08)
+C1:L0124     ax.set_aspect("equal", adjustable="box")
+C1:L0125     ax.set_xlabel(r"$c_1$"); ax.set_ylabel(r"$c_2$", rotation=0, labelpad=12)
+C1:L0126     ax.grid(alpha=.22)
+C1:L0127 
+C1:L0128 legend = [
+C1:L0129     Line2D([0],[0], marker="o", color="none", markerfacecolor="#E53935",
+C1:L0130            markeredgecolor="black", markersize=8, label="Observed sample"),
+C1:L0131     Line2D([0],[0], marker="x", color="black", linestyle="none", markeredgewidth=2.3,
+C1:L0132            markersize=9, label="Medoid"),
+C1:L0133 ]
+C1:L0134 fig.legend(handles=legend, loc="upper center", bbox_to_anchor=(.5,.955), ncol=3,
+C1:L0135            frameon=False, fontsize=10)
+C1:L0136 fig.suptitle("DI under Sample Translation and Rotation in a 2D Population",
+C1:L0137              fontsize=15, y=.995)
+C1:L0138 fig.subplots_adjust(top=.86, bottom=.06, left=.055, right=.985, wspace=.12, hspace=.22)
+C1:L0139 OUT.parent.mkdir(parents=True, exist_ok=True)
+C1:L0140 fig.savefig(OUT, dpi=320, bbox_inches="tight")
+C1:L0141 fig.savefig(OUT_PDF, bbox_inches="tight")
+C1:L0142 for heading, angle, shift, di in outcomes:
+C1:L0143     print(f"{heading}: angle={angle}, shift=({shift[0]:.6f},{shift[1]:.6f}), DI={di:.9f}")
+C1:L0144 # Compare partitions after optimally relabelling cluster IDs.
+C1:L0145 def changed_after_relabelling(labels_a, labels_b):
+C1:L0146     overlap = np.array([[np.sum((labels_a == i) & (labels_b == j)) for j in range(n)] for i in range(n)])
+C1:L0147     i, j = linear_sum_assignment(-overlap)
+C1:L0148     return N - overlap[i, j].sum()
+C1:L0149 
+C1:L0150 for i in range(len(all_labels)):
+C1:L0151     for j in range(i + 1, len(all_labels)):
+C1:L0152         print(f"Partition change {specs[i][0]} vs {specs[j][0]}: "
+C1:L0153               f"{changed_after_relabelling(all_labels[i], all_labels[j])}/{N} units")
+C1:L0154 print("Saved:", OUT)
+C1:L0155 print("Saved:", OUT_PDF)

@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "temporary_results_directory": "/tmp/r1c1-replication-vv8e_0tc",
+  "local_reused_adapter_modules_verified": true,
+  "checks": [
+    {
+      "run_id": "s2_official_02",
+      "same_canonical_reference": true,
+      "max_numerical_error": 0.0,
+      "errors": {
+        "Dnet": 0.0,
+        "eta": 0.0,
+        "DI": 0.0,
+        "J_OT_native": 0.0,
+        "Q_soft": 0.0,
+        "Q_hard": 0.0,
+        "matching_squared_cost": 0.0
+      }
+    },
+    {
+      "run_id": "s2_stress_04",
+      "same_canonical_reference": true,
+      "max_numerical_error": 0.0,
+      "errors": {
+        "Dnet": 0.0,
+        "eta": 0.0,
+        "DI": 0.0,
+        "J_OT_native": 0.0,
+        "Q_soft": 0.0,
+        "Q_hard": 0.0,
+        "matching_squared_cost": 0.0
+      }
+    }
+  ]
+}

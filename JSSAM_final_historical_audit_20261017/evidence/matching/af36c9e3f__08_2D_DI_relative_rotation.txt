@@ -1,0 +1,131 @@
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/08_2D_DI_relative_rotation.ipynb CELL 0 type=markdown execution_count=None outputs=0 =====
+C0:L0001 # Two-dimensional DI shift and relative-rotation examples
+C0:L0002 
+C0:L0003 Reproducible notebook version of `simulations/temporary_2D_DI_relative_rotation.py`. Run the code cell from the repository root.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/08_2D_DI_relative_rotation.ipynb CELL 1 type=code execution_count=None outputs=0 =====
+C1:L0001 """Targeted 2D check: rotate a shifted sample relative to a fixed population."""
+C1:L0002 from pathlib import Path
+C1:L0003 from types import SimpleNamespace
+C1:L0004 
+C1:L0005 import matplotlib
+C1:L0006 matplotlib.use("Agg")
+C1:L0007 import matplotlib.pyplot as plt
+C1:L0008 import numpy as np
+C1:L0009 import pandas as pd
+C1:L0010 from scipy.optimize import linear_sum_assignment
+C1:L0011 from scipy.spatial.distance import cdist
+C1:L0012 
+C1:L0013 from graphical_sampling.clustering import FIPBalancedNMeans
+C1:L0014 from graphical_sampling.index import DensityDisparity
+C1:L0015 
+C1:L0016 ROOT = Path(__file__).resolve().parents[1]
+C1:L0017 OUTDIR = ROOT / "simulations/results/temporary_2D_relative_rotation"
+C1:L0018 OUTPNG = OUTDIR / "2D_DI_shift_plus_relative_rotation_n3_n4_n5.png"
+C1:L0019 OUTCSV = OUTDIR / "2D_DI_shift_plus_relative_rotation_n3_n4_n5.csv"
+C1:L0020 
+C1:L0021 # Same regular-square population geometry as the sample-adaptive illustration,
+C1:L0022 # made denser so n=3, 4, and 5 can all have exact equal-size hard clusters.
+C1:L0023 xx, yy = np.meshgrid(np.linspace(0, 1, 30), np.linspace(0, 1, 20))
+C1:L0024 coords = np.column_stack([xx.ravel(), yy.ravel()])
+C1:L0025 N = len(coords)
+C1:L0026 shift = np.array([0.08, -0.05])
+C1:L0027 angles = np.arange(-90, 91, 15)
+C1:L0028 
+C1:L0029 
+C1:L0030 class SampleInitializedOT(FIPBalancedNMeans):
+C1:L0031     """Force the supplied sample coordinates into the epsilon=.01 OT solver."""
+C1:L0032     def _get_labels_centroids(self, x, p, init_centroids=None):
+C1:L0033         supplied = np.asarray(init_centroids, dtype=float)
+C1:L0034         assert np.array_equal(supplied, self._supplied_centers)
+C1:L0035         return self._get_labels_centroids_ot_kmeans(x, p, supplied.copy())
+C1:L0036 
+C1:L0037     def fit_from_sample(self, population, sample):
+C1:L0038         self._supplied_centers = np.asarray(sample, dtype=float).copy()
+C1:L0039         return self.fit(population, init_centroids=self._supplied_centers)
+C1:L0040 
+C1:L0041 
+C1:L0042 def population_for(n):
+C1:L0043     return SimpleNamespace(
+C1:L0044         coords=np.ascontiguousarray(coords), inclusions=np.full(N, n / N),
+C1:L0045         indices=np.arange(N), ids=np.arange(N), variable=np.zeros(N), N=N, n=n,
+C1:L0046     )
+C1:L0047 
+C1:L0048 
+C1:L0049 def initial_polygon(n):
+C1:L0050     # Only establishes a stable first OT partition; it is not reused in DI runs.
+C1:L0051     a = np.linspace(0, 2 * np.pi, n, endpoint=False) + np.pi / 2
+C1:L0052     return np.column_stack([0.5 + 0.32 * np.cos(a), 0.5 + 0.32 * np.sin(a)])
+C1:L0053 
+C1:L0054 
+C1:L0055 def fit_ot(pop, sample):
+C1:L0056     # The package OT helper constructs SinkhornKMeans with epsilon=0.01.
+C1:L0057     fit = SampleInitializedOT(n=pop.n, init_clust_method="ot")
+C1:L0058     fit.fit_from_sample(pop, sample)
+C1:L0059     return fit
+C1:L0060 
+C1:L0061 
+C1:L0062 def reference_medoids(pop):
+C1:L0063     scorer = DensityDisparity(pop, representative="nmedoids", n_jobs=1)
+C1:L0064     centers = initial_polygon(pop.n)
+C1:L0065     # Iterate sample-initialized fits to a stable medoid reference configuration.
+C1:L0066     for _ in range(12):
+C1:L0067         fit = fit_ot(pop, centers)
+C1:L0068         medoids, _ = scorer._cluster_medoids(fit.labels, fit.centroids)
+C1:L0069         if np.allclose(medoids, centers):
+C1:L0070             break
+C1:L0071         centers = medoids
+C1:L0072     return medoids
+C1:L0073 
+C1:L0074 
+C1:L0075 def rotate(points, center, degrees):
+C1:L0076     a = np.deg2rad(degrees)
+C1:L0077     R = np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]])
+C1:L0078     return center + (points - center) @ R.T
+C1:L0079 
+C1:L0080 
+C1:L0081 def calculate_di(pop, sample):
+C1:L0082     # Paper-defined path: each realized sample initializes its own OT partition.
+C1:L0083     fit = fit_ot(pop, sample)
+C1:L0084     scorer = DensityDisparity(pop, representative="nmedoids", n_jobs=1)
+C1:L0085     medoids, _ = scorer._cluster_medoids(fit.labels, fit.centroids)
+C1:L0086     rows, cols = linear_sum_assignment(cdist(medoids, sample))
+C1:L0087     assigned = np.empty_like(medoids)
+C1:L0088     assigned[rows] = sample[cols]
+C1:L0089     translated = coords + (assigned - medoids)[fit.labels]
+C1:L0090     di = scorer._score_single_density(scorer._density(translated))
+C1:L0091     return float(di)
+C1:L0092 
+C1:L0093 
+C1:L0094 records = []
+C1:L0095 for n in (3, 4, 5):
+C1:L0096     pop = population_for(n)
+C1:L0097     refs = reference_medoids(pop)
+C1:L0098     pivot = refs.mean(axis=0)
+C1:L0099     for angle in angles:
+C1:L0100         # Population stays fixed. The medoid pattern is rotated first, and the
+C1:L0101         # same translation vector is then applied to every sample center.
+C1:L0102         sample = rotate(refs, pivot, angle) + shift
+C1:L0103         records.append({"n": n, "angle_degrees": angle, "DI": calculate_di(pop, sample)})
+C1:L0104 
+C1:L0105 results = pd.DataFrame(records)
+C1:L0106 OUTDIR.mkdir(parents=True, exist_ok=True)
+C1:L0107 results.to_csv(OUTCSV, index=False)
+C1:L0108 
+C1:L0109 fig, axes = plt.subplots(1, 3, figsize=(13.2, 4.1), sharey=True)
+C1:L0110 for ax, n, color in zip(axes, (3, 4, 5), ("#168BD2", "#FF7A00", "#24A148")):
+C1:L0111     d = results[results.n == n]
+C1:L0112     ax.plot(d.angle_degrees, d.DI, marker="o", ms=5, lw=1.8, color=color)
+C1:L0113     ax.axhline(0, color="black", lw=1, ls="--")
+C1:L0114     ax.axvline(0, color="0.45", lw=1, ls=":")
+C1:L0115     ax.set_title(rf"Sample size $n={n}$")
+C1:L0116     ax.set_xlabel(r"Relative rotation angle $\theta$")
+C1:L0117     ax.set_xticks([-90, -60, -30, 0, 30, 60, 90])
+C1:L0118     ax.grid(alpha=.25)
+C1:L0119 axes[0].set_ylabel("DI")
+C1:L0120 fig.suptitle("DI after a Common Shift and Rotation of the Sample Relative to the Population", y=1.02)
+C1:L0121 fig.tight_layout()
+C1:L0122 fig.savefig(OUTPNG, dpi=300, bbox_inches="tight")
+C1:L0123 
+C1:L0124 print(results.to_string(index=False, float_format=lambda x: f"{x:.6f}"))
+C1:L0125 print("Saved plot:", OUTPNG)
+C1:L0126 print("Saved values:", OUTCSV)

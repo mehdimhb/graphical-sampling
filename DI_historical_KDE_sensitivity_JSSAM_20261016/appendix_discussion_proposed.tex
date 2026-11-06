@@ -1,0 +1,34 @@
+{\color{red}
+\paragraph{Sensitivity to the reference configuration.}
+We fixed one UP sample in each of three settings: Clustered $(N,n)=(144,16)$,
+Meuse $(155,10)$, and Swiss $(959,100)$. Procedure A varied TSP search while
+fixing the OT coupling and preliminary labels; B varied numerical OT routes
+under a deterministic TSP rule; C reused the corresponding B coupling with
+independent TSP seeds. We retained 40 outcomes per procedure and setting.
+All 360 saved reference configurations and translations were reused, without
+repeating reference optimization. We recalculated only the densities and DI,
+using a spherical uniform kernel and scalar Scott bandwidth
+$h=N^{-1/(d+4)}$ in the original normalized coordinate system. The same
+bandwidth was used after translation, without renormalizing the translated
+coordinates. This is a KDE-only comparison on the saved references.
+
+Table~\ref{tab:reference_sensitivity_historical_kde} summarizes the results.
+The baseline DIs were 0.276619, $-0.275822$, and $-0.085989$, respectively.
+All signs agreed with the corresponding baseline. Reference invariance was
+nevertheless not observed: in the Clustered setting, two outcomes sharing
+exactly the OT coupling and preliminary labels gave DI 0.276619 and 0.283761,
+an absolute difference of 0.007141. Their open-TSP lengths were within 1.892\%
+of the saved exact benchmark for that common centroid instance. Their native
+and common-scale OT gaps relative to the best observed saved values were
+1.042\% and 0.617\%, respectively; hence this comparison satisfies the 2\%
+screens, but not the 1\% screen. Swiss variation includes ambiguity in numerical
+hardening near coincident centroids and should not all be interpreted as
+variation between distinct mathematical OT optima.
+
+The historical-KDE rescoring reduced the observed spread and changed DI
+magnitudes substantially relative to the previous box-KDE calculation.
+These conditional, dependent search outcomes quantify a limitation of the
+reference construction; they do not establish general reference invariance,
+population-level frequencies, sampling uncertainty, or agreement with the
+manuscript's Monte Carlo averages.
+}

@@ -1,0 +1,313 @@
+{
+  "tighter_original": {
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 1.7730265179227794e-13,
+    "minimum_preliminary_gap": 0.05271492930146121,
+    "minimum_TSP_distinct_route_gap": 0.0
+  },
+  "tighter_translated": {
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 1.8107737531636303e-13,
+    "minimum_preliminary_gap": 0.05271492930146123,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16
+  },
+  "tighter_pair": {
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 2.2887833992611187e-16,
+    "minimum_preliminary_gap": 0.05271492930146121,
+    "minimum_TSP_distinct_route_gap": 0.0
+  },
+  "same_seed_replay_identical": true,
+  "joint_coordinate_shift_identical": true,
+  "fixed_reference_control": {
+    "DI": 0.19846301543517045,
+    "Dnet": 0.15155242700811955,
+    "eta": 0.05528990820449883,
+    "DI_difference": 0.0
+  }
+}

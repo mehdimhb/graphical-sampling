@@ -1,0 +1,1622 @@
+[
+  {
+    "candidate": 1,
+    "original_id": "sample1_original",
+    "translated_id": "sample1_shift11",
+    "delta": [
+      1,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 3.997188364167557e-15,
+    "minimum_preliminary_gap": 0.05271492930147788,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16
+  },
+  {
+    "candidate": 1,
+    "original_id": "sample1_original",
+    "translated_id": "sample1_shift10",
+    "delta": [
+      1,
+      0
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 2.2887833992611187e-16,
+    "minimum_preliminary_gap": 0.05271492930147788,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16
+  },
+  {
+    "candidate": 1,
+    "original_id": "sample1_original",
+    "translated_id": "sample1_shift01",
+    "delta": [
+      0,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 3.1401849173675503e-16,
+    "minimum_preliminary_gap": 0.05271492930147788,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16
+  },
+  {
+    "candidate": 2,
+    "original_id": "sample2_original",
+    "translated_id": "sample2_shift11",
+    "delta": [
+      1,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 2.3714374201337736e-16,
+    "minimum_preliminary_gap": 0.05271492930156358,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16
+  },
+  {
+    "candidate": 2,
+    "original_id": "sample2_original",
+    "translated_id": "sample2_shift10",
+    "delta": [
+      1,
+      0
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 2.2887833992611187e-16,
+    "minimum_preliminary_gap": 0.0527149293015634,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16
+  },
+  {
+    "candidate": 2,
+    "original_id": "sample2_original",
+    "translated_id": "sample2_shift01",
+    "delta": [
+      0,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 2.7755575615628914e-16,
+    "minimum_preliminary_gap": 0.05271492930156353,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16
+  },
+  {
+    "candidate": 3,
+    "original_id": "sample3_original",
+    "translated_id": "sample3_shift11",
+    "delta": [
+      1,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 2.2139017017991782e-14,
+    "minimum_preliminary_gap": 0.022261972666147024,
+    "minimum_TSP_distinct_route_gap": 9.670930722904814e-12
+  },
+  {
+    "candidate": 3,
+    "original_id": "sample3_original",
+    "translated_id": "sample3_shift10",
+    "delta": [
+      1,
+      0
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 3.1401849173675503e-16,
+    "minimum_preliminary_gap": 0.022261972666147024,
+    "minimum_TSP_distinct_route_gap": 9.694467451026867e-12
+  },
+  {
+    "candidate": 3,
+    "original_id": "sample3_original",
+    "translated_id": "sample3_shift01",
+    "delta": [
+      0,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 3.3766115072321297e-16,
+    "minimum_preliminary_gap": 0.022261972666147024,
+    "minimum_TSP_distinct_route_gap": 9.694467451026867e-12
+  },
+  {
+    "candidate": 4,
+    "original_id": "sample4_original",
+    "translated_id": "sample4_shift11",
+    "delta": [
+      1,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 5.551115123125783e-16,
+    "minimum_preliminary_gap": 0.022261972678950435,
+    "minimum_TSP_distinct_route_gap": 2.071232074740692e-12
+  },
+  {
+    "candidate": 4,
+    "original_id": "sample4_original",
+    "translated_id": "sample4_shift10",
+    "delta": [
+      1,
+      0
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 5.117875266520903e-16,
+    "minimum_preliminary_gap": 0.022261972678950238,
+    "minimum_TSP_distinct_route_gap": 2.071232074740692e-12
+  },
+  {
+    "candidate": 4,
+    "original_id": "sample4_original",
+    "translated_id": "sample4_shift01",
+    "delta": [
+      0,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 2.0014830212433605e-16,
+    "minimum_preliminary_gap": 0.022261972678950435,
+    "minimum_TSP_distinct_route_gap": 2.071232074740692e-12
+  },
+  {
+    "candidate": 5,
+    "original_id": "sample5_original",
+    "translated_id": "sample5_shift11",
+    "delta": [
+      1,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 2.40649523476165e-12,
+    "minimum_preliminary_gap": 0.02226197267313116,
+    "minimum_TSP_distinct_route_gap": 2.9398705692074145e-12
+  },
+  {
+    "candidate": 5,
+    "original_id": "sample5_original",
+    "translated_id": "sample5_shift10",
+    "delta": [
+      1,
+      0
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 1.6745624018104743e-12,
+    "minimum_preliminary_gap": 0.02226197267313116,
+    "minimum_TSP_distinct_route_gap": 3.7267966490617255e-12
+  },
+  {
+    "candidate": 5,
+    "original_id": "sample5_original",
+    "translated_id": "sample5_shift01",
+    "delta": [
+      0,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 3.510833468576701e-16,
+    "minimum_preliminary_gap": 0.02226197267313116,
+    "minimum_TSP_distinct_route_gap": 5.539568803669681e-12
+  }
+]

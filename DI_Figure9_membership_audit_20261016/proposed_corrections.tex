@@ -1,0 +1,32 @@
+% PROPOSED TEXT ONLY: no manuscript or response file has been edited.
+% Coordinates refer to the source's normalized square [0,1]^2.
+% DI values below are the original figure's displayed rounded values,
+% not new simulations or certification of exact zero.
+
+% Proposed replacement caption.
+\caption{Translation and grid-approximated rotation for a regular
+\(20\times20\) population with \(n=20\).
+Panel~(a) shows the original \(5\times4\) sample;
+panel~(b) translates it by \((1,-1)/19\).
+Panels~(c) and~(d) assign targets rotated by \(90^\circ\) and
+\(45^\circ\) about the original sample mean to distinct population
+units by minimum-total-Euclidean-distance assignment.
+All displayed samples are therefore subsets of the finite population;
+panel~(d) is not an exact rigid rotation.
+The displayed DI values are \(0.00,0.00,0.00,-0.14\), respectively.
+MI, VI and BI are shown for comparison.}
+
+% Proposed replacement for the Figure 9 Appendix discussion.
+The population is
+\(U=\{(i/19,j/19):i,j=0,\ldots,19\}\), and the original sample is
+\(\{1,5,9,13,17\}\times\{2,7,12,17\}/19\).
+The rotation targets in Figure~\ref{fig:rotation_4x5} are generated about
+the sample mean \((9/19,1/2)\) and then assigned to distinct grid units.
+Thus all displayed configurations are feasible samples, but the
+\(45^\circ\) panel represents a grid approximation: its unprojected
+targets are all off-grid and four lie outside the population boundary.
+The displayed \(90^\circ\) configuration also admits an exact rotation
+description, about \((9/19,10/19)\).
+Equality of the displayed DI values in panels~(a)--(c) concerns these
+particular samples; panel~(d) does not isolate the effect of an exact
+\(45^\circ\) rotation.

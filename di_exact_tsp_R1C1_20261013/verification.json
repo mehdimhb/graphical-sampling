@@ -1,0 +1,171 @@
+{
+  "status": "passed",
+  "source_hashes_preserved": 52,
+  "exact_complete_pipeline_runs_verified": 22,
+  "prior_official_runs_compared": 20,
+  "no_alternative_initializations": true,
+  "same_fixed_bandwidth_IPs_and_scoring": true,
+  "independent_dynamic_programming_verified": true,
+  "samples": [
+    {
+      "sample": "S1",
+      "exact_algorithm": "independent Held-Karp DP agrees with exhaustive enumeration",
+      "oriented_paths": 40320,
+      "unoriented_paths": 20160,
+      "optimal_oriented_paths": 2,
+      "optimal_unoriented_paths": 1,
+      "runner_up_gap": "0.009097821082700620165430667004",
+      "repeated_DI_range": 0.0,
+      "repeated_full_states_bit_identical": true,
+      "reverse_reference_and_DI_identical": true,
+      "reverse_soft_membership_roundoff": 2.0276835765997703e-13
+    },
+    {
+      "sample": "S2",
+      "exact_algorithm": "independent Held-Karp DP agrees with exhaustive enumeration",
+      "oriented_paths": 40320,
+      "unoriented_paths": 20160,
+      "optimal_oriented_paths": 2,
+      "optimal_unoriented_paths": 1,
+      "runner_up_gap": "0.009097821282133393843866002266",
+      "repeated_DI_range": 0.0,
+      "repeated_full_states_bit_identical": true,
+      "reverse_reference_and_DI_identical": true,
+      "reverse_soft_membership_roundoff": 2.0276835765997703e-13
+    }
+  ],
+  "records": [
+    {
+      "sample": "S1",
+      "seed": 0,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 1,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 2,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 3,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 4,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 5,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 6,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 7,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 8,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 9,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S1",
+      "seed": 0,
+      "variant": "alternative_oriented_optimum",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 0,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 1,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 2,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 3,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 4,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 5,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 6,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 7,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 8,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 9,
+      "variant": "deterministic_exact",
+      "full_numerical_checks": "passed"
+    },
+    {
+      "sample": "S2",
+      "seed": 0,
+      "variant": "alternative_oriented_optimum",
+      "full_numerical_checks": "passed"
+    }
+  ]
+}

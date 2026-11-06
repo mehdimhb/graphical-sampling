@@ -1,0 +1,4774 @@
+
+CELL 0 execution None
+### Small Population GFS sampling paper plot
+
+
+CELL 1 execution 51
+%load_ext autoreload
+%autoreload 2
+
+SAVED OUTPUT The autoreload extension is already loaded. To reload it, use:
+  %reload_ext autoreload
+
+
+
+CELL 2 execution 52
+import numpy as np
+import matplotlib.pyplot as plt
+import graphical_sampling as gs
+from graphical_sampling.index import Moran
+
+
+CELL 3 execution 53
+# --- Population ---
+coords_data = np.array([
+    (1,1),(1,2),(1,3),
+    (2,1),(2,2),(2,3),
+    (3,1),(3,2),(3,3)
+])
+
+inclusions_data = np.array([0.7, 0.3, 0.4, 0.8, 0.3, 0.65, 0.45, 0.2, 0.2])
+# inclusions_data = np.repeat(3/9,9)
+n = int(inclusions_data.sum())
+
+pop = gs.Population(coords_data, inclusions_data, n=n, variable=inclusions_data)
+
+# --- Clustering ---
+fbn = gs.clustering.FIPBalancedNMeans(
+    n=n,
+    centroid_grid_x=1,
+    r_sample_per_cluster=1,
+    init_clust_method='expanded',
+    split_size=.001
+)
+
+fbn.fit(pop)
+fbn.fit_zones(num_zones=(1,1), mode='sweep_yx')
+
+# --- Order & Design ---
+order = gs.Order.from_clusters(
+    pop,
+    fbn.clusters,
+    zone_strategy='lexico_yx',
+    point_strategy='lexico_yx',
+    num_splits=1,
+    topological=True
+)
+
+design = gs.Design.from_order(pop, order)
+
+
+
+CELL 4 execution None
+
+# =========================================================
+# 🔴 STEP 1: draw ONE sample from the design
+# =========================================================
+sample = design.sample(1)[0]
+sample = np.array([1,2,5,7]) -1  # shape (n,)
+p
+￼
+    \textbf{Response:} 
+￼
+    % YOUR RESPONSE HERE
+rint("Sample:", sample+1)
+
+# =========================================================
+# 🔴 STEP 2: Moran for THIS sample (not expected value)
+# =========================================================
+moran_index = Moran(pop, method="tille")
+moran_val = moran_index.score(np.array([sample]))[0]
+
+print("Moran(sample):", moran_val)
+
+# =========================================================
+# 🔴 STEP 3: Plot
+# =========================================================
+fig, ax = plt.subplots()
+
+# background clusters
+fbn.plot(mode='soft', ax=ax)
+
+coords = pop.coords
+
+# highlight selected units
+ax.scatter(coords[sample, 0], coords[sample, 1],
+           color="darkred", marker='x', s=120, linewidths=2, zorder=10)
+
+# label
+x, y = coords[sample].mean(axis=0)
+ax.text(x-0.1, y+0.2, f"Moran={moran_val:.3f}", fontsize=12)
+
+plt.show()
+
+SAVED OUTPUT Sample: [1 2 5 7]
+Moran(sample): -0.04884546538564359
+
+
+SAVED OUTPUT <Figure size 640x480 with 1 Axes>
+
+
+CELL 5 execution 55
+import numpy as np
+import matplotlib.pyplot as plt
+from graphical_sampling.index import Moran
+coords_data = np.array([
+    (1,1),(1,2),(1,3),
+    (2,1),(2,2),(2,3),
+    (3,1),(3,2),(3,3)
+])
+coords = coords_data
+sample = design.sample(1)[0]
+
+# Moran
+moran_index = Moran(pop)
+moran_val = moran_index.score(np.array([sample]))[0]
+
+# =========================================================
+# 🔴 Figure (match your style)
+# =========================================================
+fig, ax = plt.subplots(figsize=(8, 4))
+
+# --- background ---
+ax.set_facecolor("#d9d9d9")   # light gray panel
+# --- grid lines (only internal structure) ---
+x_vals = np.unique(coords[:,0])
+y_vals = np.unique(coords[:,1])
+
+for x in x_vals:
+    ax.axvline(x, color='black', lw=0.8, alpha=0.6, zorder=0)
+
+for y in y_vals:
+    ax.axhline(y, color='black', lw=0.8, alpha=0.6, zorder=0)
+
+# --- sample (crosses only, no population dots) ---
+ax.scatter(coords[sample, 0], coords[sample, 1],
+           color="red", marker='x', s=80, linewidths=1.8, zorder=5)
+
+# --- ticks exactly like figure ---
+ax.set_xticks(x_vals)
+ax.set_yticks(y_vals)
+
+# --- limits tight ---
+ax.set_xlim(x_vals.min(), x_vals.max())
+ax.set_ylim(y_vals.min(), y_vals.max())
+
+# --- clean axes ---
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+# --- Moran annotation (subtle, like your figure) ---
+ax.text(1.5, y_vals.min()+0.5,
+        rf"$Moran={moran_val:.2f}$",
+        ha='center', fontsize=11)
+
+plt.tight_layout()
+plt.show()
+
+SAVED OUTPUT <Figure size 800x400 with 1 Axes>
+
+
+CELL 6 execution 56
+import numpy as np
+import matplotlib.pyplot as plt
+from graphical_sampling.index import Moran
+
+# --- coords & sample already defined ---
+coords = pop.coords
+
+# --- sample ---
+sample = design.sample(1)[0]
+
+# --- Moran ---
+moran_index = Moran(pop)
+moran_val = moran_index.score(np.array([sample]))[0]
+
+# =========================================================
+# 🔴 Manual plotting
+# =========================================================
+fig, ax = plt.subplots(figsize=(6, 4))
+
+# --- population points (light) ---
+ax.scatter(coords[:, 0], coords[:, 1],
+           color="black", s=40, alpha=0.06, zorder=1)
+
+# --- sample (crosses) ---
+ax.scatter(coords[sample, 0], coords[sample, 1],
+           color="red", marker='x', s=120, linewidths=2, zorder=3)
+
+# --- optional: grid lines (like your figure) ---
+for x in np.unique(coords[:,0]):
+    ax.axvline(x, color='black', lw=0.8, alpha=0.5, zorder=0)
+
+for y in np.unique(coords[:,1]):
+    ax.axhline(y, color='black', lw=0.8, alpha=0.5, zorder=0)
+
+# --- limits & ticks ---
+ax.set_xlim(coords[:,0].min()-0.2, coords[:,0].max()+0.2)
+ax.set_ylim(coords[:,1].min()-0.2, coords[:,1].max()+0.2)
+
+ax.set_xticks(np.unique(coords[:,0]))
+ax.set_yticks(np.unique(coords[:,1]))
+
+# --- Moran text ---
+x_mean, y_mean = coords[sample].mean(axis=0)
+ax.text(x_mean-0.5, y_mean+0.3,
+        rf"$I={moran_val:.2f}$",
+        fontsize=12)
+
+# --- style (paper-like) ---
+ax.set_aspect('equal')
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+plt.tight_layout()
+plt.show()
+
+SAVED OUTPUT <Figure size 600x400 with 1 Axes>
+
+
+CELL 7 execution None
+### For sampling
+
+
+CELL 8 execution 57
+# =========================================================
+# CELL 2
+# ROBERTSON VARIABLES
+# =========================================================
+
+def robertson_variables(x1, x2, positive_shift=True):
+    """Robertson artificial response functions.
+
+    Note:
+    peak and bird are shifted by +7 and +6, respectively.
+    """
+
+    corrugated = (
+        3 * (x1 + x2)
+        +
+        np.sin(6 * (x1 + x2))
+    )
+
+    peak = (
+        3 * (4 - 6*x1)**2
+        *
+        np.exp(
+            -(6*x1 - 3)**2
+            -
+            (6*x2 - 2)**2
+        )
+        -
+        10
+        *
+        (
+            0.2*(6*x1 - 3)
+            -
+            (6*x1 - 3)**3
+            -
+            (6*x2 - 3)**5
+        )
+        *
+        np.exp(
+            -(6*x1 - 3)**2
+            -
+            (6*x2 - 3)**2
+        )
+        -
+        (1/3)
+        *
+        np.exp(
+            -(6*x1 - 2)**2
+            -
+            (6*x2 - 3)**2
+        )
+    )
+
+    bird = (
+        1/20
+        *
+        (
+            (12*x1 - 12*x2)**2
+            +
+            np.exp(
+                (1 - np.sin(12*x1 - 6))**2
+            )
+            *
+            np.cos(12*x2 - 6)
+            +
+            np.exp(
+                (1 - np.cos(12*x2 - 6))**2
+            )
+            *
+            np.sin(12*x1 - 6)
+        )
+    )
+
+    if positive_shift:
+        peak = peak + 7
+        bird = bird + 6
+
+    return {
+        "corrugated": corrugated,
+        "plane": corrugated,
+        "peak": peak,
+        "bird": bird,
+    }
+
+print("Robertson variables defined.")
+
+SAVED OUTPUT Robertson variables defined.
+
+
+
+CELL 9 execution 58
+import os
+os.getcwd()
+# os.chdir("/home/bardia/graphical-sampling")
+# os.chdir("/home/bardia/graphical-sampling/simulations")
+# os.chdir('/config/ws/graphical-sampling/simulations')
+# os.chdir('/Users/Apc/graphical-sampling/simulations')
+os.chdir('/home/bardia/projects/graphical-sampling/simulations')
+from package_sampling.utils import inclusion_probabilities
+
+import os
+import pandas as pd
+import numpy as np
+
+# Assuming inclusion_probabilities is defined elsewhere or imported
+# from your package
+files = ["aggregated.csv", "regular.csv", "meuse.csv", "swiss.csv", "aggregated_1000.csv", "regular_1000.csv",
+         "AggregatedPop1000.csv", "RegularPop1000.csv"]
+
+def popus(n, path="populations/real"):
+    dfs = {} # Better to define inside to keep it clean
+    for f in files:
+        full_path = os.path.join(path, f)
+        if not os.path.exists(full_path):
+            print(f"Warning: {full_path} not found.")
+            continue
+            
+        df = pd.read_csv(full_path)
+        N_pop = len(df)
+        name = f.replace('.csv', '')
+        
+        # Equal Probabilities (Standard for all)
+        pik_ep = np.repeat(n / N_pop, N_pop)
+        
+        if f in ["aggregated.csv", "regular.csv",  "aggregated_1000.csv", "regular_1000.csv",
+                  "AggregatedPop1000.csv", "RegularPop1000.csv"]:
+            coords = df.to_numpy()
+            dfs[f'df_{name}'] = pd.DataFrame({
+                'coord_x': coords[:, 0],
+                'coord_y': coords[:, 1],
+                'pik_ep' : pik_ep,
+                'z'      : np.ones(N_pop) # Placeholder if z is missing
+            })
+
+        elif f == "meuse.csv":
+            coords = df[['x', 'y']].to_numpy()
+            # Unequal Probabilities (UP)
+            pik_up = inclusion_probabilities(df['copper'].to_numpy().copy(), n)
+            dfs[f'df_{name}'] = pd.DataFrame({
+                'coord_x': coords[:, 0],
+                'coord_y': coords[:, 1],
+                'pik_ep' : pik_ep,
+                'pik_up' : pik_up,
+                'z'      : df['cadmium']
+            })
+
+        elif f == "swiss.csv":
+            coords = df[['x', 'y']].to_numpy()
+            AREA = df['AREA'].to_numpy().clip(5, 100)
+            pik_up = inclusion_probabilities(AREA.copy(), n)
+            dfs[f'df_{name}'] = pd.DataFrame({
+                'coord_x': coords[:, 0],
+                'coord_y': coords[:, 1],
+                'pik_ep' : pik_ep,
+                'pik_up' : pik_up,
+                'z'      : df['AREA_A']
+            })
+            
+    return dfs
+
+
+CELL 10 execution 67
+import matplotlib.pyplot as plt
+import numpy as np
+import graphical_sampling as gs
+
+from graphical_sampling.index import (
+    Moran,
+    Voronoi,
+    LocalBalance,
+    DensityDisparity
+)
+
+from package_sampling.utils import inclusion_probabilities
+
+# =========================================================
+# PARAMETERS
+# =========================================================
+popu = 'df_RegularPop1000'
+ep_or_up = 'pik_ep'
+n = 20
+
+df = popus(n)[popu]
+
+coords_data = df[['coord_x', 'coord_y']].to_numpy()
+
+variable_data = df['z'].to_numpy()
+
+N = len(coords_data)
+
+# =========================================================
+# EQUAL PROBABILITIES
+# =========================================================
+inclusions_equal = df[ep_or_up].to_numpy()
+
+pop_equal = gs.Population(
+    coords_data,
+    inclusions_equal,
+    n=n,
+    variable=variable_data
+)
+
+# =========================================================
+# UNEQUAL PROBABILITIES
+# =========================================================
+inclusions_unequal = inclusion_probabilities(
+    np.clip(np.random.random(N), .2, .8),
+    n
+)
+x1 = coords_data[:, 0]
+x2 = coords_data[:, 1]
+vars_rob = robertson_variables(x1, x2)
+
+inclusions_unequal = inclusion_probabilities(vars_rob["peak"], n)
+
+pop_unequal = gs.Population(
+    coords_data,
+    inclusions_unequal,
+    n=n,
+    variable=variable_data
+)
+
+# =========================================================
+# CONFIGURATIONS
+# =========================================================
+configs = [
+
+    dict(
+        point_strategy='random',
+        zone_strategy='random',
+        zone_mode='sweep_yx',
+        num_zones=(1,1),
+        centroid_grid_x=1,
+        r_sample_per_cluster=20,
+        title='Pure Random Order GFS Baseline'
+    ),
+
+    dict(
+        point_strategy='random',
+        zone_strategy='random',
+        zone_mode='sweep_yx',
+        num_zones=(2,2),
+        centroid_grid_x=4,
+        r_sample_per_cluster=1,
+    ),
+
+    dict(
+        point_strategy='snake_move',
+        zone_strategy='lexicoYX',
+        zone_mode='sweep_yx',
+        num_zones=(2,2),
+        centroid_grid_x=4,
+        r_sample_per_cluster=1,
+    )
+]
+
+# =========================================================
+# AUTOMATIC TITLES
+# =========================================================
+for cfg in configs:
+
+    if cfg['r_sample_per_cluster'] == 20:
+
+        cfg['title'] = 'Pure Random Order GFS Baseline'
+
+    else:
+
+        cfg['title'] = (
+            f"Points: {cfg['point_strategy'].replace('_', ' ').title()}, "
+            f"Zones: {cfg['zone_strategy'].replace('_', ' ').title()}"
+        )
+
+# =========================================================
+# POPULATIONS
+# =========================================================
+all_pops = [
+
+    (
+        "EP",
+        pop_equal,
+        inclusions_equal,
+        1
+    ),
+
+    (
+        "UP",
+        pop_unequal,
+        inclusions_unequal,
+        0.001
+    )
+]
+
+# =========================================================
+# PANEL LABELS
+# =========================================================
+panel_labels = ['a', 'b', 'c', 'd', 'e', 'f']
+
+# =========================================================
+# STORAGE
+# =========================================================
+stored_results = []
+
+panel_counter = 0
+
+# =========================================================
+# COMPUTE EVERYTHING ONCE
+# =========================================================
+for row_idx, (
+    row_title,
+    current_pop,
+    current_inclusions,
+    current_split_size
+) in enumerate(all_pops):
+
+    # -----------------------------------------------------
+    # INDEXERS
+    # -----------------------------------------------------
+    moran_indexer = Moran(current_pop, method='tille')
+
+    voronoi_indexer = Voronoi(current_pop)
+
+    balance_indexer = LocalBalance(current_pop)
+
+    disparity_indexer = DensityDisparity(current_pop)
+
+    # -----------------------------------------------------
+    # LOOP OVER CONFIGS
+    # -----------------------------------------------------
+    for col_idx, cfg in enumerate(configs):
+
+        print(f"Computing : {row_title} | {cfg['title']}")
+
+        # -------------------------------------------------
+        # CLUSTERING
+        # -------------------------------------------------
+        fbn = gs.clustering.FIPBalancedNMeans(
+            n=n,
+            centroid_grid_x=cfg['centroid_grid_x'],
+            r_sample_per_cluster=cfg['r_sample_per_cluster'],
+            init_clust_method='expanded',
+            split_size=current_split_size
+        )
+
+        fbn.fit(current_pop)
+
+        fbn.fit_zones(
+            num_zones=cfg['num_zones'],
+            mode=cfg['zone_mode']
+        )
+
+        # -------------------------------------------------
+        # ORDER
+        # -------------------------------------------------
+        order = gs.Order.from_clusters(
+            current_pop,
+            fbn.clusters,
+            zone_strategy=cfg['zone_strategy'],
+            point_strategy=cfg['point_strategy'],
+            num_splits=1,
+            topological=True,
+            shift_jump=2,
+            shuffle=False,
+            grid_dims=cfg['num_zones']
+        )
+
+        fbn.clusters = order.clusters
+
+        # -------------------------------------------------
+        # DESIGN
+        # -------------------------------------------------
+        design = gs.Design.from_order(
+            current_pop,
+            order
+        )
+
+        coords = design.pop.coords
+
+        # -------------------------------------------------
+        # SAMPLE
+        # -------------------------------------------------
+        sample_indices_2d = design.sample(1)
+
+        sample_indices = sample_indices_2d[0]
+
+        # -------------------------------------------------
+        # SAMPLE METRICS
+        # -------------------------------------------------
+        mi_s = moran_indexer.score(sample_indices_2d)[0]
+
+        vi_s = voronoi_indexer.score(sample_indices_2d)[0]
+
+        bi_s = balance_indexer.score(sample_indices_2d)[0]
+
+        di_s = disparity_indexer.score(sample_indices_2d)[0]
+
+        # -------------------------------------------------
+        # DESIGN METRICS
+        # -------------------------------------------------
+        mi_e = design.moran[0]
+
+        vi_e = design.voronoi[0]
+
+        bi_e = design.local_balance[0]
+
+        di_e = design.density_disparity[0]
+
+        # -------------------------------------------------
+        # STORE
+        # -------------------------------------------------
+        stored_results.append({
+
+            'row_title': row_title,
+
+            'cfg': cfg,
+
+            'fbn': fbn,
+
+            'coords': coords,
+
+            'sample_indices': sample_indices,
+
+            'sample_metrics': (
+                mi_s,
+                vi_s,
+                bi_s,
+                di_s
+            ),
+
+            'design_metrics': (
+                mi_e,
+                vi_e,
+                bi_e,
+                di_e
+            ),
+
+            'panel_label': panel_labels[panel_counter]
+        })
+
+        panel_counter += 1
+
+# =========================================================
+# PLOTTING FUNCTION
+# =========================================================
+def draw_panel(ax, res, show_x=True, show_y=True, show_panel_label=True):
+
+    fbn = res['fbn']
+
+    coords = res['coords']
+
+    sample_indices = res['sample_indices']
+
+    cfg = res['cfg']
+
+    row_title = res['row_title']
+
+    mi_s, vi_s, bi_s, di_s = res['sample_metrics']
+
+    mi_e, vi_e, bi_e, di_e = res['design_metrics']
+
+    # -----------------------------------------------------
+    # SIZE SCALE
+    # -----------------------------------------------------
+    if row_title == "EP":
+
+        size_scale = 500
+
+    else:
+
+        size_scale = 800
+
+    # -----------------------------------------------------
+    # BACKGROUND
+    # -----------------------------------------------------
+    fbn.plot(
+        mode='soft',
+        ax=ax,
+        show_zone_sub_hulls=True,
+        show_zone_labels=True,
+        zone_color_mode=True,
+        size_scale=size_scale
+    )
+
+    # -----------------------------------------------------
+    # FADE UNEQUAL
+    # -----------------------------------------------------
+    if row_title == "UP":
+
+        for coll in ax.collections[:-1]:
+
+            try:
+                coll.set_alpha(0.35)
+
+            except:
+                pass
+
+    # -----------------------------------------------------
+    # CLUSTER LABELS
+    # -----------------------------------------------------
+    for i, cluster in enumerate(fbn.clusters):
+
+        cluster_points = []
+
+        for zone in cluster.zones:
+
+            cluster_points.extend(zone.indices)
+
+        cluster_points = np.array(cluster_points)
+
+        centroid = coords[cluster_points].mean(axis=0)
+
+        ax.text(
+            centroid[0],
+            centroid[1],
+            f"{i+1}",
+            fontsize=30,
+            color='black',
+            alpha=0.14,
+            ha='center',
+            va='center',
+            weight='bold',
+            zorder=1
+        )
+
+    # -----------------------------------------------------
+    # SAMPLE POINTS
+    # -----------------------------------------------------
+    ax.scatter(
+        coords[sample_indices, 0],
+        coords[sample_indices, 1],
+        marker='*',
+        color='red',
+        s=42,
+        linewidths=1.8,
+        zorder=20
+    )
+
+    # -----------------------------------------------------
+    # TITLE
+    # -----------------------------------------------------
+    title = (
+        # f"{row_title} - {cfg['title']}\n"
+        f"{cfg['title']}\n"
+        f"Design : "
+        f"MI={mi_e:.2f} | "
+        f"VI={vi_e:.2f} | "
+        f"BI={bi_e:.2f} | "
+        f"DI={di_e:.2f}\n"
+        f"Sample : "
+        f"MI={mi_s:.2f} | "
+        f"VI={vi_s:.2f} | "
+        f"BI={bi_s:.2f} | "
+        f"DI={di_s:.2f}"
+    )
+
+    ax.set_title(
+        title,
+        fontsize=10,
+        fontweight='bold',
+        family='DejaVu Sans',
+        pad=2
+    )
+
+    # -----------------------------------------------------
+    # PANEL LABEL
+    # -----------------------------------------------------
+    # -----------------------------------------------------
+# PANEL LABEL
+# -----------------------------------------------------
+    if show_panel_label:
+
+        ax.text(
+                        -0.10,
+                        1.03,
+                        f"({res['panel_label']})",
+                        transform=ax.transAxes,
+                        fontsize=15,
+                        fontweight='bold',
+                        va='center'
+        )
+
+    # -----------------------------------------------------
+    # SAMPLE SYMBOL
+    # -----------------------------------------------------
+    ax.scatter(
+    [0.00],
+    [1.025],
+    transform=ax.transAxes,
+    marker='*',
+    color='red',
+    s=130,
+    linewidths=1.8,
+    clip_on=False,
+    zorder=100
+)
+
+    # -----------------------------------------------------
+    # AXES
+    # -----------------------------------------------------
+    if show_x:
+
+        ax.set_xlabel(r"$c_1$", fontsize=13)
+
+    else:
+
+        ax.set_xticks([])
+        ax.set_xlabel("")
+
+    if show_y:
+
+        ax.set_ylabel(r"$c_2$", fontsize=13)
+
+    else:
+
+        ax.set_ylabel("")
+        ax.set_yticks([])
+
+    ax.set_aspect('equal')
+
+    ax.margins(0)
+
+    ax.set_xlim(coords[:,0].min(), coords[:,0].max())
+
+    ax.set_ylim(coords[:,1].min(), coords[:,1].max())
+
+# =========================================================
+# CREATE ALL-IN-ONE FIGURE
+# =========================================================
+fig, axes = plt.subplots(
+    2, 3,
+    figsize=(15, 10),
+    constrained_layout=False,
+    gridspec_kw={
+        'wspace': -0.05,
+        'hspace': 0.12
+    }
+)
+
+for k, res in enumerate(stored_results):
+
+    row = k // 3
+
+    col = k % 3
+
+    ax = axes[row, col]
+
+    draw_panel(
+        ax,
+        res,
+        show_x=(row == 1),
+        show_y=(col == 0)
+    )
+
+plt.subplots_adjust(
+    left=0.01,
+    right=0.995,
+    top=0.96,
+    bottom=0.05,
+    wspace=-0.20,
+    hspace=0.16
+)
+
+plt.show()
+
+# =========================================================
+# SAVE INDEPENDENT PANELS
+# =========================================================
+for k, res in enumerate(stored_results):
+
+    fig, ax = plt.subplots(
+        figsize=(6.2, 5.2)
+    )
+
+    draw_panel(
+        ax,
+        res,
+        show_x=True,
+        show_y=True,
+        show_panel_label=False
+    )
+
+    plt.tight_layout()
+
+    filename = f"panel_{res['panel_label']}.pdf"
+
+    plt.savefig(
+        filename,
+        dpi=400,
+        bbox_inches='tight'
+    )
+
+    plt.close()
+
+    print(f"Saved : {filename}")
+
+SAVED OUTPUT Computing : EP | Pure Random Order GFS Baseline
+Computing : EP | Points: Random, Zones: Random
+Computing : EP | Points: Snake Move, Zones: Lexicoyx
+Computing : UP | Pure Random Order GFS Baseline
+Computing : UP | Points: Random, Zones: Random
+Computing : UP | Points: Snake Move, Zones: Lexicoyx
+
+
+SAVED OUTPUT <Figure size 1500x1000 with 6 Axes>
+
+SAVED OUTPUT Saved : panel_a.pdf
+Saved : panel_b.pdf
+Saved : panel_c.pdf
+Saved : panel_d.pdf
+Saved : panel_e.pdf
+Saved : panel_f.pdf
+
+
+
+CELL 11 execution None
+### plot a simple example of orders
+
+
+CELL 12 execution None
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import graphical_sampling as gs
+
+# =========================================================
+# CREATE PERFECT GRID POPULATION
+# =========================================================
+M = 6
+
+x = np.repeat(np.arange(M), M)
+y = np.tile(np.arange(M)[::-1], M)
+
+coords = np.column_stack([
+    x,
+    y
+]).astype(float)
+
+N = len(coords)
+n = 16
+
+# =========================================================
+# EQUAL INCLUSION PROBABILITIES
+# =========================================================
+pik = np.repeat(n / N, N)
+
+z = np.arange(N)
+
+df = pd.DataFrame({
+    'coord_x': coords[:, 0],
+    'coord_y': coords[:, 1],
+    'pik_ep': pik,
+    'z': z
+})
+
+# =========================================================
+# POPULATION
+# =========================================================
+pop = gs.Population(
+    coords,
+    pik,
+    n=n,
+    variable=z
+)
+
+# =========================================================
+# STRATEGIES
+# =========================================================
+strategies = [
+    'lexicoYX',
+    'snake_move',
+    'projection',
+    'random'
+]
+
+titles = [
+    "Lexicoyx",
+    "Snake Move",
+    "Projection",
+    "Random"
+]
+
+# =========================================================
+# FIGURE
+# =========================================================
+fig, axes = plt.subplots(
+    1,
+    4,
+    figsize=(24, 6),
+    gridspec_kw={'wspace': 0.04}
+)
+
+# =========================================================
+# MAIN LOOP
+# =========================================================
+for ax, strategy, title in zip(axes, strategies, titles):
+
+    # -----------------------------------------------------
+    # ORDER
+    # -----------------------------------------------------
+    order_idx = gs.Order(pop)._get_strategy_order(
+        coords,
+        strategy=strategy,
+        topological=True,
+        grid_dims=(M, M)
+    )
+
+    ordered_coords = coords[order_idx]
+
+    # -----------------------------------------------------
+    # CONNECTION PATH
+    # -----------------------------------------------------
+    ax.plot(
+        ordered_coords[:, 0],
+        ordered_coords[:, 1],
+        color='black',
+        linewidth=2.7,
+        solid_capstyle='round',
+        solid_joinstyle='round',
+        alpha=0.9,
+        zorder=1
+    )
+
+    # -----------------------------------------------------
+    # MAIN POINTS
+    # -----------------------------------------------------
+    ax.scatter(
+        coords[:, 0],
+        coords[:, 1],
+        s=620,
+        color='#7da9d8',
+        edgecolors='none',
+        alpha=0.95,
+        zorder=5
+    )
+
+    # -----------------------------------------------------
+    # START POINT
+    # -----------------------------------------------------
+    ax.scatter(
+        ordered_coords[0, 0],
+        ordered_coords[0, 1],
+        s=700,
+        color='#74c476',
+        edgecolors='none',
+        zorder=15
+    )
+
+    # -----------------------------------------------------
+    # END POINT
+    # -----------------------------------------------------
+    ax.scatter(
+        ordered_coords[-1, 0],
+        ordered_coords[-1, 1],
+        s=700,
+        color='#ef6548',
+        edgecolors='none',
+        zorder=15
+    )
+
+    # -----------------------------------------------------
+    # LABELS
+    # -----------------------------------------------------
+    for rank, idx in enumerate(order_idx):
+
+        cx, cy = coords[idx]
+
+        ax.text(
+            cx,
+            cy,
+            str(rank + 1),
+            fontsize=15,
+            fontweight='bold',
+            color='white',
+            ha='center',
+            va='center',
+            zorder=20
+        )
+
+    # -----------------------------------------------------
+    # TITLE
+    # -----------------------------------------------------
+    ax.set_title(
+        title,
+        fontsize=22,
+        fontweight='bold',
+        pad=18
+    )
+
+    # -----------------------------------------------------
+    # STYLE
+    # -----------------------------------------------------
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    ax.set_aspect('equal')
+
+    ax.set_xlim(-0.7, M - 0.3)
+    ax.set_ylim(-0.7, M - 0.3)
+
+    # remove borders
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+# =========================================================
+# FINAL LAYOUT
+# =========================================================
+plt.subplots_adjust(
+    left=0.02,
+    right=0.985,
+    top=0.90,
+    bottom=0.05,
+    wspace=0.05
+)
+
+plt.show()
+
+SAVED OUTPUT <Figure size 2400x600 with 4 Axes>
+
+
+CELL 13 execution None
+### Meuse and Swiss
+
+
+CELL 14 execution None
+#### packages and functions
+
+
+CELL 15 execution None
+%load_ext autoreload
+%autoreload 2
+
+SAVED OUTPUT The autoreload extension is already loaded. To reload it, use:
+  %reload_ext autoreload
+
+
+
+CELL 16 execution None
+import os
+os.getcwd()
+# os.chdir("/home/bardia/graphical-sampling")
+# os.chdir("/home/bardia/graphical-sampling/simulations")
+# os.chdir('/config/ws/graphical-sampling/simulations')
+# os.chdir('/Users/Apc/graphical-sampling/simulations')
+# os.chdir('/home/dell/projects/graphical-sampling/simulations')
+os.chdir('/home/bardia/projects/graphical-sampling/simulations')
+
+
+
+CELL 17 execution None
+from itertools import product
+import numpy as np
+import graphical_sampling as gs
+from tqdm import tqdm
+from package_sampling.utils import inclusion_probabilities
+import numpy as np
+import pandas as pd
+
+
+
+
+CELL 18 execution None
+def robertson_variables(x1, x2, positive_shift=True):
+
+    corrugated = (
+        3 * (x1 + x2)
+        +
+        np.sin(6 * (x1 + x2))
+    )
+
+    peak = (
+        (
+            3 * (4 - 6*x1)**2
+            *
+            np.exp(
+                -(6*x1 - 3)**2
+                -
+                (6*x2 - 2)**2
+            )
+            -
+            10
+            *
+            (
+                0.2*(6*x1 - 3)
+                -
+                (6*x1 - 3)**3
+                -
+                (6*x2 - 3)**5
+            )
+            *
+            np.exp(
+                -(6*x1 - 3)**2
+                -
+                (6*x2 - 3)**2
+            )
+            -
+            (1/3)
+            *
+            np.exp(
+                -(6*x1 - 2)**2
+                -
+                (6*x2 - 3)**2
+            )
+        )
+    )
+
+    bird = (
+        1/20
+        *
+        (
+            (12*x1 - 12*x2)**2
+            +
+            np.exp(
+                (1 - np.sin(12*x1 - 6))**2
+            )
+            *
+            np.cos(12*x2 - 6)
+            +
+            np.exp(
+                (1 - np.cos(12*x2 - 6))**2
+            )
+            *
+            np.sin(12*x1 - 6)
+        )
+    )
+
+    if positive_shift:
+
+        peak = peak + 7
+
+        bird = bird + 6
+
+    return {
+
+        "corrugated": corrugated,
+
+        "plane": corrugated,
+
+        "peak": peak,
+
+        "bird": bird,
+    }
+
+
+CELL 19 execution None
+# =========================================================
+# LOAD POPULATIONS
+# =========================================================
+
+import os
+import pandas as pd
+import numpy as np
+
+from package_sampling.utils import inclusion_probabilities
+
+# =========================================================
+# FILES
+# =========================================================
+
+files = [
+
+    "meuse.csv",
+
+    "swiss.csv",
+
+    "AggregatedPop1000.csv",
+
+    "RegularPop1000.csv"
+]
+
+# =========================================================
+# POPULATION LOADER
+# =========================================================
+
+def popus(n, path="populations/real"):
+
+    dfs = {}
+
+    for f in files:
+
+        full_path = os.path.join(path, f)
+
+        # -------------------------------------------------
+        # Check existence
+        # -------------------------------------------------
+
+        if not os.path.exists(full_path):
+
+            print(f"Warning: {full_path} not found.")
+
+            continue
+
+        # -------------------------------------------------
+        # Read file
+        # -------------------------------------------------
+
+        df = pd.read_csv(full_path)
+
+        N_pop = len(df)
+
+        name = f.replace(".csv", "")
+
+        # -------------------------------------------------
+        # Equal probabilities
+        # -------------------------------------------------
+
+        pik_ep = np.repeat(
+            n / N_pop,
+            N_pop
+        )
+
+
+        # =================================================
+        # ROBERTSON POPULATIONS
+        # =================================================
+
+        # =================================================
+# ROBERTSON POPULATIONS
+# =================================================
+
+        if f in ["AggregatedPop1000.csv", "RegularPop1000.csv"]:
+
+            coords = df.to_numpy()
+
+            x1 = coords[:, 0]
+            x2 = coords[:, 1]
+
+            vars_robertson = robertson_variables(x1, x2)
+
+            plane = vars_robertson["plane"]
+
+            def noisy_through_origin(x, rho, seed=None):
+
+                rng = np.random.default_rng(seed)
+
+                e = rng.normal(size=len(x))
+                e = (e - e.mean()) / e.std()
+
+                # noise level corresponding to target correlation
+                noise_ratio = np.sqrt(1 / (rho**2) - 1)
+
+                y = x + noise_ratio * x.std() * e
+
+                return y
+
+            dfs[f"df_{name}"] = pd.DataFrame({
+
+                "coord_x" : x1,
+                "coord_y" : x2,
+
+                "pik_ep" : pik_ep,
+
+                "z" : vars_robertson["corrugated"],
+
+                "plane" : plane,
+                "peak" : vars_robertson["peak"],
+                "bird" : vars_robertson["bird"],
+
+                "plane_rho_07" : noisy_through_origin(plane, 0.7, seed=701),
+                "plane_rho_08" : noisy_through_origin(plane, 0.8, seed=801),
+                "plane_rho_09" : noisy_through_origin(plane, 0.9, seed=901),
+            })
+            
+        
+        elif f == "meuse.csv":
+
+            coords = df[["x", "y"]].to_numpy()
+
+            # unequal probabilities
+            pik_up = inclusion_probabilities(
+
+                df["copper"].to_numpy().copy(),
+
+                n
+            )
+
+            dfs[f"df_{name}"] = pd.DataFrame({
+
+                "coord_x" : coords[:, 0],
+
+                "coord_y" : coords[:, 1],
+
+                "pik_ep" : pik_ep,
+
+                "pik_up" : pik_up,
+
+                "z" : df["cadmium"]
+            })
+
+        # =================================================
+        # SWISS
+        # =================================================
+
+        elif f == "swiss.csv":
+
+            coords = df[["x", "y"]].to_numpy()
+
+            AREA = df["AREA"].to_numpy().clip(
+                5,
+                100
+            )
+
+            pik_up = inclusion_probabilities(
+
+                AREA.copy(),
+
+                n
+            )
+
+            dfs[f"df_{name}"] = pd.DataFrame({
+
+                "coord_x" : coords[:, 0],
+
+                "coord_y" : coords[:, 1],
+
+                "pik_ep" : pik_ep,
+
+                "pik_up" : pik_up,
+
+                "z" : df["AREA_A"]
+            })
+
+    return dfs
+
+# =========================================================
+# LOAD MAIN POPULATIONS
+# =========================================================
+
+p50 = popus(50)
+
+regular = p50["df_RegularPop1000"]
+
+aggregated = p50["df_AggregatedPop1000"]
+
+meuse = p50["df_meuse"]
+
+swiss = p50["df_swiss"]
+
+# =========================================================
+# CHECK
+# =========================================================
+
+print("\n================================================")
+print("POPULATIONS LOADED")
+print("================================================\n")
+
+print("regular:", regular.shape)
+
+print("aggregated:", aggregated.shape)
+
+print("meuse:", meuse.shape)
+
+print("swiss:", swiss.shape)
+
+SAVED OUTPUT 
+================================================
+POPULATIONS LOADED
+================================================
+
+regular: (1000, 10)
+aggregated: (1000, 10)
+meuse: (155, 5)
+swiss: (959, 5)
+
+
+
+CELL 20 execution None
+#### Switzerland
+
+
+CELL 21 execution None
+import numpy as np
+import graphical_sampling as gs
+
+# ---------------------------------------------------------
+# Parameters
+# ---------------------------------------------------------
+popu = "df_swiss"
+ep_or_up = "pik_up"
+n = 50
+
+centroid_grid_x = 4
+r_sample_per_cluster = 1
+
+# ---------------------------------------------------------
+# Population
+# ---------------------------------------------------------
+df = popus(n)[popu]
+
+coords_data = df[["coord_x", "coord_y"]].to_numpy()
+inclusions_data = df[ep_or_up].to_numpy()
+
+pop = gs.Population(
+    coords_data,
+    inclusions_data,
+    n=n
+)
+
+# ---------------------------------------------------------
+# FIP-balanced n-means clustering
+# ---------------------------------------------------------
+fbn_swiss = gs.clustering.FIPBalancedNMeans(
+    n=n,
+    r_sample_per_cluster=r_sample_per_cluster,
+    centroid_grid_x=centroid_grid_x,
+    init_clust_method="expanded",
+    split_size=0.0001
+)
+
+fbn_swiss.fit(pop)
+
+# ---------------------------------------------------------
+# Zones inside clusters
+# ---------------------------------------------------------
+fbn_swiss.fit_zones(
+    num_zones=(2, 2),
+    mode="sweep_xy"
+)
+
+
+CELL 22 execution None
+import geopandas as gpd
+
+zip_path = "maps/swiss/ne_10m_admin_0_countries.zip"
+
+world = gpd.read_file(f"zip://{zip_path}")
+swiss_gdf = world[world["ADMIN"] == "Switzerland"].copy()
+
+
+CELL 23 execution None
+from shapely import affinity
+
+# ---------------------------------------------------------
+# Detect the coordinate system of df and transform boundary
+# ---------------------------------------------------------
+x_min, y_min = df[["coord_x", "coord_y"]].min()
+x_max, y_max = df[["coord_x", "coord_y"]].max()
+
+swiss_raw = swiss_gdf.copy()
+
+if x_max > 1_000_000:
+    # Swiss LV95
+    swiss_raw = swiss_raw.to_crs("EPSG:2056")
+elif x_max > 100_000:
+    # Swiss LV03
+    swiss_raw = swiss_raw.to_crs("EPSG:21781")
+else:
+    # longitude/latitude
+    swiss_raw = swiss_raw.to_crs("EPSG:4326")
+
+# ---------------------------------------------------------
+# Normalize exactly as gs.Population normalizes coordinates
+# ---------------------------------------------------------
+x0 = df["coord_x"].min()
+y0 = df["coord_y"].min()
+
+scale = max(
+    df["coord_x"].max() - df["coord_x"].min(),
+    df["coord_y"].max() - df["coord_y"].min()
+)
+
+swiss_norm = swiss_raw.copy()
+swiss_norm["geometry"] = swiss_norm.geometry.translate(xoff=-x0, yoff=-y0)
+swiss_norm["geometry"] = swiss_norm.geometry.scale(
+    xfact=1/scale,
+    yfact=1/scale,
+    origin=(0, 0)
+)
+
+
+CELL 24 execution None
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(7, 4), dpi=320)
+
+# Switzerland boundary
+swiss_norm.boundary.plot(
+    ax=ax,
+    color="dimgray",
+    linewidth=2,
+    zorder=20
+)
+
+# FIP-balanced clusters
+fbn_swiss.plot(
+    mode="soft",
+    ax=ax,
+    background_gdf=None,
+    show_zone_sub_hulls=True,
+    show_zone_labels=True,
+    show_centroids=False,
+    connect_centroids=False,
+    show_cluster_mass=True,
+    size_scale=100,
+    point_size_min=0,
+    point_size_max=10_000
+)
+
+# Limits from Switzerland boundary
+xmin, ymin, xmax, ymax = swiss_norm.total_bounds
+pad = 0.04
+
+ax.set_xlim(xmin - pad, xmax + pad)
+ax.set_ylim(ymin - pad, ymax + pad)
+
+ax.set_title("The Switzerland Amphibian Population", fontsize=12, weight="bold")
+
+ax.set_xlabel(r"$c_1$", fontsize=11)
+ax.set_ylabel(r"$c_2$", fontsize=11)
+
+ax.set_aspect("equal")
+
+fig.subplots_adjust(
+    left=0.10,
+    right=0.98,
+    bottom=0.14,
+    top=0.88
+)
+
+fig.savefig("plots/swiss_fip_clusters_single.pdf", bbox_inches="tight", pad_inches=0.02)
+fig.savefig("plots/swiss_fip_clusters_single.png", dpi=320, bbox_inches="tight", pad_inches=0.02)
+plt.show()
+
+SAVED OUTPUT <Figure size 2240x1280 with 1 Axes>
+
+
+CELL 25 execution None
+import matplotlib.pyplot as plt
+import graphical_sampling as gs
+
+# =========================================================
+# PARAMETERS
+# =========================================================
+popu = "df_swiss"
+n = 10
+
+centroid_grid_x = 4
+r_sample_per_cluster = 1
+
+df_ep = popus(n)[popu]
+df_up = popus(n)[popu]
+
+# =========================================================
+# POPULATIONS
+# =========================================================
+coords_ep = df_ep[["coord_x", "coord_y"]].to_numpy()
+pik_ep = df_ep["pik_ep"].to_numpy()
+
+coords_up = df_up[["coord_x", "coord_y"]].to_numpy()
+pik_up = df_up["pik_up"].to_numpy()
+
+pop_ep = gs.Population(coords_ep, pik_ep, n=n)
+pop_up = gs.Population(coords_up, pik_up, n=n)
+
+# =========================================================
+# EP-BALANCED N-MEANS
+# =========================================================
+fbn_ep = gs.clustering.FIPBalancedNMeans(
+    n=n,
+    r_sample_per_cluster=r_sample_per_cluster,
+    centroid_grid_x=centroid_grid_x,
+    init_clust_method="expanded",
+    split_size=0.0001
+)
+
+fbn_ep.fit(pop_ep)
+
+fbn_ep.fit_zones(
+    num_zones=(1, 1),
+    mode="sweep_xy"
+)
+
+# =========================================================
+# UP-BALANCED N-MEANS
+# =========================================================
+fbn_up = gs.clustering.FIPBalancedNMeans(
+    n=n,
+    r_sample_per_cluster=r_sample_per_cluster,
+    centroid_grid_x=centroid_grid_x,
+    init_clust_method="expanded",
+    split_size=0.0001
+)
+
+fbn_up.fit(pop_up)
+
+fbn_up.fit_zones(
+    num_zones=(1, 1),
+    mode="sweep_xy"
+)
+
+# =========================================================
+# HELPER: ADD SWITZERLAND BORDER
+# =========================================================
+def add_swiss_border(ax, linewidth=1.6, color="dimgray"):
+    swiss_norm.boundary.plot(
+        ax=ax,
+        color=color,
+        linewidth=linewidth,
+        zorder=50
+    )
+
+    xmin, ymin, xmax, ymax = swiss_norm.total_bounds
+    pad = 0.04
+    ax.set_xlim(xmin - pad, xmax + pad)
+    ax.set_ylim(ymin - pad, ymax + pad)
+
+# =========================================================
+# FIGURE
+# =========================================================
+fig, axes = plt.subplots(
+    2, 2,
+    figsize=(7, 5.2),
+    dpi=320,
+    constrained_layout=False
+)
+
+ax11, ax12 = axes[0, 0], axes[0, 1]
+ax21, ax22 = axes[1, 0], axes[1, 1]
+
+# ---------------------------------------------------------
+# Top-left: EP-balanced clusters
+# ---------------------------------------------------------
+fbn_ep.plot(
+    mode="soft",
+    ax=ax11,
+    background_gdf=None,
+    zone_color_mode=False,
+    show_zone_sub_hulls=True,
+    show_zone_labels=False,
+    show_cluster_mass=True,
+    size_scale=500,
+    point_alpha=0.75,
+    hull_alpha=0.20,
+    zone_hull_alpha=0.38,
+    point_size_min=0,
+    point_size_max=10_000,
+    show_centroids=False,
+    connect_centroids=False
+)
+
+add_swiss_border(ax11)
+ax11.set_title("EP-balanced n-Means", fontsize=12, weight="bold")
+
+# ---------------------------------------------------------
+# Top-right: UP-balanced clusters
+# ---------------------------------------------------------
+fbn_up.plot(
+    mode="soft",
+    ax=ax12,
+    background_gdf=None,
+    zone_color_mode=False,
+    show_zone_sub_hulls=True,
+    show_zone_labels=False,
+    show_cluster_mass=True,
+    size_scale=500,
+    point_alpha=0.075,
+    hull_alpha=0.20,
+    zone_hull_alpha=0.38,
+    point_size_min=0,
+    point_size_max=10_000,
+    show_centroids=False,
+    connect_centroids=False
+)
+
+add_swiss_border(ax12)
+ax12.set_title("UP-balanced n-Means", fontsize=12, weight="bold")
+
+# ---------------------------------------------------------
+# Bottom-left: EP scatter plot
+# ---------------------------------------------------------
+ax21.scatter(
+    pop_ep.coords[:, 0],
+    pop_ep.coords[:, 1],
+    s=500 * pop_ep.inclusions,
+    color="gray",
+    alpha=0.55,
+    edgecolors="none",
+    zorder=10
+)
+
+add_swiss_border(ax21)
+
+# ---------------------------------------------------------
+# Bottom-right: UP scatter plot
+# ---------------------------------------------------------
+ax22.scatter(
+    pop_up.coords[:, 0],
+    pop_up.coords[:, 1],
+    s=500 * pop_up.inclusions,
+    color="gray",
+    alpha=0.55,
+    edgecolors="none",
+    zorder=10
+)
+
+add_swiss_border(ax22)
+
+# =========================================================
+# CLEAN COMMON STYLE
+# =========================================================
+for ax in axes.ravel():
+    ax.set_aspect("equal")
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+# Keep only left-column row labels
+ax11.set_ylabel("Clusters", fontsize=11)
+ax21.set_ylabel("Scatter Plot", fontsize=11)
+
+# No y-labels for second column
+ax12.set_ylabel("")
+ax22.set_ylabel("")
+
+# =========================================================
+# FINAL SPACING
+# =========================================================
+fig.subplots_adjust(
+    left=0.04,
+    right=0.99,
+    bottom=0.04,
+    top=0.93,
+    wspace=0.02,
+    hspace=0.18
+)
+
+
+fig.savefig("plots/swiss_fip_clusters.pdf", bbox_inches="tight")
+fig.savefig("plots/swiss_fip_clusters.png", dpi=320, bbox_inches="tight")
+
+plt.show()
+
+SAVED OUTPUT <Figure size 2240x1664 with 4 Axes>
+
+
+CELL 26 execution None
+#### Meuse
+
+
+CELL 27 execution None
+import numpy as np
+import matplotlib.pyplot as plt
+import geopandas as gpd
+import pyreadr
+import graphical_sampling as gs
+
+from shapely.geometry import Polygon
+from shapely import affinity
+
+
+CELL 28 execution None
+# =========================================================
+# LOAD MEUSE RIVER
+# =========================================================
+
+riv_path = "maps/meuse/meuse.riv.rda"
+
+riv_obj = pyreadr.read_r(riv_path)
+meuse_riv = list(riv_obj.values())[0]
+
+river_xy = meuse_riv.iloc[:, :2].to_numpy()
+
+meuse_river_gdf = gpd.GeoDataFrame(
+    geometry=[Polygon(river_xy)],
+    crs="EPSG:28992"
+)
+
+
+
+CELL 29 execution None
+# =========================================================
+# ROTATE POPULATION DATAFRAME
+# =========================================================
+
+def rotate_population(df, alpha_degrees, origin="center"):
+    df = df.copy()
+
+    x = df["coord_x"].to_numpy()
+    y = df["coord_y"].to_numpy()
+
+    if origin == "center":
+        x0 = (x.min() + x.max()) / 2
+        y0 = (y.min() + y.max()) / 2
+    else:
+        x0, y0 = origin
+
+    alpha = np.radians(alpha_degrees)
+    cos_a = np.cos(alpha)
+    sin_a = np.sin(alpha)
+
+    x_c = x - x0
+    y_c = y - y0
+
+    df["coord_x"] = x0 + x_c * cos_a - y_c * sin_a
+    df["coord_y"] = y0 + x_c * sin_a + y_c * cos_a
+
+    return df
+
+
+# =========================================================
+# ROTATE GEODATAFRAME USING THE SAME ORIGIN AS THE POPULATION
+# =========================================================
+
+def rotate_gdf(gdf, alpha_degrees, df_origin):
+    x = df_origin["coord_x"].to_numpy()
+    y = df_origin["coord_y"].to_numpy()
+
+    origin = (
+        (x.min() + x.max()) / 2,
+        (y.min() + y.max()) / 2
+    )
+
+    gdf_rot = gdf.copy()
+    gdf_rot["geometry"] = gdf_rot.geometry.apply(
+        lambda geom: affinity.rotate(
+            geom,
+            alpha_degrees,
+            origin=origin,
+            use_radians=False
+        )
+    )
+
+    return gdf_rot
+
+
+# =========================================================
+# NORMALIZE GEODATAFRAME LIKE gs.Population
+# =========================================================
+
+def normalize_gdf_like_population(gdf, df):
+    x0 = df["coord_x"].min()
+    y0 = df["coord_y"].min()
+
+    scale = max(
+        df["coord_x"].max() - df["coord_x"].min(),
+        df["coord_y"].max() - df["coord_y"].min()
+    )
+
+    gdf_norm = gdf.copy()
+    gdf_norm["geometry"] = gdf_norm.geometry.translate(xoff=-x0, yoff=-y0)
+    gdf_norm["geometry"] = gdf_norm.geometry.scale(
+        xfact=1 / scale,
+        yfact=1 / scale,
+        origin=(0, 0)
+    )
+
+    return gdf_norm
+
+
+CELL 30 execution None
+# =========================================================
+# PARAMETERS
+# =========================================================
+
+popu = "df_meuse"
+ep_or_up = "pik_up"
+n = 10
+
+angle = 90   # use -90 for clockwise rotation
+
+centroid_grid_x = 4
+r_sample_per_cluster = 1
+
+# =========================================================
+# POPULATION
+# =========================================================
+
+df_raw = popus(n)[popu]
+df = rotate_population(df_raw, angle, origin="center")
+
+coords_data = df[["coord_x", "coord_y"]].to_numpy()
+inclusions_data = df[ep_or_up].to_numpy()
+
+pop = gs.Population(
+    coords_data,
+    inclusions_data,
+    n=n
+)
+
+# =========================================================
+# ROTATE AND NORMALIZE RIVER
+# =========================================================
+
+meuse_river_rot = rotate_gdf(
+    meuse_river_gdf,
+    angle,
+    df_origin=df_raw
+)
+
+meuse_river_norm = normalize_gdf_like_population(
+    meuse_river_rot,
+    df
+)
+
+# =========================================================
+# FIP-BALANCED N-MEANS
+# =========================================================
+
+fbn = gs.clustering.FIPBalancedNMeans(
+    n=n,
+    r_sample_per_cluster=r_sample_per_cluster,
+    centroid_grid_x=centroid_grid_x,
+    init_clust_method="expanded",
+    split_size=0.0001
+)
+
+fbn.fit(pop)
+
+fbn.fit_zones(
+    num_zones=(2, 2),
+    mode="sweep_xy"
+)
+
+# =========================================================
+# PLOT
+# =========================================================
+
+fig, ax = plt.subplots(figsize=(7, 4), dpi=320)
+
+fbn.plot(
+    mode="soft",
+    ax=ax,
+    background_gdf=None,
+    zone_color_mode=False,
+    show_zone_sub_hulls=True,
+    show_zone_labels=True,
+    show_cluster_mass=True,
+    size_scale=300,
+    point_alpha=0.75,
+    hull_alpha=0.20,
+    zone_hull_alpha=0.38,
+    point_size_min=8,
+    point_size_max=38,
+    show_centroids=False,
+    connect_centroids=False
+)
+
+meuse_river_norm.plot(
+    ax=ax,
+    facecolor="lightskyblue",
+    edgecolor="steelblue",
+    linewidth=0.6,
+    alpha=0.85,
+    zorder=0.5
+)
+x = pop.coords[:, 0]
+y = pop.coords[:, 1]
+pad = 0.05
+
+ax.set_xlim(x.min() - pad, x.max() + pad)
+ax.set_ylim(y.min() - pad, y.max() + pad)
+
+ax.set_title("The Meuse Population", fontsize=12, weight="bold")
+ax.set_xlabel(r"$c_1$", fontsize=11)
+ax.set_ylabel(r"$c_2$", fontsize=11)
+ax.set_aspect("equal")
+
+fig.subplots_adjust(
+    left=0.10,
+    right=0.98,
+    bottom=0.14,
+    top=0.88
+)
+
+fig.savefig("plots/meuse_fip_clusters_single.pdf", bbox_inches="tight", pad_inches=0.02)
+fig.savefig("plots/meuse_fip_clusters_single.png", dpi=320, bbox_inches="tight", pad_inches=0.02)
+
+SAVED OUTPUT <Figure size 2240x1280 with 1 Axes>
+
+
+CELL 31 execution None
+# =========================================================
+# PARAMETERS
+# =========================================================
+
+popu = "df_meuse"
+n = 10
+
+angle = 90   # use -90 for clockwise rotation
+
+centroid_grid_x = 4
+r_sample_per_cluster = 1
+
+# =========================================================
+# POPULATIONS
+# =========================================================
+
+df_raw = popus(n)[popu]
+
+df_ep = rotate_population(df_raw, angle, origin="center")
+df_up = rotate_population(df_raw, angle, origin="center")
+
+coords_ep = df_ep[["coord_x", "coord_y"]].to_numpy()
+pik_ep = df_ep["pik_ep"].to_numpy()
+
+coords_up = df_up[["coord_x", "coord_y"]].to_numpy()
+pik_up = df_up["pik_up"].to_numpy()
+
+pop_ep = gs.Population(coords_ep, pik_ep, n=n)
+pop_up = gs.Population(coords_up, pik_up, n=n)
+
+# =========================================================
+# ROTATE AND NORMALIZE RIVER
+# =========================================================
+
+meuse_river_rot = rotate_gdf(
+    meuse_river_gdf,
+    angle,
+    df_origin=df_raw
+)
+
+meuse_river_norm = normalize_gdf_like_population(
+    meuse_river_rot,
+    df_up
+)
+
+# =========================================================
+# EP-BALANCED N-MEANS
+# =========================================================
+
+fbn_ep = gs.clustering.FIPBalancedNMeans(
+    n=n,
+    r_sample_per_cluster=r_sample_per_cluster,
+    centroid_grid_x=centroid_grid_x,
+    init_clust_method="expanded",
+    split_size=0.0001
+)
+
+fbn_ep.fit(pop_ep)
+
+fbn_ep.fit_zones(
+    num_zones=(1, 1),
+    mode="sweep_xy"
+)
+
+# =========================================================
+# UP-BALANCED N-MEANS
+# =========================================================
+
+fbn_up = gs.clustering.FIPBalancedNMeans(
+    n=n,
+    r_sample_per_cluster=r_sample_per_cluster,
+    centroid_grid_x=centroid_grid_x,
+    init_clust_method="expanded",
+    split_size=0.0001
+)
+
+fbn_up.fit(pop_up)
+
+fbn_up.fit_zones(
+    num_zones=(1, 1),
+    mode="sweep_xy"
+)
+
+# =========================================================
+# HELPER: ADD MEUSE RIVER
+# =========================================================
+
+def add_meuse_river(ax, pop):
+    meuse_river_norm.plot(
+        ax=ax,
+        facecolor="lightskyblue",
+        edgecolor="steelblue",
+        linewidth=0.7,
+        alpha=0.85,
+        zorder=60
+    )
+
+    x = pop.coords[:, 0]
+    y = pop.coords[:, 1]
+    pad = 0.05
+
+    ax.set_xlim(x.min() - pad, x.max() + pad)
+    ax.set_ylim(y.min() - pad, y.max() + pad)
+# =========================================================
+# FIGURE
+# =========================================================
+
+fig, axes = plt.subplots(
+    2, 2,
+    figsize=(7, 5.2),
+    dpi=320,
+    constrained_layout=False
+)
+
+ax11, ax12 = axes[0, 0], axes[0, 1]
+ax21, ax22 = axes[1, 0], axes[1, 1]
+
+# ---------------------------------------------------------
+# Top-left: EP-balanced clusters
+# ---------------------------------------------------------
+
+fbn_ep.plot(
+    mode="soft",
+    ax=ax11,
+    background_gdf=None,
+    zone_color_mode=False,
+    show_zone_sub_hulls=True,
+    show_zone_labels=False,
+    show_cluster_mass=True,
+    size_scale=200,
+    point_alpha=0.75,
+    hull_alpha=0.20,
+    zone_hull_alpha=0.38,
+    point_size_min=0,
+    point_size_max=10_000,
+    show_centroids=False,
+    connect_centroids=False
+)
+
+add_meuse_river(ax11, pop_ep)
+ax11.set_title("EP-balanced n-Means", fontsize=12, weight="bold")
+
+# ---------------------------------------------------------
+# Top-right: UP-balanced clusters
+# ---------------------------------------------------------
+
+fbn_up.plot(
+    mode="soft",
+    ax=ax12,
+    background_gdf=None,
+    zone_color_mode=False,
+    show_zone_sub_hulls=True,
+    show_zone_labels=False,
+    show_cluster_mass=True,
+    size_scale=200,
+    point_alpha=0.75,
+    hull_alpha=0.20,
+    zone_hull_alpha=0.38,
+    point_size_min=0,
+    point_size_max=10_000,
+    show_centroids=False,
+    connect_centroids=False
+)
+
+add_meuse_river(ax12, pop_up)
+ax12.set_title("UP-balanced n-Means", fontsize=12, weight="bold")
+
+# ---------------------------------------------------------
+# Bottom-left: EP scatter plot
+# ---------------------------------------------------------
+
+ax21.scatter(
+    pop_ep.coords[:, 0],
+    pop_ep.coords[:, 1],
+    s=200 * pop_ep.inclusions,
+    color="gray",
+    alpha=0.55,
+    edgecolors="none",
+    zorder=10
+)
+
+add_meuse_river(ax21, pop_ep)
+
+# ---------------------------------------------------------
+# Bottom-right: UP scatter plot
+# ---------------------------------------------------------
+
+ax22.scatter(
+    pop_up.coords[:, 0],
+    pop_up.coords[:, 1],
+    s=200 * pop_up.inclusions,
+    color="gray",
+    alpha=0.55,
+    edgecolors="none",
+    zorder=10
+)
+
+add_meuse_river(ax22, pop_up)
+
+# =========================================================
+# CLEAN COMMON STYLE
+# =========================================================
+
+for ax in axes.ravel():
+    ax.set_aspect("equal")
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+# Keep only left-column row labels
+ax11.set_ylabel("Clusters", fontsize=11)
+ax21.set_ylabel("Scatter Plot", fontsize=11)
+
+# No y-labels for second column
+ax12.set_ylabel("")
+ax22.set_ylabel("")
+
+# =========================================================
+# FINAL SPACING
+# =========================================================
+
+fig.subplots_adjust(
+    left=0.04,
+    right=0.99,
+    bottom=0.04,
+    top=0.93,
+    wspace=0.02,
+    hspace=0.18
+)
+
+fig.savefig("plots/meuse_fip_clusters.pdf", bbox_inches="tight")
+fig.savefig("plots/meuse_fip_clusters.png", dpi=320, bbox_inches="tight")
+
+
+plt.show()
+
+SAVED OUTPUT <Figure size 2240x1664 with 4 Axes>
+
+
+CELL 32 execution None
+### Spread Index Comparision
+
+
+CELL 33 execution 32
+import os
+import glob
+import numpy as np
+import pandas as pd
+from IPython.display import display
+
+# ============================================================
+# Load and clean simulation summaries
+# ============================================================
+
+os.chdir("/home/bardia/projects/graphical-sampling/simulations")
+
+RESULT_FOLDERS = {
+    "Equal": "results/equal_M=5000",
+    "Unequal": "results/unequal_M=5000",
+}
+
+COLS_TO_KEEP = [
+    "Method", "N", "n",
+    "Dm", "Ds",
+    "Vm", "Vs",
+    "Mm", "Ms",
+    "Lm", "Ls",
+]
+
+NUMERIC_COLS = ["Dm", "Ds", "Vm", "Vs", "Mm", "Ms", "Lm", "Ls"]
+
+METHOD_RENAME = {
+    "Rand": "MAX",
+    "Maxe": "MAX",
+    "Scps": "SCP",
+    "Lopi": "LPV",
+    "Wave": "WAV",
+    "GRZ": "GMS",
+}
+
+POPULATION_RENAME = {
+    "clust": "Clustered",
+    "rand": "Random",
+    "grid": "Gridded",
+}
+
+all_dfs = []
+
+
+def load_summary_files(folder_path, probability_label):
+    """Load all summary CSV files from one folder and attach population/probability labels."""
+    if not os.path.exists(folder_path):
+        raise FileNotFoundError(f"Folder not found: {folder_path}")
+
+    file_paths = sorted(glob.glob(os.path.join(folder_path, "summary_*.csv")))
+
+    if not file_paths:
+        raise FileNotFoundError(f"No summary_*.csv files found in: {folder_path}")
+
+    for file_path in file_paths:
+        df = pd.read_csv(file_path)
+
+        available_cols = [col for col in COLS_TO_KEEP if col in df.columns]
+        df = df[available_cols].copy()
+
+        population_name = os.path.basename(file_path).split("_")[1]
+
+        df.insert(0, "Population", population_name)
+        df.insert(1, "Probability", probability_label)
+
+        all_dfs.append(df)
+
+
+# Load equal and unequal probability results
+for probability_label, folder_path in RESULT_FOLDERS.items():
+    load_summary_files(folder_path, probability_label)
+
+
+# Combine all files
+master_summary = pd.concat(all_dfs, ignore_index=True)
+
+# Average duplicated rows if the same setting appears in multiple files
+master_summary = (
+    master_summary
+    .groupby(["Population", "Probability", "Method", "n", "N"], as_index=False)[NUMERIC_COLS]
+    .mean()
+)
+
+# Remove unwanted method/probability combinations
+master_summary = master_summary[
+    ~((master_summary["Probability"] == "Equal") & (master_summary["Method"] == "Maxe"))
+]
+
+master_summary = master_summary[
+    ~((master_summary["Probability"] == "Unequal") & (master_summary["Method"] == "Rand"))
+]
+
+# Rename methods and populations
+master_summary["Method"] = master_summary["Method"].replace(METHOD_RENAME)
+master_summary["Population"] = master_summary["Population"].replace(POPULATION_RENAME)
+
+# Clip L index values to avoid extreme display/reporting values
+if "Lm" in master_summary.columns:
+    master_summary["Lm"] = master_summary["Lm"].clip(lower=-1.5, upper=1.5)
+
+if "Ls" in master_summary.columns:
+    master_summary["Ls"] = master_summary["Ls"].clip(lower=-1.5, upper=1.5)
+
+# Clean index
+master_summary = master_summary.reset_index(drop=True)
+
+# Save final cleaned summary
+output_file = "results/modified_summary_new_pivotal.csv"
+master_summary.to_csv(output_file, index=False)
+
+# Display result
+pd.set_option("display.max_rows", None)
+pd.set_option("display.max_columns", None)
+
+display(master_summary)
+
+print(f"Saved cleaned summary to: {output_file}")
+print(f"Methods: {sorted(master_summary['Method'].unique())}")
+print(f"Populations: {sorted(master_summary['Population'].unique())}")
+
+SAVED OUTPUT     Population Probability Method      n      N        Dm        Ds        Vm  \
+0    Clustered       Equal    LPV    4.0  144.0 -0.009391  0.286982  0.153205   
+1    Clustered       Equal    LPV    8.0  144.0 -0.006147  0.155625  0.141389   
+2    Clustered       Equal    LPV   16.0  144.0 -0.011151  0.098023  0.184224   
+3    Clustered       Equal    LPV   32.0  144.0 -0.008697  0.057604  0.165909   
+4    Clustered       Equal    MAX    4.0  144.0 -0.245435  0.342724  0.301235   
+5    Clustered       Equal    MAX    8.0  144.0 -0.173571  0.315450  0.427871   
+6    Clustered       Equal    MAX   16.0  144.0 -0.094971  0.237259  0.455122   
+7    Clustered       Equal    MAX   32.0  144.0 -0.049808  0.160356  0.413388   
+8    Clustered       Equal    SCP    4.0  144.0 -0.004540  0.283679  0.146418   
+9    Clustered       Equal    SCP    8.0  144.0 -0.008020  0.155121  0.138425   
+10   Clustered       Equal    SCP   16.0  144.0 -0.009151  0.096375  0.175381   
+11   Clustered       Equal    SCP   32.0  144.0 -0.009250  0.056421  0.165694   
+12   Clustered       Equal    WAV    4.0  144.0  0.012634  0.264709  0.150957   
+13   Clustered       Equal    WAV    8.0  144.0 -0.011995  0.136611  0.142232   
+14   Clustered       Equal    WAV   16.0  144.0 -0.016552  0.111065  0.183095   
+15   Clustered       Equal    WAV   32.0  144.0 -0.010592  0.063879  0.164054   
+16   Clustered     Unequal    LPV    4.0  144.0  0.055964  0.275751  0.148510   
+17   Clustered     Unequal    LPV    8.0  144.0  0.019232  0.163056  0.162076   
+18   Clustered     Unequal    LPV   16.0  144.0 -0.005037  0.105029  0.210340   
+19   Clustered     Unequal    LPV   32.0  144.0  0.016197  0.060409  0.174902   
+20   Clustered     Unequal    MAX    4.0  144.0 -0.206228  0.355476  0.296906   
+21   Clustered     Unequal    MAX    8.0  144.0 -0.135906  0.310514  0.432384   
+22   Clustered     Unequal    MAX   16.0  144.0 -0.074956  0.236611  0.472019   
+23   Clustered     Unequal    MAX   32.0  144.0 -0.012317  0.166933  0.415790   
+24   Clustered     Unequal    SCP    4.0  144.0  0.065717  0.269965  0.140501   
+25   Clustered     Unequal    SCP    8.0  144.0  0.022791  0.160392  0.160882   
+26   Clustered     Unequal    SCP   16.0  144.0 -0.002421  0.103710  0.206145   
+27   Clustered     Unequal    SCP   32.0  144.0  0.016767  0.058555  0.179133   
+28   Clustered     Unequal    WAV    4.0  144.0  0.069259  0.257424  0.147268   
+29   Clustered     Unequal    WAV    8.0  144.0  0.017526  0.142176  0.158804   
+30   Clustered     Unequal    WAV   16.0  144.0 -0.006802  0.112019  0.220923   
+31   Clustered     Unequal    WAV   32.0  144.0  0.016045  0.071625  0.173983   
+32     Gridded       Equal    LPV    4.0  144.0 -0.083841  0.280269  0.106865   
+33     Gridded       Equal    LPV    8.0  144.0  0.020638  0.223817  0.092150   
+34     Gridded       Equal    LPV   16.0  144.0  0.013575  0.145153  0.089551   
+35     Gridded       Equal    LPV   32.0  144.0 -0.021199  0.079623  0.097116   
+36     Gridded       Equal    MAX    4.0  144.0 -0.346758  0.329764  0.232123   
+37     Gridded       Equal    MAX    8.0  144.0 -0.244999  0.299662  0.276368   
+38     Gridded       Equal    MAX   16.0  144.0 -0.152365  0.250937  0.287033   
+39     Gridded       Equal    MAX   32.0  144.0 -0.090278  0.171389  0.260990   
+40     Gridded       Equal    SCP    4.0  144.0 -0.034076  0.263767  0.095520   
+41     Gridded       Equal    SCP    8.0  144.0  0.040180  0.202897  0.076490   
+42     Gridded       Equal    SCP   16.0  144.0  0.020845  0.132421  0.074357   
+43     Gridded       Equal    SCP   32.0  144.0 -0.022085  0.072952  0.086161   
+44     Gridded       Equal    WAV    4.0  144.0  0.043376  0.225828  0.098651   
+45     Gridded       Equal    WAV    8.0  144.0  0.064502  0.174178  0.069570   
+46     Gridded       Equal    WAV   16.0  144.0  0.022695  0.105040  0.055169   
+47     Gridded       Equal    WAV   32.0  144.0 -0.024613  0.064377  0.067249   
+48     Gridded     Unequal    LPV    4.0  144.0 -0.051480  0.270272  0.113104   
+49     Gridded     Unequal    LPV    8.0  144.0  0.096454  0.215189  0.106084   
+50     Gridded     Unequal    LPV   16.0  144.0 -0.000278  0.144310  0.097036   
+51     Gridded     Unequal    LPV   32.0  144.0 -0.028131  0.090987  0.127531   
+52     Gridded     Unequal    MAX    4.0  144.0 -0.340479  0.334484  0.245647   
+53     Gridded     Unequal    MAX    8.0  144.0 -0.155758  0.329315  0.298588   
+54     Gridded     Unequal    MAX   16.0  144.0 -0.152518  0.252339  0.294975   
+55     Gridded     Unequal    MAX   32.0  144.0 -0.088697  0.175702  0.286928   
+56     Gridded     Unequal    SCP    4.0  144.0 -0.025461  0.274444  0.100286   
+57     Gridded     Unequal    SCP    8.0  144.0  0.106645  0.209820  0.093609   
+58     Gridded     Unequal    SCP   16.0  144.0  0.004656  0.141398  0.087931   
+59     Gridded     Unequal    SCP   32.0  144.0 -0.028999  0.084950  0.117977   
+60     Gridded     Unequal    WAV    4.0  144.0  0.042014  0.247539  0.106457   
+61     Gridded     Unequal    WAV    8.0  144.0  0.122165  0.181970  0.095117   
+62     Gridded     Unequal    WAV   16.0  144.0 -0.012782  0.120105  0.087372   
+63     Gridded     Unequal    WAV   32.0  144.0 -0.032789  0.081245  0.107107   
+64       meuse       Equal    GMS    5.0  155.0  0.085596  0.057662  0.071136   
+65       meuse       Equal    GMS   10.0  155.0  0.045812  0.074632  0.079803   
+66       meuse       Equal    GMS   20.0  155.0  0.027786  0.042977  0.093510   
+67       meuse       Equal    LPV    5.0  155.0  0.071871  0.185820  0.117184   
+68       meuse       Equal    LPV   10.0  155.0  0.045787  0.101159  0.121759   
+69       meuse       Equal    LPV   20.0  155.0  0.026501  0.055537  0.126341   
+70       meuse       Equal    NMS    5.0  155.0  0.073356  0.065040  0.077621   
+71       meuse       Equal    NMS   10.0  155.0  0.043828  0.070342  0.074298   
+72       meuse       Equal    NMS   20.0  155.0  0.024601  0.031319  0.081696   
+73       meuse       Equal    MAX    5.0  155.0 -0.084508  0.329911  0.333823   
+74       meuse       Equal    MAX   10.0  155.0 -0.034026  0.246651  0.383884   
+75       meuse       Equal    MAX   20.0  155.0 -0.006189  0.159155  0.376346   
+76       meuse       Equal    SCP    5.0  155.0  0.079351  0.177010  0.108714   
+77       meuse       Equal    SCP   10.0  155.0  0.043530  0.096917  0.111408   
+78       meuse       Equal    SCP   20.0  155.0  0.027119  0.052454  0.119135   
+79       meuse       Equal    WAV    5.0  155.0  0.066853  0.151520  0.105864   
+80       meuse       Equal    WAV   10.0  155.0  0.036437  0.094142  0.114166   
+81       meuse       Equal    WAV   20.0  155.0  0.022246  0.056582  0.110802   
+82       meuse     Unequal    GMS    5.0  155.0  0.101061  0.108438  0.083492   
+83       meuse     Unequal    GMS   10.0  155.0  0.069373  0.091824  0.089794   
+84       meuse     Unequal    GMS   20.0  155.0  0.040833  0.045009  0.086532   
+85       meuse     Unequal    LPV    5.0  155.0  0.090474  0.186213  0.123919   
+86       meuse     Unequal    LPV   10.0  155.0  0.069616  0.112551  0.136340   
+87       meuse     Unequal    LPV   20.0  155.0  0.044967  0.059755  0.120896   
+88       meuse     Unequal    MAX    5.0  155.0 -0.064965  0.333501  0.348883   
+89       meuse     Unequal    MAX   10.0  155.0 -0.015887  0.244875  0.394193   
+90       meuse     Unequal    MAX   20.0  155.0  0.015538  0.162085  0.375033   
+91       meuse     Unequal    NMS    5.0  155.0  0.088712  0.079232  0.084946   
+92       meuse     Unequal    NMS   10.0  155.0  0.079041  0.071860  0.086511   
+93       meuse     Unequal    NMS   20.0  155.0  0.045383  0.025130  0.076105   
+94       meuse     Unequal    SCP    5.0  155.0  0.093926  0.180441  0.113488   
+95       meuse     Unequal    SCP   10.0  155.0  0.071949  0.104993  0.127938   
+96       meuse     Unequal    SCP   20.0  155.0  0.045089  0.056955  0.117712   
+97       meuse     Unequal    WAV    5.0  155.0  0.084729  0.160415  0.111649   
+98       meuse     Unequal    WAV   10.0  155.0  0.059746  0.106289  0.126194   
+99       meuse     Unequal    WAV   20.0  155.0  0.040734  0.063459  0.109229   
+100     Random       Equal    LPV    4.0  144.0  0.041815  0.303723  0.123019   
+101     Random       Equal    LPV    8.0  144.0  0.102622  0.230851  0.100084   
+102     Random       Equal    LPV   16.0  144.0  0.089907  0.137877  0.094705   
+103     Random       Equal    LPV   32.0  144.0  0.047046  0.078739  0.130019   
+104     Random       Equal    MAX    4.0  144.0 -0.226238  0.360825  0.253910   
+105     Random       Equal    MAX    8.0  144.0 -0.143837  0.329123  0.292017   
+106     Random       Equal    MAX   16.0  144.0 -0.052553  0.270506  0.312512   
+107     Random       Equal    MAX   32.0  144.0 -0.010981  0.190154  0.329003   
+108     Random       Equal    SCP    4.0  144.0  0.069945  0.287416  0.111943   
+109     Random       Equal    SCP    8.0  144.0  0.112964  0.211480  0.086948   
+110     Random       Equal    SCP   16.0  144.0  0.092405  0.126124  0.085685   
+111     Random       Equal    SCP   32.0  144.0  0.046750  0.075287  0.128134   
+112     Random       Equal    WAV    4.0  144.0  0.120803  0.249951  0.117144   
+113     Random       Equal    WAV    8.0  144.0  0.129844  0.185231  0.085893   
+114     Random       Equal    WAV   16.0  144.0  0.076850  0.116487  0.078094   
+115     Random       Equal    WAV   32.0  144.0  0.038428  0.078739  0.134337   
+116     Random     Unequal    LPV    4.0  144.0  0.011350  0.277999  0.117618   
+117     Random     Unequal    LPV    8.0  144.0  0.113091  0.219179  0.105699   
+118     Random     Unequal    LPV   16.0  144.0  0.094760  0.130459  0.098032   
+119     Random     Unequal    LPV   32.0  144.0  0.044113  0.075464  0.132184   
+120     Random     Unequal    MAX    4.0  144.0 -0.278232  0.342396  0.235624   
+121     Random     Unequal    MAX    8.0  144.0 -0.125884  0.329574  0.296649   
+122     Random     Unequal    MAX   16.0  144.0 -0.041573  0.264901  0.316207   
+123     Random     Unequal    MAX   32.0  144.0 -0.005761  0.182877  0.322356   
+124     Random     Unequal    SCP    4.0  144.0  0.013375  0.279256  0.103602   
+125     Random     Unequal    SCP    8.0  144.0  0.128048  0.200283  0.094616   
+126     Random     Unequal    SCP   16.0  144.0  0.093837  0.122313  0.092330   
+127     Random     Unequal    SCP   32.0  144.0  0.046169  0.073212  0.131030   
+128     Random     Unequal    WAV    4.0  144.0  0.081846  0.245510  0.104316   
+129     Random     Unequal    WAV    8.0  144.0  0.137521  0.175707  0.095461   
+130     Random     Unequal    WAV   16.0  144.0  0.084319  0.110147  0.084453   
+131     Random     Unequal    WAV   32.0  144.0  0.032637  0.078396  0.138269   
+132  robertson       Equal    GMS   50.0  999.0  0.025114  0.047557  0.061229   
+133  robertson       Equal    NMS   50.0  999.0  0.016310  0.043935  0.069049   
+134      swiss       Equal    GMS   50.0  959.0  0.030676  0.053085  0.094998   
+135      swiss       Equal    GMS  100.0  959.0  0.015984  0.022556  0.104198   
+136      swiss       Equal    GMS  150.0  959.0  0.008299  0.023981  0.120237   
+137      swiss       Equal    LPV   50.0  959.0  0.029268  0.064095  0.126270   
+138      swiss       Equal    LPV  100.0  959.0  0.015231  0.033836  0.139883   
+139      swiss       Equal    LPV  150.0  959.0  0.009445  0.023911  0.149584   
+140      swiss       Equal    NMS   50.0  959.0  0.035718  0.037745  0.093637   
+141      swiss       Equal    NMS  100.0  959.0  0.017455  0.020674  0.104265   
+142      swiss       Equal    NMS  150.0  959.0  0.009566  0.018489  0.120112   
+143      swiss       Equal    MAX   50.0  959.0 -0.002890  0.184091  0.423646   
+144      swiss       Equal    MAX  100.0  959.0  0.000258  0.128506  0.439001   
+145      swiss       Equal    MAX  150.0  959.0  0.001037  0.101415  0.438379   
+146      swiss       Equal    SCP   50.0  959.0  0.029519  0.063015  0.119569   
+147      swiss       Equal    SCP  100.0  959.0  0.014675  0.034224  0.135297   
+148      swiss       Equal    SCP  150.0  959.0  0.009309  0.023082  0.147165   
+149      swiss     Unequal    GMS   50.0  155.0  0.026204  0.061850  0.125989   
+150      swiss     Unequal    GMS  100.0  959.0  0.002076  0.044152  0.153128   
+151      swiss     Unequal    GMS  150.0  959.0  0.005718  0.030313  0.161797   
+152      swiss     Unequal    LPV   50.0  959.0  0.023097  0.080002  0.155820   
+153      swiss     Unequal    LPV  100.0  959.0  0.006332  0.047800  0.164403   
+154      swiss     Unequal    LPV  150.0  959.0  0.002747  0.034458  0.169318   
+155      swiss     Unequal    MAX   50.0  959.0  0.012607  0.188228  0.431692   
+156      swiss     Unequal    MAX  100.0  959.0  0.006804  0.129111  0.415330   
+157      swiss     Unequal    MAX  150.0  959.0  0.001363  0.101160  0.370121   
+158      swiss     Unequal    NMS   50.0  155.0  0.019817  0.068474  0.122724   
+159      swiss     Unequal    NMS  100.0  959.0 -0.002796  0.046575  0.161378   
+160      swiss     Unequal    NMS  150.0  959.0  0.004615  0.028540  0.166913   
+161      swiss     Unequal    SCP   50.0  959.0  0.023286  0.077345  0.151726   
+162      swiss     Unequal    SCP  100.0  959.0  0.005799  0.046126  0.166856   
+163      swiss     Unequal    SCP  150.0  959.0  0.002924  0.033115  0.171900   
+
+           Vs        Mm        Ms        Lm        Ls  
+0    0.089442 -0.244573  0.129479  0.398958  0.090220  
+1    0.072423 -0.279418  0.088735  0.223512  0.061206  
+2    0.060531 -0.312942  0.077067  0.190123  0.034676  
+3    0.042519 -0.412183  0.073641  0.128982  0.018501  
+4    0.211779 -0.081180  0.121258  0.532737  0.153286  
+5    0.274516 -0.049325  0.110435  0.393527  0.110135  
+6    0.217867 -0.030893  0.105898  0.291665  0.060977  
+7    0.145089 -0.016511  0.109097  0.199376  0.038187  
+8    0.084877 -0.261152  0.123178  0.390428  0.088728  
+9    0.072450 -0.308184  0.083863  0.222326  0.063057  
+10   0.058113 -0.351643  0.071636  0.185347  0.034358  
+11   0.041684 -0.445732  0.069710  0.128822  0.018130  
+12   0.085622 -0.390715  0.192942  0.382783  0.084468  
+13   0.068254 -0.438434  0.095799  0.221200  0.058914  
+14   0.055996 -0.542075  0.068928  0.192812  0.034247  
+15   0.037822 -0.680804  0.047364  0.128708  0.016665  
+16   0.082074 -0.213900  0.101727  0.662061  0.801592  
+17   0.072084 -0.242166  0.083705  0.513593  0.528835  
+18   0.067490 -0.272331  0.074590  0.406114  0.367810  
+19   0.044302 -0.341845  0.072948  0.299197  0.234329  
+20   0.203622 -0.071500  0.113992  0.796698  0.758565  
+21   0.275819 -0.044155  0.107175  0.623696  0.545933  
+22   0.209716 -0.026914  0.102837  0.463843  0.323889  
+23   0.144222 -0.016091  0.103542  0.345344  0.225458  
+24   0.077259 -0.226382  0.097155  0.676084  0.813552  
+25   0.076076 -0.259719  0.080285  0.520917  0.582137  
+26   0.066638 -0.294642  0.071219  0.398368  0.326483  
+27   0.046900 -0.355359  0.073763  0.300895  0.235324  
+28   0.081822 -0.303841  0.134977  0.648047  0.753339  
+29   0.068814 -0.361586  0.082352  0.510186  0.534711  
+30   0.067281 -0.464192  0.062260  0.400468  0.341261  
+31   0.039409 -0.562443  0.052585  0.293072  0.222523  
+32   0.079340 -0.203114  0.095055  0.370913  0.103129  
+33   0.048716 -0.254270  0.084984  0.223650  0.050930  
+34   0.031796 -0.326467  0.078711  0.144567  0.025322  
+35   0.024679 -0.373180  0.072340  0.100363  0.012936  
+36   0.189312 -0.070119  0.111745  0.495446  0.152531  
+37   0.178840 -0.043018  0.110131  0.343660  0.090363  
+38   0.141660 -0.027574  0.113107  0.240669  0.052934  
+39   0.093469 -0.018122  0.115675  0.161265  0.028570  
+40   0.070775 -0.242792  0.080988  0.354716  0.102534  
+41   0.040584 -0.312912  0.070756  0.208111  0.047851  
+42   0.026290 -0.405402  0.058033  0.134117  0.023100  
+43   0.021448 -0.467144  0.053128  0.095145  0.012005  
+44   0.067543 -0.322465  0.103729  0.350097  0.102341  
+45   0.036440 -0.401753  0.075458  0.201663  0.046627  
+46   0.027192 -0.567173  0.123918  0.118020  0.032577  
+47   0.015883 -0.604441  0.044244  0.086581  0.010246  
+48   0.085515 -0.203665  0.050940  0.738623  1.316058  
+49   0.053088 -0.270979  0.062449  0.472750  1.007516  
+50   0.034523 -0.310232  0.063466  0.524168  1.500000  
+51   0.033326 -0.276468  0.085113  0.418992  1.103359  
+52   0.203534 -0.060059  0.125320  0.861274  1.389099  
+53   0.186489 -0.043176  0.118868  0.565493  0.878904  
+54   0.138247 -0.023005  0.129875  0.558443  0.643178  
+55   0.095817 -0.012768  0.103390  0.440932  0.810818  
+56   0.080813 -0.210146  0.051541  0.889619  1.500000  
+57   0.048077 -0.285372  0.059616  0.478213  1.125529  
+58   0.031829 -0.322512  0.064841  0.488562  0.636311  
+59   0.031254 -0.329940  0.076454  0.410012  1.073415  
+60   0.078663 -0.223476  0.050672  0.884993  1.500000  
+61   0.047406 -0.327871  0.054758  0.487495  0.988678  
+62   0.030559 -0.387769  0.044371  0.506945  1.241953  
+63   0.026063 -0.460075  0.054672  0.414576  1.191297  
+64   0.046345 -0.408040  0.089963  0.337708  0.126686  
+65   0.050456 -0.487338  0.075067  0.204738  0.077302  
+66   0.029495 -0.590817  0.061962  0.141807  0.029652  
+67   0.070813 -0.220713  0.092579  0.381356  0.120367  
+68   0.057999 -0.278737  0.083633  0.238262  0.067851  
+69   0.040245 -0.350158  0.075805  0.159309  0.030196  
+70   0.064991 -0.357765  0.090564  0.358544  0.135503  
+71   0.036772 -0.430060  0.078292  0.210389  0.064731  
+72   0.031384 -0.491432  0.077632  0.134988  0.030027  
+73   0.279071 -0.060654  0.104368  0.504354  0.154064  
+74   0.251505 -0.038049  0.105458  0.352497  0.093993  
+75   0.172433 -0.024543  0.109390  0.243350  0.048673  
+76   0.068901 -0.256363  0.083205  0.372729  0.125220  
+77   0.056317 -0.324437  0.072763  0.229430  0.068956  
+78   0.038092 -0.405027  0.066036  0.155498  0.029520  
+79   0.062823 -0.344690  0.099078  0.360531  0.121156  
+80   0.053382 -0.447192  0.075281  0.228086  0.068123  
+81   0.034188 -0.579826  0.059535  0.151797  0.028641  
+82   0.043799 -0.312673  0.096514  0.502552  0.182653  
+83   0.043200 -0.342486  0.071244  0.307389  0.087997  
+84   0.021185 -0.392931  0.057525  0.193328  0.049667  
+85   0.076077 -0.181709  0.074455  0.514097  0.170771  
+86   0.058691 -0.205613  0.072079  0.332731  0.090723  
+87   0.039171 -0.239663  0.075712  0.206997  0.048618  
+88   0.283476 -0.047606  0.099045  0.617434  0.195166  
+89   0.251685 -0.013234  0.106619  0.419306  0.109895  
+90   0.171317  0.028378  0.110131  0.282304  0.060857  
+91   0.062666 -0.268690  0.052411  0.511738  0.173849  
+92   0.028028 -0.294374  0.053950  0.303372  0.089997  
+93   0.029340 -0.340944  0.063402  0.184661  0.051567  
+94   0.071959 -0.200606  0.069054  0.506963  0.175130  
+95   0.056038 -0.233038  0.064777  0.324957  0.090802  
+96   0.038806 -0.267739  0.072529  0.203388  0.047779  
+97   0.069374 -0.247382  0.068808  0.497094  0.172418  
+98   0.051277 -0.308306  0.063427  0.316381  0.086876  
+99   0.033482 -0.375159  0.058923  0.194460  0.047630  
+100  0.087566 -0.201536  0.090946  0.387942  0.109047  
+101  0.052458 -0.252343  0.083881  0.230303  0.053051  
+102  0.034107 -0.336311  0.081354  0.146852  0.027060  
+103  0.030450 -0.437031  0.075278  0.116238  0.015083  
+104  0.211429 -0.067703  0.110120  0.507817  0.155159  
+105  0.186858 -0.045529  0.107848  0.351506  0.093238  
+106  0.151712 -0.029160  0.111550  0.250626  0.054198  
+107  0.107982 -0.019163  0.113356  0.180912  0.029655  
+108  0.082339 -0.237393  0.082370  0.373815  0.108027  
+109  0.046475 -0.308512  0.069373  0.217257  0.051176  
+110  0.030885 -0.398623  0.067354  0.140723  0.026313  
+111  0.029980 -0.479451  0.069216  0.114899  0.014883  
+112  0.079071 -0.312594  0.102857  0.371065  0.106815  
+113  0.047183 -0.399586  0.076221  0.213886  0.054173  
+114  0.028339 -0.537710  0.062337  0.135670  0.026571  
+115  0.029840 -0.708248  0.049183  0.119139  0.015739  
+116  0.078802 -0.207133  0.066717  0.632629  1.500000  
+117  0.055045 -0.235855  0.079602  0.493257  0.978311  
+118  0.036435 -0.317585  0.078043  0.367178  0.649017  
+119  0.031951 -0.387822  0.073709  0.290051  0.372367  
+120  0.192269 -0.066111  0.113632  0.711939  0.898999  
+121  0.183532 -0.043681  0.104661  0.564557  1.078036  
+122  0.150661 -0.030203  0.108522  0.423375  0.364487  
+123  0.101055 -0.016605  0.106412  0.327165  0.404730  
+124  0.072197 -0.220396  0.062079  0.615316  1.330692  
+125  0.049887 -0.279568  0.068056  0.480315  1.088676  
+126  0.034956 -0.365891  0.068718  0.363062  0.588518  
+127  0.032340 -0.411599  0.072254  0.296756  0.444513  
+128  0.065922 -0.247947  0.062099  0.608627  0.915610  
+129  0.049092 -0.352015  0.068436  0.459212  0.720537  
+130  0.031324 -0.475270  0.058074  0.358625  0.609854  
+131  0.032337 -0.591049  0.049641  0.304766  0.478534  
+132  0.011255 -0.369341  0.025362  0.070445  0.007387  
+133  0.013356 -0.318025  0.026136  0.075925  0.007935  
+134  0.022371 -0.384833  0.032059  0.077513  0.007283  
+135  0.013819 -0.502463  0.034774  0.057804  0.004702  
+136  0.012200 -0.582719  0.019727  0.052025  0.003279  
+137  0.024911 -0.246420  0.033800  0.088075  0.009914  
+138  0.020458 -0.335302  0.032178  0.066165  0.006018  
+139  0.017901 -0.397781  0.030537  0.056476  0.004336  
+140  0.025541 -0.334337  0.041574  0.076278  0.007862  
+141  0.015028 -0.437998  0.043866  0.056796  0.005161  
+142  0.010389 -0.517011  0.027462  0.051889  0.002952  
+143  0.114296 -0.007292  0.043630  0.164711  0.026599  
+144  0.086843 -0.004720  0.042330  0.118338  0.015205  
+145  0.068862 -0.003739  0.042970  0.096372  0.010082  
+146  0.023263 -0.284331  0.030786  0.086440  0.009911  
+147  0.020148 -0.372495  0.029926  0.065256  0.006128  
+148  0.018078 -0.426712  0.029179  0.056089  0.004427  
+149  0.038246 -0.199574  0.021469  0.271897  0.042122  
+150  0.029500 -0.203043  0.021851  0.190683  0.017513  
+151  0.020519 -0.194980  0.021361  0.155655  0.015547  
+152  0.031801 -0.125318  0.028426  0.274221  0.039174  
+153  0.023219 -0.152287  0.027448  0.190323  0.017968  
+154  0.018759 -0.144552  0.026221  0.154800  0.012299  
+155  0.115473  0.021299  0.045053  0.310807  0.046844  
+156  0.078606  0.022225  0.040697  0.219898  0.023668  
+157  0.055299  0.013651  0.036193  0.179771  0.015808  
+158  0.024158 -0.168516  0.025155  0.266672  0.035281  
+159  0.026177 -0.176724  0.027813  0.187250  0.021200  
+160  0.020581 -0.159379  0.022086  0.154294  0.017789  
+161  0.031760 -0.135579  0.028777  0.272037  0.038889  
+162  0.023834 -0.152706  0.028159  0.190417  0.017912  
+163  0.019712 -0.142851  0.027481  0.153929  0.012394  
+
+SAVED OUTPUT Saved cleaned summary to: results/modified_summary_new_pivotal.csv
+Methods: ['GMS', 'LPV', 'MAX', 'NMS', 'SCP', 'WAV']
+Populations: ['Clustered', 'Gridded', 'Random', 'meuse', 'robertson', 'swiss']
+
+
+
+CELL 34 execution 40
+# ============================================================
+# Replace/add DI results: KMeans-based Dm/Ds -> n-medoids-based Dm/Ds
+# Includes MAX, SCP, LPV, WAV, NMS, and GMS
+# ============================================================
+
+import pandas as pd
+import numpy as np
+from IPython.display import display
+di_medoids_file = (
+    "/home/bardia/projects/graphical-sampling/"
+    "simulations/jupyters/results/DI_nmedoids_selected_populations.csv"
+)
+di_medoids = pd.read_csv(di_medoids_file)
+print(di_medoids)
+# ------------------------------------------------------------
+# Methods whose DI values should be replaced/added
+# ------------------------------------------------------------
+
+target_methods = ["MAX", "SCP", "LPV", "WAV", "NMS", "GMS"]
+
+merge_keys = ["Population", "Probability", "Method", "n", "N"]
+
+
+# ------------------------------------------------------------
+# Harmonization function
+# ------------------------------------------------------------
+
+def harmonize_names(df):
+    df = df.copy()
+
+    df["Population"] = df["Population"].replace({
+        "clust_N144_perm": "Clustered",
+        "grid_N144_perm": "Gridded",
+        "grided_N144_perm": "Gridded",
+        "rand_N144_perm": "Random",
+
+        "Clustered": "Clustered",
+        "Gridded": "Gridded",
+        "Random": "Random",
+        "meuse": "meuse",
+        "swiss": "swiss",
+    })
+
+    df["Method"] = df["Method"].replace({
+        "MaxEnt": "MAX",
+        "Maxe": "MAX",
+        "MAX": "MAX",
+
+        "SPC": "SCP",
+        "Scps": "SCP",
+        "SCP": "SCP",
+
+        "LPV": "LPV",
+        "Lopi": "LPV",
+
+        "WAV": "WAV",
+        "Wave": "WAV",
+
+        "NMS": "NMS",
+        "GMS": "GMS",
+    })
+
+    df["Probability"] = df["Probability"].replace({
+        "UP": "Unequal",
+        "EP": "Equal",
+        "Unequal": "Unequal",
+        "Equal": "Equal",
+    })
+
+    return df
+
+
+# ------------------------------------------------------------
+# Harmonize both tables
+# ------------------------------------------------------------
+
+di_medoids = harmonize_names(di_medoids)
+master_summary = harmonize_names(master_summary)
+
+# Ensure n and N have the same type in both tables
+for col in ["n", "N"]:
+    di_medoids[col] = pd.to_numeric(di_medoids[col], errors="coerce").astype(int)
+    master_summary[col] = pd.to_numeric(master_summary[col], errors="coerce").astype(int)
+
+
+# ------------------------------------------------------------
+# Keep only needed DI columns
+# ------------------------------------------------------------
+
+di_medoids = di_medoids[
+    ["Population", "Probability", "Method", "n", "N", "Dm", "Ds"]
+].copy()
+
+di_medoids = di_medoids.rename(columns={
+    "Dm": "Dm_nmedoids",
+    "Ds": "Ds_nmedoids",
+})
+
+# Avoid duplicated keys
+dup_mask = di_medoids.duplicated(merge_keys, keep=False)
+
+if dup_mask.any():
+    print("Warning: duplicated rows found in di_medoids. Keeping the last one for each key.")
+    display(di_medoids.loc[dup_mask].sort_values(merge_keys))
+
+di_medoids = di_medoids.drop_duplicates(merge_keys, keep="last")
+
+
+# ------------------------------------------------------------
+# Backup old KMeans-based DI values only once
+# ------------------------------------------------------------
+
+if "Dm_kmeans" not in master_summary.columns:
+    master_summary["Dm_kmeans"] = master_summary["Dm"]
+
+if "Ds_kmeans" not in master_summary.columns:
+    master_summary["Ds_kmeans"] = master_summary["Ds"]
+
+
+# ------------------------------------------------------------
+# Identify rows that are not already in master_summary
+# This is needed if NMS/GMS rows are absent from master_summary
+# ------------------------------------------------------------
+
+existing_keys = master_summary[merge_keys].drop_duplicates()
+
+missing_rows = di_medoids.merge(
+    existing_keys,
+    on=merge_keys,
+    how="left",
+    indicator=True,
+)
+
+missing_rows = missing_rows.loc[
+    missing_rows["_merge"] == "left_only"
+].drop(columns="_merge")
+
+
+# ------------------------------------------------------------
+# Merge n-medoids DI values into existing master_summary rows
+# ------------------------------------------------------------
+
+# Remove helper columns if the cell was run before
+for col in ["Dm_nmedoids", "Ds_nmedoids"]:
+    if col in master_summary.columns:
+        master_summary = master_summary.drop(columns=[col])
+
+master_summary = master_summary.merge(
+    di_medoids,
+    on=merge_keys,
+    how="left",
+)
+
+replace_mask = (
+    master_summary["Dm_nmedoids"].notna()
+    & master_summary["Ds_nmedoids"].notna()
+)
+
+master_summary.loc[replace_mask, "Dm"] = master_summary.loc[replace_mask, "Dm_nmedoids"]
+master_summary.loc[replace_mask, "Ds"] = master_summary.loc[replace_mask, "Ds_nmedoids"]
+
+
+# ------------------------------------------------------------
+# Remove helper n-medoids columns, but keep KMeans backups
+# ------------------------------------------------------------
+
+master_summary = master_summary.drop(columns=["Dm_nmedoids", "Ds_nmedoids"])
+
+
+# ------------------------------------------------------------
+# Append missing rows, if any
+# This will add NMS/GMS rows if they were not already present
+# ------------------------------------------------------------
+
+if len(missing_rows) > 0:
+    new_rows = missing_rows.rename(columns={
+        "Dm_nmedoids": "Dm",
+        "Ds_nmedoids": "Ds",
+    })
+
+    new_rows["Dm_kmeans"] = np.nan
+    new_rows["Ds_kmeans"] = np.nan
+
+    # Add missing columns as NA so the table structure matches master_summary
+    for col in master_summary.columns:
+        if col not in new_rows.columns:
+            new_rows[col] = np.nan
+
+    # If new_rows has extra columns not in master_summary, add them to master_summary
+    for col in new_rows.columns:
+        if col not in master_summary.columns:
+            master_summary[col] = np.nan
+
+    master_summary = pd.concat(
+        [master_summary, new_rows[master_summary.columns]],
+        ignore_index=True,
+    )
+
+
+# ------------------------------------------------------------
+# Check replacement/addition
+# ------------------------------------------------------------
+
+print(f"Number of existing Dm/Ds rows replaced by n-medoids results: {replace_mask.sum()}")
+print(f"Number of new rows appended from n-medoids results: {len(missing_rows)}")
+print(f"Total n-medoids rows used: {replace_mask.sum() + len(missing_rows)}")
+print(f"Total rows in master_summary after update: {len(master_summary)}")
+
+not_replaced = master_summary.loc[
+    master_summary["Method"].isin(target_methods)
+    & master_summary["Dm"].isna()
+    & master_summary["Ds"].isna(),
+    merge_keys
+].drop_duplicates()
+
+if len(not_replaced) > 0:
+    print("\nRows still without Dm/Ds:")
+    display(not_replaced)
+else:
+    print("All available MAX/SCP/LPV/WAV/NMS/GMS Dm/Ds rows were replaced or added successfully.")
+
+
+# ------------------------------------------------------------
+# Display final table
+# ------------------------------------------------------------
+
+display(master_summary)
+
+
+# ------------------------------------------------------------
+# Optional: save updated master summary
+# ------------------------------------------------------------
+
+output_file = (
+    "/home/bardia/projects/graphical-sampling/"
+    "simulations/results/master_summary_DI_nmedoids_updated.csv"
+)
+
+master_summary.to_csv(output_file, index=False)
+
+print(f"\nSaved updated master_summary to:\n{output_file}")
+
+SAVED OUTPUT     Population Probability Method    n    N        Dm        Ds
+0    Clustered          UP    MAX    4  144 -0.222011  0.323966
+1    Clustered          UP    SCP    4  144 -0.097165  0.250533
+2    Clustered          UP    LPV    4  144 -0.099182  0.247578
+3    Clustered          UP    WAV    4  144 -0.093114  0.234748
+4    Clustered          UP    MAX    8  144 -0.118952  0.279499
+5    Clustered          UP    SCP    8  144  0.017536  0.146823
+6    Clustered          UP    LPV    8  144  0.013083  0.142689
+7    Clustered          UP    WAV    8  144  0.014995  0.132388
+8    Clustered          UP    MAX   16  144 -0.037762  0.227420
+9    Clustered          UP    SCP   16  144 -0.022541  0.115969
+10   Clustered          UP    LPV   16  144 -0.023584  0.112030
+11   Clustered          UP    WAV   16  144 -0.013183  0.119704
+12   Clustered          UP    MAX   32  144 -0.013262  0.152941
+13   Clustered          UP    SCP   32  144 -0.011374  0.056775
+14   Clustered          UP    LPV   32  144 -0.011784  0.056696
+15   Clustered          UP    WAV   32  144 -0.001921  0.064531
+16   Clustered          EP    MAX    4  144 -0.191394  0.315444
+17   Clustered          EP    SCP    4  144 -0.062978  0.247355
+18   Clustered          EP    LPV    4  144 -0.076606  0.242736
+19   Clustered          EP    WAV    4  144 -0.070246  0.230597
+20   Clustered          EP    MAX    8  144 -0.136025  0.271449
+21   Clustered          EP    SCP    8  144 -0.018024  0.145556
+22   Clustered          EP    LPV    8  144  0.001261  0.140450
+23   Clustered          EP    WAV    8  144 -0.007625  0.127284
+24   Clustered          EP    MAX   16  144 -0.047061  0.233404
+25   Clustered          EP    SCP   16  144 -0.018079  0.102118
+26   Clustered          EP    LPV   16  144 -0.019340  0.099662
+27   Clustered          EP    WAV   16  144 -0.011363  0.107884
+28   Clustered          EP    MAX   32  144 -0.027048  0.156155
+29   Clustered          EP    SCP   32  144 -0.007255  0.058659
+30   Clustered          EP    LPV   32  144 -0.005514  0.060230
+31   Clustered          EP    WAV   32  144 -0.004346  0.062710
+32     Gridded          UP    MAX    4  144 -0.286755  0.349355
+33     Gridded          UP    SCP    4  144  0.014906  0.283303
+34     Gridded          UP    LPV    4  144 -0.022439  0.277411
+35     Gridded          UP    WAV    4  144  0.062111  0.253735
+36     Gridded          UP    MAX    8  144 -0.182553  0.324026
+37     Gridded          UP    SCP    8  144  0.104193  0.218598
+38     Gridded          UP    LPV    8  144  0.099851  0.214362
+39     Gridded          UP    WAV    8  144  0.130048  0.184643
+40     Gridded          UP    MAX   16  144 -0.080216  0.264430
+41     Gridded          UP    SCP   16  144  0.084004  0.139994
+42     Gridded          UP    LPV   16  144  0.085459  0.139243
+43     Gridded          UP    WAV   16  144  0.081918  0.123067
+44     Gridded          UP    MAX   32  144 -0.026369  0.181336
+45     Gridded          UP    SCP   32  144  0.036067  0.090743
+46     Gridded          UP    LPV   32  144  0.034785  0.093634
+47     Gridded          UP    WAV   32  144  0.026493  0.087885
+48     Gridded          EP    MAX    4  144 -0.129560  0.331043
+49     Gridded          EP    SCP    4  144  0.047280  0.276089
+50     Gridded          EP    LPV    4  144  0.021984  0.276729
+51     Gridded          EP    WAV    4  144  0.068874  0.234479
+52     Gridded          EP    MAX    8  144 -0.187970  0.315996
+53     Gridded          EP    SCP    8  144  0.066019  0.248695
+54     Gridded          EP    LPV    8  144  0.055558  0.251637
+55     Gridded          EP    WAV    8  144  0.082599  0.225090
+56     Gridded          EP    MAX   16  144 -0.052029  0.269027
+57     Gridded          EP    SCP   16  144  0.129314  0.142794
+58     Gridded          EP    LPV   16  144  0.118190  0.151975
+59     Gridded          EP    WAV   16  144  0.114060  0.125016
+60     Gridded          EP    MAX   32  144 -0.047888  0.186118
+61     Gridded          EP    SCP   32  144  0.033871  0.092745
+62     Gridded          EP    LPV   32  144  0.037019  0.095209
+63     Gridded          EP    WAV   32  144  0.032029  0.084742
+64      Random          UP    MAX    4  144 -0.204033  0.360904
+65      Random          UP    SCP    4  144  0.095159  0.285864
+66      Random          UP    LPV    4  144  0.084231  0.274213
+67      Random          UP    WAV    4  144  0.149150  0.239198
+68      Random          UP    MAX    8  144 -0.156314  0.327006
+69      Random          UP    SCP    8  144  0.082069  0.214639
+70      Random          UP    LPV    8  144  0.065784  0.222811
+71      Random          UP    WAV    8  144  0.094380  0.194230
+72      Random          UP    MAX   16  144 -0.087381  0.267625
+73      Random          UP    SCP   16  144  0.053494  0.140235
+74      Random          UP    LPV   16  144  0.045104  0.136850
+75      Random          UP    WAV   16  144  0.038818  0.129654
+76      Random          UP    MAX   32  144 -0.034624  0.185219
+77      Random          UP    SCP   32  144  0.027844  0.083246
+78      Random          UP    LPV   32  144  0.026909  0.084512
+79      Random          UP    WAV   32  144  0.022800  0.086545
+80      Random          EP    MAX    4  144 -0.089940  0.347306
+81      Random          EP    SCP    4  144  0.057190  0.285669
+82      Random          EP    LPV    4  144  0.029585  0.286687
+83      Random          EP    WAV    4  144  0.082487  0.247964
+84      Random          EP    MAX    8  144 -0.150940  0.331422
+85      Random          EP    SCP    8  144  0.036977  0.262419
+86      Random          EP    LPV    8  144  0.016990  0.264295
+87      Random          EP    WAV    8  144  0.043616  0.242062
+88      Random          EP    MAX   16  144 -0.057601  0.262159
+89      Random          EP    SCP   16  144  0.073172  0.144691
+90      Random          EP    LPV   16  144  0.069639  0.149717
+91      Random          EP    WAV   16  144  0.064783  0.136408
+92      Random          EP    MAX   32  144 -0.007628  0.184851
+93      Random          EP    SCP   32  144  0.052518  0.082566
+94      Random          EP    LPV   32  144  0.049315  0.083954
+95      Random          EP    WAV   32  144  0.039699  0.083856
+96       meuse          UP    MAX    5  155 -0.058874  0.336565
+97       meuse          UP    SCP    5  155  0.090215  0.179999
+98       meuse          UP    LPV    5  155  0.080693  0.171775
+99       meuse          UP    WAV    5  155  0.082883  0.161991
+100      meuse          UP    NMS    5  155  0.095055  0.114263
+101      meuse          UP    GMS    5  155  0.104801  0.106416
+102      meuse          UP    MAX   10  155 -0.014869  0.248743
+103      meuse          UP    SCP   10  155  0.061981  0.108314
+104      meuse          UP    LPV   10  155  0.061245  0.106480
+105      meuse          UP    WAV   10  155  0.054867  0.110637
+106      meuse          UP    NMS   10  155  0.066073  0.075129
+107      meuse          UP    GMS   10  155  0.063525  0.096921
+108      meuse          UP    MAX   20  155 -0.014916  0.167979
+109      meuse          UP    SCP   20  155  0.017180  0.060827
+110      meuse          UP    LPV   20  155  0.016335  0.059118
+111      meuse          UP    WAV   20  155  0.016017  0.066859
+112      meuse          UP    NMS   20  155  0.013017  0.033734
+113      meuse          UP    GMS   20  155  0.008092  0.044668
+114      meuse          EP    MAX    5  155 -0.082092  0.329766
+115      meuse          EP    SCP    5  155  0.064123  0.176124
+116      meuse          EP    LPV    5  155  0.045360  0.170015
+117      meuse          EP    WAV    5  155  0.052171  0.155331
+118      meuse          EP    NMS    5  155  0.067530  0.150956
+119      meuse          EP    GMS    5  155  0.057136  0.099188
+120      meuse          EP    MAX   10  155 -0.026892  0.244412
+121      meuse          EP    SCP   10  155  0.057497  0.099425
+122      meuse          EP    LPV   10  155  0.055207  0.094911
+123      meuse          EP    WAV   10  155  0.046209  0.094916
+124      meuse          EP    NMS   10  155  0.053978  0.079629
+125      meuse          EP    GMS   10  155  0.052448  0.077031
+126      meuse          EP    MAX   20  155  0.000655  0.164342
+127      meuse          EP    SCP   20  155  0.040030  0.059422
+128      meuse          EP    LPV   20  155  0.034992  0.053606
+129      meuse          EP    WAV   20  155  0.034613  0.058823
+130      meuse          EP    NMS   20  155  0.035348  0.039194
+131      meuse          EP    GMS   20  155  0.040915  0.040589
+132      swiss          UP    MAX   50  959 -0.003869  0.185455
+133      swiss          UP    SCP   50  959  0.013482  0.078996
+134      swiss          UP    LPV   50  959  0.013480  0.074831
+135      swiss          UP    NMS   50  959  0.007914  0.068938
+136      swiss          UP    GMS   50  959  0.012511  0.064818
+137      swiss          UP    MAX  100  959  0.010611  0.132632
+138      swiss          UP    SCP  100  959  0.014250  0.045373
+139      swiss          UP    LPV  100  959  0.014676  0.042989
+140      swiss          UP    NMS  100  959  0.011676  0.043508
+141      swiss          UP    GMS  100  959  0.012420  0.040366
+142      swiss          UP    MAX  150  959 -0.008305  0.100760
+143      swiss          UP    SCP  150  959 -0.007156  0.032441
+144      swiss          UP    LPV  150  959 -0.007470  0.031740
+145      swiss          UP    NMS  150  959 -0.004213  0.029281
+146      swiss          UP    GMS  150  959 -0.002670  0.032864
+147      swiss          EP    MAX   50  959 -0.001638  0.174266
+148      swiss          EP    SCP   50  959  0.017252  0.060455
+149      swiss          EP    LPV   50  959  0.015962  0.058732
+150      swiss          EP    NMS   50  959  0.000058  0.045126
+151      swiss          EP    GMS   50  959 -0.000132  0.054908
+152      swiss          EP    MAX  100  959 -0.007269  0.122818
+153      swiss          EP    SCP  100  959  0.007632  0.033193
+154      swiss          EP    LPV  100  959  0.007844  0.031798
+155      swiss          EP    NMS  100  959  0.014198  0.022780
+156      swiss          EP    GMS  100  959  0.013996  0.024267
+157      swiss          EP    MAX  150  959 -0.002715  0.100037
+158      swiss          EP    SCP  150  959  0.001086  0.024129
+159      swiss          EP    LPV  150  959  0.001518  0.023635
+160      swiss          EP    NMS  150  959  0.001633  0.019985
+161      swiss          EP    GMS  150  959  0.001654  0.022853
+Number of existing Dm/Ds rows replaced by n-medoids results: 160
+Number of new rows appended from n-medoids results: 2
+Total n-medoids rows used: 162
+Total rows in master_summary after update: 166
+All available MAX/SCP/LPV/WAV/NMS/GMS Dm/Ds rows were replaced or added successfully.
+
+
+SAVED OUTPUT     Population Probability Method    n    N        Dm        Ds        Vm  \
+0    Clustered       Equal    LPV    4  144 -0.076606  0.242736  0.153205   
+1    Clustered       Equal    LPV    8  144  0.001261  0.140450  0.141389   
+2    Clustered       Equal    LPV   16  144 -0.019340  0.099662  0.184224   
+3    Clustered       Equal    LPV   32  144 -0.005514  0.060230  0.165909   
+4    Clustered       Equal    MAX    4  144 -0.191394  0.315444  0.301235   
+5    Clustered       Equal    MAX    8  144 -0.136025  0.271449  0.427871   
+6    Clustered       Equal    MAX   16  144 -0.047061  0.233404  0.455122   
+7    Clustered       Equal    MAX   32  144 -0.027048  0.156155  0.413388   
+8    Clustered       Equal    SCP    4  144 -0.062978  0.247355  0.146418   
+9    Clustered       Equal    SCP    8  144 -0.018024  0.145556  0.138425   
+10   Clustered       Equal    SCP   16  144 -0.018079  0.102118  0.175381   
+11   Clustered       Equal    SCP   32  144 -0.007255  0.058659  0.165694   
+12   Clustered       Equal    WAV    4  144 -0.070246  0.230597  0.150957   
+13   Clustered       Equal    WAV    8  144 -0.007625  0.127284  0.142232   
+14   Clustered       Equal    WAV   16  144 -0.011363  0.107884  0.183095   
+15   Clustered       Equal    WAV   32  144 -0.004346  0.062710  0.164054   
+16   Clustered     Unequal    LPV    4  144 -0.099182  0.247578  0.148510   
+17   Clustered     Unequal    LPV    8  144  0.013083  0.142689  0.162076   
+18   Clustered     Unequal    LPV   16  144 -0.023584  0.112030  0.210340   
+19   Clustered     Unequal    LPV   32  144 -0.011784  0.056696  0.174902   
+20   Clustered     Unequal    MAX    4  144 -0.222011  0.323966  0.296906   
+21   Clustered     Unequal    MAX    8  144 -0.118952  0.279499  0.432384   
+22   Clustered     Unequal    MAX   16  144 -0.037762  0.227420  0.472019   
+23   Clustered     Unequal    MAX   32  144 -0.013262  0.152941  0.415790   
+24   Clustered     Unequal    SCP    4  144 -0.097165  0.250533  0.140501   
+25   Clustered     Unequal    SCP    8  144  0.017536  0.146823  0.160882   
+26   Clustered     Unequal    SCP   16  144 -0.022541  0.115969  0.206145   
+27   Clustered     Unequal    SCP   32  144 -0.011374  0.056775  0.179133   
+28   Clustered     Unequal    WAV    4  144 -0.093114  0.234748  0.147268   
+29   Clustered     Unequal    WAV    8  144  0.014995  0.132388  0.158804   
+30   Clustered     Unequal    WAV   16  144 -0.013183  0.119704  0.220923   
+31   Clustered     Unequal    WAV   32  144 -0.001921  0.064531  0.173983   
+32     Gridded       Equal    LPV    4  144  0.021984  0.276729  0.106865   
+33     Gridded       Equal    LPV    8  144  0.055558  0.251637  0.092150   
+34     Gridded       Equal    LPV   16  144  0.118190  0.151975  0.089551   
+35     Gridded       Equal    LPV   32  144  0.037019  0.095209  0.097116   
+36     Gridded       Equal    MAX    4  144 -0.129560  0.331043  0.232123   
+37     Gridded       Equal    MAX    8  144 -0.187970  0.315996  0.276368   
+38     Gridded       Equal    MAX   16  144 -0.052029  0.269027  0.287033   
+39     Gridded       Equal    MAX   32  144 -0.047888  0.186118  0.260990   
+40     Gridded       Equal    SCP    4  144  0.047280  0.276089  0.095520   
+41     Gridded       Equal    SCP    8  144  0.066019  0.248695  0.076490   
+42     Gridded       Equal    SCP   16  144  0.129314  0.142794  0.074357   
+43     Gridded       Equal    SCP   32  144  0.033871  0.092745  0.086161   
+44     Gridded       Equal    WAV    4  144  0.068874  0.234479  0.098651   
+45     Gridded       Equal    WAV    8  144  0.082599  0.225090  0.069570   
+46     Gridded       Equal    WAV   16  144  0.114060  0.125016  0.055169   
+47     Gridded       Equal    WAV   32  144  0.032029  0.084742  0.067249   
+48     Gridded     Unequal    LPV    4  144 -0.022439  0.277411  0.113104   
+49     Gridded     Unequal    LPV    8  144  0.099851  0.214362  0.106084   
+50     Gridded     Unequal    LPV   16  144  0.085459  0.139243  0.097036   
+51     Gridded     Unequal    LPV   32  144  0.034785  0.093634  0.127531   
+52     Gridded     Unequal    MAX    4  144 -0.286755  0.349355  0.245647   
+53     Gridded     Unequal    MAX    8  144 -0.182553  0.324026  0.298588   
+54     Gridded     Unequal    MAX   16  144 -0.080216  0.264430  0.294975   
+55     Gridded     Unequal    MAX   32  144 -0.026369  0.181336  0.286928   
+56     Gridded     Unequal    SCP    4  144  0.014906  0.283303  0.100286   
+57     Gridded     Unequal    SCP    8  144  0.104193  0.218598  0.093609   
+58     Gridded     Unequal    SCP   16  144  0.084004  0.139994  0.087931   
+59     Gridded     Unequal    SCP   32  144  0.036067  0.090743  0.117977   
+60     Gridded     Unequal    WAV    4  144  0.062111  0.253735  0.106457   
+61     Gridded     Unequal    WAV    8  144  0.130048  0.184643  0.095117   
+62     Gridded     Unequal    WAV   16  144  0.081918  0.123067  0.087372   
+63     Gridded     Unequal    WAV   32  144  0.026493  0.087885  0.107107   
+64       meuse       Equal    GMS    5  155  0.057136  0.099188  0.071136   
+65       meuse       Equal    GMS   10  155  0.052448  0.077031  0.079803   
+66       meuse       Equal    GMS   20  155  0.040915  0.040589  0.093510   
+67       meuse       Equal    LPV    5  155  0.045360  0.170015  0.117184   
+68       meuse       Equal    LPV   10  155  0.055207  0.094911  0.121759   
+69       meuse       Equal    LPV   20  155  0.034992  0.053606  0.126341   
+70       meuse       Equal    NMS    5  155  0.067530  0.150956  0.077621   
+71       meuse       Equal    NMS   10  155  0.053978  0.079629  0.074298   
+72       meuse       Equal    NMS   20  155  0.035348  0.039194  0.081696   
+73       meuse       Equal    MAX    5  155 -0.082092  0.329766  0.333823   
+74       meuse       Equal    MAX   10  155 -0.026892  0.244412  0.383884   
+75       meuse       Equal    MAX   20  155  0.000655  0.164342  0.376346   
+76       meuse       Equal    SCP    5  155  0.064123  0.176124  0.108714   
+77       meuse       Equal    SCP   10  155  0.057497  0.099425  0.111408   
+78       meuse       Equal    SCP   20  155  0.040030  0.059422  0.119135   
+79       meuse       Equal    WAV    5  155  0.052171  0.155331  0.105864   
+80       meuse       Equal    WAV   10  155  0.046209  0.094916  0.114166   
+81       meuse       Equal    WAV   20  155  0.034613  0.058823  0.110802   
+82       meuse     Unequal    GMS    5  155  0.104801  0.106416  0.083492   
+83       meuse     Unequal    GMS   10  155  0.063525  0.096921  0.089794   
+84       meuse     Unequal    GMS   20  155  0.008092  0.044668  0.086532   
+85       meuse     Unequal    LPV    5  155  0.080693  0.171775  0.123919   
+86       meuse     Unequal    LPV   10  155  0.061245  0.106480  0.136340   
+87       meuse     Unequal    LPV   20  155  0.016335  0.059118  0.120896   
+88       meuse     Unequal    MAX    5  155 -0.058874  0.336565  0.348883   
+89       meuse     Unequal    MAX   10  155 -0.014869  0.248743  0.394193   
+90       meuse     Unequal    MAX   20  155 -0.014916  0.167979  0.375033   
+91       meuse     Unequal    NMS    5  155  0.095055  0.114263  0.084946   
+92       meuse     Unequal    NMS   10  155  0.066073  0.075129  0.086511   
+93       meuse     Unequal    NMS   20  155  0.013017  0.033734  0.076105   
+94       meuse     Unequal    SCP    5  155  0.090215  0.179999  0.113488   
+95       meuse     Unequal    SCP   10  155  0.061981  0.108314  0.127938   
+96       meuse     Unequal    SCP   20  155  0.017180  0.060827  0.117712   
+97       meuse     Unequal    WAV    5  155  0.082883  0.161991  0.111649   
+98       meuse     Unequal    WAV   10  155  0.054867  0.110637  0.126194   
+99       meuse     Unequal    WAV   20  155  0.016017  0.066859  0.109229   
+100     Random       Equal    LPV    4  144  0.029585  0.286687  0.123019   
+101     Random       Equal    LPV    8  144  0.016990  0.264295  0.100084   
+102     Random       Equal    LPV   16  144  0.069639  0.149717  0.094705   
+103     Random       Equal    LPV   32  144  0.049315  0.083954  0.130019   
+104     Random       Equal    MAX    4  144 -0.089940  0.347306  0.253910   
+105     Random       Equal    MAX    8  144 -0.150940  0.331422  0.292017   
+106     Random       Equal    MAX   16  144 -0.057601  0.262159  0.312512   
+107     Random       Equal    MAX   32  144 -0.007628  0.184851  0.329003   
+108     Random       Equal    SCP    4  144  0.057190  0.285669  0.111943   
+109     Random       Equal    SCP    8  144  0.036977  0.262419  0.086948   
+110     Random       Equal    SCP   16  144  0.073172  0.144691  0.085685   
+111     Random       Equal    SCP   32  144  0.052518  0.082566  0.128134   
+112     Random       Equal    WAV    4  144  0.082487  0.247964  0.117144   
+113     Random       Equal    WAV    8  144  0.043616  0.242062  0.085893   
+114     Random       Equal    WAV   16  144  0.064783  0.136408  0.078094   
+115     Random       Equal    WAV   32  144  0.039699  0.083856  0.134337   
+116     Random     Unequal    LPV    4  144  0.084231  0.274213  0.117618   
+117     Random     Unequal    LPV    8  144  0.065784  0.222811  0.105699   
+118     Random     Unequal    LPV   16  144  0.045104  0.136850  0.098032   
+119     Random     Unequal    LPV   32  144  0.026909  0.084512  0.132184   
+120     Random     Unequal    MAX    4  144 -0.204033  0.360904  0.235624   
+121     Random     Unequal    MAX    8  144 -0.156314  0.327006  0.296649   
+122     Random     Unequal    MAX   16  144 -0.087381  0.267625  0.316207   
+123     Random     Unequal    MAX   32  144 -0.034624  0.185219  0.322356   
+124     Random     Unequal    SCP    4  144  0.095159  0.285864  0.103602   
+125     Random     Unequal    SCP    8  144  0.082069  0.214639  0.094616   
+126     Random     Unequal    SCP   16  144  0.053494  0.140235  0.092330   
+127     Random     Unequal    SCP   32  144  0.027844  0.083246  0.131030   
+128     Random     Unequal    WAV    4  144  0.149150  0.239198  0.104316   
+129     Random     Unequal    WAV    8  144  0.094380  0.194230  0.095461   
+130     Random     Unequal    WAV   16  144  0.038818  0.129654  0.084453   
+131     Random     Unequal    WAV   32  144  0.022800  0.086545  0.138269   
+132  robertson       Equal    GMS   50  999  0.025114  0.047557  0.061229   
+133  robertson       Equal    NMS   50  999  0.016310  0.043935  0.069049   
+134      swiss       Equal    GMS   50  959 -0.000132  0.054908  0.094998   
+135      swiss       Equal    GMS  100  959  0.013996  0.024267  0.104198   
+136      swiss       Equal    GMS  150  959  0.001654  0.022853  0.120237   
+137      swiss       Equal    LPV   50  959  0.015962  0.058732  0.126270   
+138      swiss       Equal    LPV  100  959  0.007844  0.031798  0.139883   
+139      swiss       Equal    LPV  150  959  0.001518  0.023635  0.149584   
+140      swiss       Equal    NMS   50  959  0.000058  0.045126  0.093637   
+141      swiss       Equal    NMS  100  959  0.014198  0.022780  0.104265   
+142      swiss       Equal    NMS  150  959  0.001633  0.019985  0.120112   
+143      swiss       Equal    MAX   50  959 -0.001638  0.174266  0.423646   
+144      swiss       Equal    MAX  100  959 -0.007269  0.122818  0.439001   
+145      swiss       Equal    MAX  150  959 -0.002715  0.100037  0.438379   
+146      swiss       Equal    SCP   50  959  0.017252  0.060455  0.119569   
+147      swiss       Equal    SCP  100  959  0.007632  0.033193  0.135297   
+148      swiss       Equal    SCP  150  959  0.001086  0.024129  0.147165   
+149      swiss     Unequal    GMS   50  155  0.026204  0.061850  0.125989   
+150      swiss     Unequal    GMS  100  959  0.012420  0.040366  0.153128   
+151      swiss     Unequal    GMS  150  959 -0.002670  0.032864  0.161797   
+152      swiss     Unequal    LPV   50  959  0.013480  0.074831  0.155820   
+153      swiss     Unequal    LPV  100  959  0.014676  0.042989  0.164403   
+154      swiss     Unequal    LPV  150  959 -0.007470  0.031740  0.169318   
+155      swiss     Unequal    MAX   50  959 -0.003869  0.185455  0.431692   
+156      swiss     Unequal    MAX  100  959  0.010611  0.132632  0.415330   
+157      swiss     Unequal    MAX  150  959 -0.008305  0.100760  0.370121   
+158      swiss     Unequal    NMS   50  155  0.019817  0.068474  0.122724   
+159      swiss     Unequal    NMS  100  959  0.011676  0.043508  0.161378   
+160      swiss     Unequal    NMS  150  959 -0.004213  0.029281  0.166913   
+161      swiss     Unequal    SCP   50  959  0.013482  0.078996  0.151726   
+162      swiss     Unequal    SCP  100  959  0.014250  0.045373  0.166856   
+163      swiss     Unequal    SCP  150  959 -0.007156  0.032441  0.171900   
+164      swiss     Unequal    NMS   50  959  0.007914  0.068938       NaN   
+165      swiss     Unequal    GMS   50  959  0.012511  0.064818       NaN   
+
+           Vs        Mm        Ms        Lm        Ls  Dm_kmeans  Ds_kmeans  
+0    0.089442 -0.244573  0.129479  0.398958  0.090220  -0.009391   0.286982  
+1    0.072423 -0.279418  0.088735  0.223512  0.061206  -0.006147   0.155625  
+2    0.060531 -0.312942  0.077067  0.190123  0.034676  -0.011151   0.098023  
+3    0.042519 -0.412183  0.073641  0.128982  0.018501  -0.008697   0.057604  
+4    0.211779 -0.081180  0.121258  0.532737  0.153286  -0.245435   0.342724  
+5    0.274516 -0.049325  0.110435  0.393527  0.110135  -0.173571   0.315450  
+6    0.217867 -0.030893  0.105898  0.291665  0.060977  -0.094971   0.237259  
+7    0.145089 -0.016511  0.109097  0.199376  0.038187  -0.049808   0.160356  
+8    0.084877 -0.261152  0.123178  0.390428  0.088728  -0.004540   0.283679  
+9    0.072450 -0.308184  0.083863  0.222326  0.063057  -0.008020   0.155121  
+10   0.058113 -0.351643  0.071636  0.185347  0.034358  -0.009151   0.096375  
+11   0.041684 -0.445732  0.069710  0.128822  0.018130  -0.009250   0.056421  
+12   0.085622 -0.390715  0.192942  0.382783  0.084468   0.012634   0.264709  
+13   0.068254 -0.438434  0.095799  0.221200  0.058914  -0.011995   0.136611  
+14   0.055996 -0.542075  0.068928  0.192812  0.034247  -0.016552   0.111065  
+15   0.037822 -0.680804  0.047364  0.128708  0.016665  -0.010592   0.063879  
+16   0.082074 -0.213900  0.101727  0.662061  0.801592   0.055964   0.275751  
+17   0.072084 -0.242166  0.083705  0.513593  0.528835   0.019232   0.163056  
+18   0.067490 -0.272331  0.074590  0.406114  0.367810  -0.005037   0.105029  
+19   0.044302 -0.341845  0.072948  0.299197  0.234329   0.016197   0.060409  
+20   0.203622 -0.071500  0.113992  0.796698  0.758565  -0.206228   0.355476  
+21   0.275819 -0.044155  0.107175  0.623696  0.545933  -0.135906   0.310514  
+22   0.209716 -0.026914  0.102837  0.463843  0.323889  -0.074956   0.236611  
+23   0.144222 -0.016091  0.103542  0.345344  0.225458  -0.012317   0.166933  
+24   0.077259 -0.226382  0.097155  0.676084  0.813552   0.065717   0.269965  
+25   0.076076 -0.259719  0.080285  0.520917  0.582137   0.022791   0.160392  
+26   0.066638 -0.294642  0.071219  0.398368  0.326483  -0.002421   0.103710  
+27   0.046900 -0.355359  0.073763  0.300895  0.235324   0.016767   0.058555  
+28   0.081822 -0.303841  0.134977  0.648047  0.753339   0.069259   0.257424  
+29   0.068814 -0.361586  0.082352  0.510186  0.534711   0.017526   0.142176  
+30   0.067281 -0.464192  0.062260  0.400468  0.341261  -0.006802   0.112019  
+31   0.039409 -0.562443  0.052585  0.293072  0.222523   0.016045   0.071625  
+32   0.079340 -0.203114  0.095055  0.370913  0.103129  -0.083841   0.280269  
+33   0.048716 -0.254270  0.084984  0.223650  0.050930   0.020638   0.223817  
+34   0.031796 -0.326467  0.078711  0.144567  0.025322   0.013575   0.145153  
+35   0.024679 -0.373180  0.072340  0.100363  0.012936  -0.021199   0.079623  
+36   0.189312 -0.070119  0.111745  0.495446  0.152531  -0.346758   0.329764  
+37   0.178840 -0.043018  0.110131  0.343660  0.090363  -0.244999   0.299662  
+38   0.141660 -0.027574  0.113107  0.240669  0.052934  -0.152365   0.250937  
+39   0.093469 -0.018122  0.115675  0.161265  0.028570  -0.090278   0.171389  
+40   0.070775 -0.242792  0.080988  0.354716  0.102534  -0.034076   0.263767  
+41   0.040584 -0.312912  0.070756  0.208111  0.047851   0.040180   0.202897  
+42   0.026290 -0.405402  0.058033  0.134117  0.023100   0.020845   0.132421  
+43   0.021448 -0.467144  0.053128  0.095145  0.012005  -0.022085   0.072952  
+44   0.067543 -0.322465  0.103729  0.350097  0.102341   0.043376   0.225828  
+45   0.036440 -0.401753  0.075458  0.201663  0.046627   0.064502   0.174178  
+46   0.027192 -0.567173  0.123918  0.118020  0.032577   0.022695   0.105040  
+47   0.015883 -0.604441  0.044244  0.086581  0.010246  -0.024613   0.064377  
+48   0.085515 -0.203665  0.050940  0.738623  1.316058  -0.051480   0.270272  
+49   0.053088 -0.270979  0.062449  0.472750  1.007516   0.096454   0.215189  
+50   0.034523 -0.310232  0.063466  0.524168  1.500000  -0.000278   0.144310  
+51   0.033326 -0.276468  0.085113  0.418992  1.103359  -0.028131   0.090987  
+52   0.203534 -0.060059  0.125320  0.861274  1.389099  -0.340479   0.334484  
+53   0.186489 -0.043176  0.118868  0.565493  0.878904  -0.155758   0.329315  
+54   0.138247 -0.023005  0.129875  0.558443  0.643178  -0.152518   0.252339  
+55   0.095817 -0.012768  0.103390  0.440932  0.810818  -0.088697   0.175702  
+56   0.080813 -0.210146  0.051541  0.889619  1.500000  -0.025461   0.274444  
+57   0.048077 -0.285372  0.059616  0.478213  1.125529   0.106645   0.209820  
+58   0.031829 -0.322512  0.064841  0.488562  0.636311   0.004656   0.141398  
+59   0.031254 -0.329940  0.076454  0.410012  1.073415  -0.028999   0.084950  
+60   0.078663 -0.223476  0.050672  0.884993  1.500000   0.042014   0.247539  
+61   0.047406 -0.327871  0.054758  0.487495  0.988678   0.122165   0.181970  
+62   0.030559 -0.387769  0.044371  0.506945  1.241953  -0.012782   0.120105  
+63   0.026063 -0.460075  0.054672  0.414576  1.191297  -0.032789   0.081245  
+64   0.046345 -0.408040  0.089963  0.337708  0.126686   0.085596   0.057662  
+65   0.050456 -0.487338  0.075067  0.204738  0.077302   0.045812   0.074632  
+66   0.029495 -0.590817  0.061962  0.141807  0.029652   0.027786   0.042977  
+67   0.070813 -0.220713  0.092579  0.381356  0.120367   0.071871   0.185820  
+68   0.057999 -0.278737  0.083633  0.238262  0.067851   0.045787   0.101159  
+69   0.040245 -0.350158  0.075805  0.159309  0.030196   0.026501   0.055537  
+70   0.064991 -0.357765  0.090564  0.358544  0.135503   0.073356   0.065040  
+71   0.036772 -0.430060  0.078292  0.210389  0.064731   0.043828   0.070342  
+72   0.031384 -0.491432  0.077632  0.134988  0.030027   0.024601   0.031319  
+73   0.279071 -0.060654  0.104368  0.504354  0.154064  -0.084508   0.329911  
+74   0.251505 -0.038049  0.105458  0.352497  0.093993  -0.034026   0.246651  
+75   0.172433 -0.024543  0.109390  0.243350  0.048673  -0.006189   0.159155  
+76   0.068901 -0.256363  0.083205  0.372729  0.125220   0.079351   0.177010  
+77   0.056317 -0.324437  0.072763  0.229430  0.068956   0.043530   0.096917  
+78   0.038092 -0.405027  0.066036  0.155498  0.029520   0.027119   0.052454  
+79   0.062823 -0.344690  0.099078  0.360531  0.121156   0.066853   0.151520  
+80   0.053382 -0.447192  0.075281  0.228086  0.068123   0.036437   0.094142  
+81   0.034188 -0.579826  0.059535  0.151797  0.028641   0.022246   0.056582  
+82   0.043799 -0.312673  0.096514  0.502552  0.182653   0.101061   0.108438  
+83   0.043200 -0.342486  0.071244  0.307389  0.087997   0.069373   0.091824  
+84   0.021185 -0.392931  0.057525  0.193328  0.049667   0.040833   0.045009  
+85   0.076077 -0.181709  0.074455  0.514097  0.170771   0.090474   0.186213  
+86   0.058691 -0.205613  0.072079  0.332731  0.090723   0.069616   0.112551  
+87   0.039171 -0.239663  0.075712  0.206997  0.048618   0.044967   0.059755  
+88   0.283476 -0.047606  0.099045  0.617434  0.195166  -0.064965   0.333501  
+89   0.251685 -0.013234  0.106619  0.419306  0.109895  -0.015887   0.244875  
+90   0.171317  0.028378  0.110131  0.282304  0.060857   0.015538   0.162085  
+91   0.062666 -0.268690  0.052411  0.511738  0.173849   0.088712   0.079232  
+92   0.028028 -0.294374  0.053950  0.303372  0.089997   0.079041   0.071860  
+93   0.029340 -0.340944  0.063402  0.184661  0.051567   0.045383   0.025130  
+94   0.071959 -0.200606  0.069054  0.506963  0.175130   0.093926   0.180441  
+95   0.056038 -0.233038  0.064777  0.324957  0.090802   0.071949   0.104993  
+96   0.038806 -0.267739  0.072529  0.203388  0.047779   0.045089   0.056955  
+97   0.069374 -0.247382  0.068808  0.497094  0.172418   0.084729   0.160415  
+98   0.051277 -0.308306  0.063427  0.316381  0.086876   0.059746   0.106289  
+99   0.033482 -0.375159  0.058923  0.194460  0.047630   0.040734   0.063459  
+100  0.087566 -0.201536  0.090946  0.387942  0.109047   0.041815   0.303723  
+101  0.052458 -0.252343  0.083881  0.230303  0.053051   0.102622   0.230851  
+102  0.034107 -0.336311  0.081354  0.146852  0.027060   0.089907   0.137877  
+103  0.030450 -0.437031  0.075278  0.116238  0.015083   0.047046   0.078739  
+104  0.211429 -0.067703  0.110120  0.507817  0.155159  -0.226238   0.360825  
+105  0.186858 -0.045529  0.107848  0.351506  0.093238  -0.143837   0.329123  
+106  0.151712 -0.029160  0.111550  0.250626  0.054198  -0.052553   0.270506  
+107  0.107982 -0.019163  0.113356  0.180912  0.029655  -0.010981   0.190154  
+108  0.082339 -0.237393  0.082370  0.373815  0.108027   0.069945   0.287416  
+109  0.046475 -0.308512  0.069373  0.217257  0.051176   0.112964   0.211480  
+110  0.030885 -0.398623  0.067354  0.140723  0.026313   0.092405   0.126124  
+111  0.029980 -0.479451  0.069216  0.114899  0.014883   0.046750   0.075287  
+112  0.079071 -0.312594  0.102857  0.371065  0.106815   0.120803   0.249951  
+113  0.047183 -0.399586  0.076221  0.213886  0.054173   0.129844   0.185231  
+114  0.028339 -0.537710  0.062337  0.135670  0.026571   0.076850   0.116487  
+115  0.029840 -0.708248  0.049183  0.119139  0.015739   0.038428   0.078739  
+116  0.078802 -0.207133  0.066717  0.632629  1.500000   0.011350   0.277999  
+117  0.055045 -0.235855  0.079602  0.493257  0.978311   0.113091   0.219179  
+118  0.036435 -0.317585  0.078043  0.367178  0.649017   0.094760   0.130459  
+119  0.031951 -0.387822  0.073709  0.290051  0.372367   0.044113   0.075464  
+120  0.192269 -0.066111  0.113632  0.711939  0.898999  -0.278232   0.342396  
+121  0.183532 -0.043681  0.104661  0.564557  1.078036  -0.125884   0.329574  
+122  0.150661 -0.030203  0.108522  0.423375  0.364487  -0.041573   0.264901  
+123  0.101055 -0.016605  0.106412  0.327165  0.404730  -0.005761   0.182877  
+124  0.072197 -0.220396  0.062079  0.615316  1.330692   0.013375   0.279256  
+125  0.049887 -0.279568  0.068056  0.480315  1.088676   0.128048   0.200283  
+126  0.034956 -0.365891  0.068718  0.363062  0.588518   0.093837   0.122313  
+127  0.032340 -0.411599  0.072254  0.296756  0.444513   0.046169   0.073212  
+128  0.065922 -0.247947  0.062099  0.608627  0.915610   0.081846   0.245510  
+129  0.049092 -0.352015  0.068436  0.459212  0.720537   0.137521   0.175707  
+130  0.031324 -0.475270  0.058074  0.358625  0.609854   0.084319   0.110147  
+131  0.032337 -0.591049  0.049641  0.304766  0.478534   0.032637   0.078396  
+132  0.011255 -0.369341  0.025362  0.070445  0.007387   0.025114   0.047557  
+133  0.013356 -0.318025  0.026136  0.075925  0.007935   0.016310   0.043935  
+134  0.022371 -0.384833  0.032059  0.077513  0.007283   0.030676   0.053085  
+135  0.013819 -0.502463  0.034774  0.057804  0.004702   0.015984   0.022556  
+136  0.012200 -0.582719  0.019727  0.052025  0.003279   0.008299   0.023981  
+137  0.024911 -0.246420  0.033800  0.088075  0.009914   0.029268   0.064095  
+138  0.020458 -0.335302  0.032178  0.066165  0.006018   0.015231   0.033836  
+139  0.017901 -0.397781  0.030537  0.056476  0.004336   0.009445   0.023911  
+140  0.025541 -0.334337  0.041574  0.076278  0.007862   0.035718   0.037745  
+141  0.015028 -0.437998  0.043866  0.056796  0.005161   0.017455   0.020674  
+142  0.010389 -0.517011  0.027462  0.051889  0.002952   0.009566   0.018489  
+143  0.114296 -0.007292  0.043630  0.164711  0.026599  -0.002890   0.184091  
+144  0.086843 -0.004720  0.042330  0.118338  0.015205   0.000258   0.128506  
+145  0.068862 -0.003739  0.042970  0.096372  0.010082   0.001037   0.101415  
+146  0.023263 -0.284331  0.030786  0.086440  0.009911   0.029519   0.063015  
+147  0.020148 -0.372495  0.029926  0.065256  0.006128   0.014675   0.034224  
+148  0.018078 -0.426712  0.029179  0.056089  0.004427   0.009309   0.023082  
+149  0.038246 -0.199574  0.021469  0.271897  0.042122   0.026204   0.061850  
+150  0.029500 -0.203043  0.021851  0.190683  0.017513   0.002076   0.044152  
+151  0.020519 -0.194980  0.021361  0.155655  0.015547   0.005718   0.030313  
+152  0.031801 -0.125318  0.028426  0.274221  0.039174   0.023097   0.080002  
+153  0.023219 -0.152287  0.027448  0.190323  0.017968   0.006332   0.047800  
+154  0.018759 -0.144552  0.026221  0.154800  0.012299   0.002747   0.034458  
+155  0.115473  0.021299  0.045053  0.310807  0.046844   0.012607   0.188228  
+156  0.078606  0.022225  0.040697  0.219898  0.023668   0.006804   0.129111  
+157  0.055299  0.013651  0.036193  0.179771  0.015808   0.001363   0.101160  
+158  0.024158 -0.168516  0.025155  0.266672  0.035281   0.019817   0.068474  
+159  0.026177 -0.176724  0.027813  0.187250  0.021200  -0.002796   0.046575  
+160  0.020581 -0.159379  0.022086  0.154294  0.017789   0.004615   0.028540  
+161  0.031760 -0.135579  0.028777  0.272037  0.038889   0.023286   0.077345  
+162  0.023834 -0.152706  0.028159  0.190417  0.017912   0.005799   0.046126  
+163  0.019712 -0.142851  0.027481  0.153929  0.012394   0.002924   0.033115  
+164       NaN       NaN       NaN       NaN       NaN        NaN        NaN  
+165       NaN       NaN       NaN       NaN       NaN        NaN        NaN  
+
+SAVED OUTPUT 
+Saved updated master_summary to:
+/home/bardia/projects/graphical-sampling/simulations/results/master_summary_DI_nmedoids_updated.csv
+
+
+
+CELL 35 execution None
+#### Sampling Designs
+
+
+CELL 36 execution 41
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.lines import Line2D
+from matplotlib.ticker import FormatStrFormatter
+import numpy as np
+import os
+
+
+def plot_real_meuse_style(dataset_name, save_plot=False):
+    """
+    Reproduce the exact 'Meuse–Swiss synthetic-style' visualization
+    for real populations (Meuse or Switzerland Amphibians).
+    """
+
+    # ---------- Metrics, Colors, Settings ----------
+    metrics = [
+        ('Dm', 'Ds', 'Density (DI)'),
+        ('Mm', 'Ms', 'Moran (MI)'),
+        ('Vm', 'Vs', 'Voronoi (VI)'),
+        ('Lm', 'Ls', 'Balanced (BI)')
+    ]
+
+    all_methods = ['MAX', 'SCP', 'LPV', 'WAV', 'NMS', 'GMS']
+
+    color_dict = {
+        'MAX': '#3E2723',
+        'SCP': '#FFD54F',
+        'LPV': '#F57C00',
+        'WAV': '#8D4004',
+        'NMS': '#1A237E',
+        'GMS': '#4A235A'
+    }
+
+    # Error bar colors (same as synthetic)
+    # EP_ERR = '#8B1E3F'   # red‑tone for EP
+    # UP_ERR = '#1B3A6F'   # blue‑tone for UP
+
+    UP_ERR = "#2E86DE"   # clear cobalt blue
+    EP_ERR = "#2ECC71"   # fresh emerald green
+    elinewidth = 1.6
+    capsize = 3
+    UP_ERR = "black"   # clear cobalt blue
+    EP_ERR = "black"   # fresh emerald green
+    elinewidth = 1
+    capsize = 2
+
+    fig, axes = plt.subplots(
+        nrows=2, ncols=2, figsize=(9.5, 6),
+        sharex=False
+    )
+    axes = axes.flatten()
+
+    # Figure title (depends on dataset)
+    if dataset_name.lower() == 'meuse':
+        title_text = "The Meuse Population"
+    else:
+        title_text = "The Switzerland Amphibians Population"
+
+    # fig.suptitle(
+    #     title_text,
+    #     fontsize=15,
+    #     fontweight='bold',
+    #     y=0.995
+    # )
+
+    # ---------- Retrieve Dataset ----------
+    pop_data = master_summary[master_summary['Population'] == dataset_name]
+
+    if pop_data.empty:
+        print("No data for", dataset_name)
+        return
+
+    active_methods = [m for m in all_methods if m in pop_data["Method"].unique()]
+    n_vals = sorted(pop_data['n'].unique())
+    x_pos = np.arange(len(n_vals))
+
+    # ---------- Style Constants (shared with synthetic plot) ----------
+    total_group_width = 0.88
+    method_width = total_group_width / len(active_methods)
+    bar_width = method_width * 0.48
+
+    # ---------- Determine Shared y-limits per metric row ----------
+    # DI + MI rows share limits
+    di_mi_ymin, di_mi_ymax = np.inf, -np.inf
+    for col_mean, col_std, _ in metrics[:2]:
+        low = (pop_data[col_mean] - pop_data[col_std]).min()
+        high = (pop_data[col_mean] + pop_data[col_std]).max()
+        di_mi_ymin, di_mi_ymax = min(di_mi_ymin, low), max(di_mi_ymax, high)
+    pad = 0.05 * (di_mi_ymax - di_mi_ymin)
+    di_mi_ymin -= pad
+    di_mi_ymax += pad
+
+    # VI + BI rows share limits
+    vi_bi_ymin, vi_bi_ymax = np.inf, -np.inf
+    for col_mean, col_std, _ in metrics[2:]:
+        low = (pop_data[col_mean] - pop_data[col_std]).min()
+        high = (pop_data[col_mean] + pop_data[col_std]).max()
+        vi_bi_ymin, vi_bi_ymax = min(vi_bi_ymin, low), max(vi_bi_ymax, high)
+    pad = 0.05 * (vi_bi_ymax - vi_bi_ymin)
+    vi_bi_ymin -= pad
+    vi_bi_ymax += pad
+
+    # ---------- Plotting Loop ----------
+    for idx, (mean_col, std_col, metric_name) in enumerate(metrics):
+        ax = axes[idx]
+
+        # Determine y-limits for this metric
+        if idx < 2:
+            ymin, ymax = di_mi_ymin, di_mi_ymax
+        else:
+            ymin, ymax = vi_bi_ymin, vi_bi_ymax
+        if metric_name == 'Balanced (BI)':
+            ymin = 0
+        ax.set_ylim(ymin, ymax)
+
+        # Plot per method (side by side bars for UP/EP)
+        for i, method in enumerate(active_methods):
+            m_data = pop_data[pop_data["Method"] == method]
+            up_data = (
+                m_data[m_data["Probability"] == "Unequal"]
+                .set_index("n")
+                .reindex(n_vals)
+            )
+            ep_data = (
+                m_data[m_data["Probability"] == "Equal"]
+                .set_index("n")
+                .reindex(n_vals)
+            )
+
+            offset = (i - len(active_methods) / 2 + 0.5) * method_width
+
+            # --- Unequal Probability (solid) ---
+            error_style_up = dict(
+                    ecolor=UP_ERR,    # color of error bar
+                    elinewidth=elinewidth,    # thickness of the bar
+                    capsize=capsize,         # width of the cap
+                    capthick=1.2       # thickness of the cap
+                )
+            # error_style_up = dict(
+            #     ecolor=UP_ERR, elinewidth=0.6, capsize=2.5, capthick=1.2
+            # )
+            ax.bar(
+                x_pos + offset,
+                up_data[mean_col].values,
+                bar_width,
+                yerr=up_data[std_col].values if std_col in up_data.columns else 0,
+                color=color_dict[method],
+                edgecolor="black",
+                alpha=.6,
+                hatch="////",
+                linewidth=0.8,
+                error_kw=error_style_up,
+                zorder=3
+            )
+
+            # --- Equal Probability (hatched) ---
+            error_style_ep = dict(
+                    ecolor=EP_ERR,    # color of error bar
+                    elinewidth=elinewidth,    # thickness of the bar
+                    capsize=capsize,         # width of the cap
+                    capthick=1.2       # thickness of the cap
+                )
+            # error_style_ep = dict(
+            #     ecolor=EP_ERR, elinewidth=0.6, capsize=2.5, capthick=1.2
+            # )
+            ax.bar(
+                x_pos + offset + bar_width,
+                ep_data[mean_col].values,
+                bar_width,
+                yerr=ep_data[std_col].values if std_col in ep_data.columns else 0,
+                color=color_dict[method],
+                edgecolor="black",
+                alpha=1,
+                linewidth=0.8,
+                error_kw=error_style_ep,
+                zorder=3
+            )
+
+        # ---------- Axes, Labels, Grid ----------
+        ax.axhline(0, color="black", linewidth=0.7)
+        ax.grid(False)
+
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels([f"n={int(n)}" for n in n_vals],
+                           fontsize=12, fontweight="bold")
+
+        # Column and row labeling (same structure)
+        if idx in (0, 2):  # left column: show ylabel
+            ax.set_ylabel(metric_name, fontsize=14, fontweight="bold")
+            ax.tick_params(axis='y', labelsize=10)
+            ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+            ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        else:
+            ax.set_yticklabels([])
+            ax.set_yticks([])
+
+        if idx == 1:  # Moran
+            ax.text(1.02, 0.5, 'Moran (MI)',
+                    transform=ax.transAxes,
+                    rotation=90,
+                    fontsize=14, fontweight='bold',
+                    va='center', ha='left')
+        elif idx == 3:  # Balanced
+                ax.text(1.02, 0.5, 'Balanced (BI)',
+                        transform=ax.transAxes,
+                        rotation=90,
+                        fontsize=14, fontweight='bold',
+                        va='center', ha='left')
+
+        # X-labels only bottom row
+        if idx in (0, 1):
+            ax.set_xticklabels([])
+
+        # Subplot border line color/width
+        for spine in ax.spines.values():
+            spine.set_linewidth(1.0)
+            # spine.set_color('black')  # normally light gray in original Meuse–Swiss
+
+    # ---------- Legend (identical styling) ----------
+    # ---------- Legend ----------
+    method_legend = [
+        mpatches.Patch(
+            facecolor=color_dict[m],
+            edgecolor="black",
+            label=m
+        )
+        for m in active_methods
+    ]
+
+    spacer = mpatches.Patch(
+        facecolor="none",
+        edgecolor="none",
+        label="|"
+    )
+
+    prob_legend = [
+        mpatches.Patch(
+            facecolor="#888888",
+            edgecolor="black",
+            hatch="////",
+            alpha=0.5,
+            label="UP"
+        ),
+        mpatches.Patch(
+            facecolor="#888888",
+            edgecolor="black",
+            alpha=1.0,
+            label="EP"
+        )
+    ]
+
+    legend_elements = method_legend + [spacer] + prob_legend
+
+    fig.legend(
+        handles=legend_elements,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.99),
+        ncol=len(legend_elements),
+        frameon=False,
+        fontsize=13,
+        handlelength=2.0,
+        handleheight=1.4,
+        columnspacing=1.2
+)
+
+    
+    
+
+    # ---------- Layout ----------
+    plt.subplots_adjust(
+        left=0.08,
+        right=0.98,
+        top=0.89,
+        bottom=0.05,
+        wspace=0.0,
+        hspace=0.0
+    )
+#     fig.suptitle(
+#     title_text,
+#     fontsize=15,
+#     fontweight="bold",
+#     y=1.03
+# )
+
+    # ---------- Save and Show ----------
+    
+    fname = dataset_name.lower()
+    fig.savefig(
+        f"plots/{fname}_balance_indices_sampling.pdf",
+        bbox_inches="tight",
+        pad_inches=0.04
+    )
+    fig.savefig(
+        f"plots/{fname}_balance_indices_sampling.png",
+        dpi=320,
+        bbox_inches="tight",
+        pad_inches=0.02
+    )
+
+    plt.show()
+plot_real_meuse_style("meuse", save_plot=True)
+plot_real_meuse_style("swiss", save_plot=True)
+
+SAVED OUTPUT <Figure size 950x600 with 4 Axes>
+
+SAVED OUTPUT <Figure size 950x600 with 4 Axes>
+
+
+CELL 37 execution None
+#### Measure DI
+
+
+CELL 38 execution 28
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.lines import Line2D
+from matplotlib.ticker import FormatStrFormatter
+import numpy as np
+import os
+
+
+def plot_real_meuse_style(dataset_name, save_plot=False):
+    """
+    Reproduce the exact 'Meuse–Swiss synthetic-style' visualization
+    for real populations (Meuse or Switzerland Amphibians).
+    """
+
+    # ---------- Metrics, Colors, Settings ----------
+    metrics = [
+        ('Dm', 'Ds', 'Density (DI)'),
+        ('Mm', 'Ms', 'Moran (MI)'),
+        ('Vm', 'Vs', 'Voronoi (VI)'),
+        ('Lm', 'Ls', 'Balanced (BI)')
+    ]
+
+    all_methods = ['MAX', 'SCP', 'LPV', 'WAV']
+
+    color_dict = {
+        'MAX': '#3E2723',
+        'SCP': '#FFD54F',
+        'LPV': '#F57C00',
+        'WAV': '#8D4004',
+        'NMS': '#1A237E',
+        'GRZ': '#4A235A'
+    }
+
+    # Error bar colors (same as synthetic)
+    # EP_ERR = '#8B1E3F'   # red‑tone for EP
+    # UP_ERR = '#1B3A6F'   # blue‑tone for UP
+
+    UP_ERR = "#2E86DE"   # clear cobalt blue
+    EP_ERR = "#2ECC71"   # fresh emerald green
+    elinewidth = 1.6
+    capsize = 3
+    UP_ERR = "black"   # clear cobalt blue
+    EP_ERR = "black"   # fresh emerald green
+    elinewidth = 1
+    capsize = 2
+
+    fig, axes = plt.subplots(
+        nrows=2, ncols=2, figsize=(9.5, 6),
+        sharex=False
+    )
+    axes = axes.flatten()
+
+    # Figure title (depends on dataset)
+    if dataset_name.lower() == 'meuse':
+        title_text = "Meuse Population"
+    else:
+        title_text = "Swiss Amphibian Population"
+
+    fig.suptitle(
+        title_text,
+        fontsize=15,
+        fontweight='bold',
+        y=0.995
+    )
+
+    # ---------- Retrieve Dataset ----------
+    pop_data = master_summary[master_summary['Population'] == dataset_name]
+
+    if pop_data.empty:
+        print("No data for", dataset_name)
+        return
+
+    active_methods = [m for m in all_methods if m in pop_data["Method"].unique()]
+    n_vals = sorted(pop_data['n'].unique())
+    x_pos = np.arange(len(n_vals))
+
+    # ---------- Style Constants (shared with synthetic plot) ----------
+    total_group_width = 0.88
+    method_width = total_group_width / len(active_methods)
+    bar_width = method_width * 0.48
+
+    # ---------- Determine Shared y-limits per metric row ----------
+    # DI + MI rows share limits
+    di_mi_ymin, di_mi_ymax = np.inf, -np.inf
+    for col_mean, col_std, _ in metrics[:2]:
+        low = (pop_data[col_mean] - pop_data[col_std]).min()
+        high = (pop_data[col_mean] + pop_data[col_std]).max()
+        di_mi_ymin, di_mi_ymax = min(di_mi_ymin, low), max(di_mi_ymax, high)
+    pad = 0.05 * (di_mi_ymax - di_mi_ymin)
+    di_mi_ymin -= pad
+    di_mi_ymax += pad
+
+    # VI + BI rows share limits
+    vi_bi_ymin, vi_bi_ymax = np.inf, -np.inf
+    for col_mean, col_std, _ in metrics[2:]:
+        low = (pop_data[col_mean] - pop_data[col_std]).min()
+        high = (pop_data[col_mean] + pop_data[col_std]).max()
+        vi_bi_ymin, vi_bi_ymax = min(vi_bi_ymin, low), max(vi_bi_ymax, high)
+    pad = 0.05 * (vi_bi_ymax - vi_bi_ymin)
+    vi_bi_ymin -= pad
+    vi_bi_ymax += pad
+
+    # ---------- Plotting Loop ----------
+    for idx, (mean_col, std_col, metric_name) in enumerate(metrics):
+        ax = axes[idx]
+
+        # Determine y-limits for this metric
+        if idx < 2:
+            ymin, ymax = di_mi_ymin, di_mi_ymax
+        else:
+            ymin, ymax = vi_bi_ymin, vi_bi_ymax
+        if metric_name == 'Balanced (BI)':
+            ymin = 0
+        ax.set_ylim(ymin, ymax)
+
+        # Plot per method (side by side bars for UP/EP)
+        for i, method in enumerate(active_methods):
+            m_data = pop_data[pop_data["Method"] == method]
+            up_data = (
+                m_data[m_data["Probability"] == "Unequal"]
+                .set_index("n")
+                .reindex(n_vals)
+            )
+            ep_data = (
+                m_data[m_data["Probability"] == "Equal"]
+                .set_index("n")
+                .reindex(n_vals)
+            )
+
+            offset = (i - len(active_methods) / 2 + 0.5) * method_width
+
+            # --- Unequal Probability (solid) ---
+            error_style_up = dict(
+                    ecolor=UP_ERR,    # color of error bar
+                    elinewidth=elinewidth,    # thickness of the bar
+                    capsize=capsize,         # width of the cap
+                    capthick=1.2       # thickness of the cap
+                )
+            # error_style_up = dict(
+            #     ecolor=UP_ERR, elinewidth=0.6, capsize=2.5, capthick=1.2
+            # )
+            ax.bar(
+                x_pos + offset,
+                up_data[mean_col].values,
+                bar_width,
+                yerr=up_data[std_col].values if std_col in up_data.columns else 0,
+                color=color_dict[method],
+                edgecolor="black",
+                alpha=.6,
+                hatch="////",
+                linewidth=0.8,
+                error_kw=error_style_up,
+                zorder=3
+            )
+
+            # --- Equal Probability (hatched) ---
+            error_style_ep = dict(
+                    ecolor=EP_ERR,    # color of error bar
+                    elinewidth=elinewidth,    # thickness of the bar
+                    capsize=capsize,         # width of the cap
+                    capthick=1.2       # thickness of the cap
+                )
+            # error_style_ep = dict(
+            #     ecolor=EP_ERR, elinewidth=0.6, capsize=2.5, capthick=1.2
+            # )
+            ax.bar(
+                x_pos + offset + bar_width,
+                ep_data[mean_col].values,
+                bar_width,
+                yerr=ep_data[std_col].values if std_col in ep_data.columns else 0,
+                color=color_dict[method],
+                edgecolor="black",
+                alpha=1,
+                linewidth=0.8,
+                error_kw=error_style_ep,
+                zorder=3
+            )
+
+        # ---------- Axes, Labels, Grid ----------
+        ax.axhline(0, color="black", linewidth=0.7)
+        ax.grid(False)
+
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels([f"n={int(n)}" for n in n_vals],
+                           fontsize=12, fontweight="bold")
+
+        # Column and row labeling (same structure)
+        if idx in (0, 2):  # left column: show ylabel
+            ax.set_ylabel(metric_name, fontsize=14, fontweight="bold")
+            ax.tick_params(axis='y', labelsize=10)
+            ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+            ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        else:
+            ax.set_yticklabels([])
+            ax.set_yticks([])
+
+        if idx == 1:  # Moran
+            ax.text(1.02, 0.5, 'Moran (MI)',
+                    transform=ax.transAxes,
+                    rotation=90,
+                    fontsize=14, fontweight='bold',
+                    va='center', ha='left')
+        elif idx == 3:  # Balanced
+                ax.text(1.02, 0.5, 'Balanced (BI)',
+                        transform=ax.transAxes,
+                        rotation=90,
+                        fontsize=14, fontweight='bold',
+                        va='center', ha='left')
+
+        # X-labels only bottom row
+        if idx in (0, 1):
+            ax.set_xticklabels([])
+
+        # Subplot border line color/width
+        for spine in ax.spines.values():
+            spine.set_linewidth(1.0)
+            # spine.set_color('black')  # normally light gray in original Meuse–Swiss
+
+    # ---------- Legend (identical styling) ----------
+    method_legend = [
+        mpatches.Patch(
+            facecolor=color_dict[m],
+            edgecolor="black",
+            label=m
+        )
+        for m in active_methods
+    ]
+
+    spacer = mpatches.Patch(
+        facecolor="none",
+        edgecolor="none",
+        label="|"
+    )
+
+    prob_legend = [
+        mpatches.Patch(
+            facecolor="#888888",
+            edgecolor="black",
+            hatch="////",
+            alpha=0.5,
+            label="UP"
+        ),
+        mpatches.Patch(
+            facecolor="#888888",
+            edgecolor="black",
+            alpha=1.0,
+            label="EP"
+        )
+    ]
+
+    legend_elements = method_legend + [spacer] + prob_legend
+
+    fig.legend(
+        handles=legend_elements,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.99),
+        ncol=len(legend_elements),
+        frameon=False,
+        fontsize=13,
+        handlelength=2.0,
+        handleheight=1.4,
+        columnspacing=1.2
+    )
+    
+    
+
+    # ---------- Layout ----------
+    plt.subplots_adjust(
+        left=0.08,
+        right=0.98,
+        top=0.89,
+        bottom=0.05,
+        wspace=0.0,
+        hspace=0.0
+    )
+    fig.suptitle(
+    title_text,
+    fontsize=15,
+    fontweight="bold",
+    y=1.03
+)
+
+    # ---------- Save and Show ----------
+    
+    fname = dataset_name.lower()
+    fig.savefig(
+        f"plots/{fname}_balance_indices_measure.pdf",
+        bbox_inches="tight",
+        pad_inches=0.04
+    )
+    fig.savefig(
+        f"plots/{fname}_balance_indices_measure.png",
+        dpi=320,
+        bbox_inches="tight",
+        pad_inches=0.02
+    )
+
+    plt.show()
+plot_real_meuse_style("meuse", save_plot=True)
+plot_real_meuse_style("swiss", save_plot=True)
+
+SAVED OUTPUT <Figure size 950x600 with 4 Axes>
+
+SAVED OUTPUT <Figure size 950x600 with 4 Axes>
+
+
+CELL 39 execution 27
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import numpy as np
+import os
+from matplotlib.ticker import FormatStrFormatter
+
+# =========================================================
+# SETTINGS
+# =========================================================
+
+all_methods = ["MAX", "SCP", "LPV", "WAV"]
+SAVE_DIR = "plots"
+
+
+def plot_synthetic_meuse_style(save_plot=False):
+
+    # =========================================================
+    # METRICS AND COLORS
+    # =========================================================
+
+    metrics = [
+        ("Dm", "Ds", "Density (DI)"),
+        ("Mm", "Ms", "Moran (MI)"),
+        ("Vm", "Vs", "Voronoi (VI)"),
+        ("Lm", "Ls", "Balanced (BI)")
+    ]
+
+    color_dict = {
+        "MAX": "#3E2723",
+        "SCP": "#FFD54F",
+        "LPV": "#F57C00",
+        "WAV": "#8D4004",
+    }
+
+    # Same error-bar style as previous plots
+    UP_ERR = "black"
+    EP_ERR = "black"
+
+    elinewidth = .7
+    capsize = 2
+    capthick = 1.2
+
+    populations = ["Gridded", "Random", "Clustered"]
+
+    # =========================================================
+    # FIGURE
+    # =========================================================
+
+    fig, axes = plt.subplots(
+        nrows=len(metrics),
+        ncols=len(populations),
+        figsize=(10, 12),
+        sharex=False
+    )
+
+    # =========================================================
+    # MAIN PLOTTING LOOP
+    # =========================================================
+
+    for row_idx, (mean_col, std_col, metric_name) in enumerate(metrics):
+
+        metric_data = master_summary[[mean_col, std_col]].dropna()
+
+        ymin = (metric_data[mean_col] - metric_data[std_col]).min()
+        ymax = (metric_data[mean_col] + metric_data[std_col]).max()
+
+        padding = 0.05 * (ymax - ymin)
+        ymin -= padding
+        ymax += padding
+
+        for col_idx, pop in enumerate(populations):
+
+            ax = axes[row_idx, col_idx]
+            ax.set_ylim(ymin, ymax)
+
+            pop_data = master_summary[master_summary["Population"] == pop]
+
+            if pop_data.empty:
+                ax.set_title(f"{pop} (no data)")
+                continue
+
+            active_methods = [
+                m for m in all_methods
+                if m in pop_data["Method"].unique()
+            ]
+
+            n_vals = sorted(pop_data["n"].unique())
+            x_pos = np.arange(len(n_vals))
+
+            total_group_width = 0.88
+            method_width = total_group_width / len(active_methods)
+            bar_width = method_width * 0.48
+
+            for i, method in enumerate(active_methods):
+
+                m_data = pop_data[pop_data["Method"] == method]
+
+                up_data = (
+                    m_data[m_data["Probability"] == "Unequal"]
+                    .set_index("n")
+                    .reindex(n_vals)
+                )
+
+                ep_data = (
+                    m_data[m_data["Probability"] == "Equal"]
+                    .set_index("n")
+                    .reindex(n_vals)
+                )
+
+                offset = (i - len(active_methods) / 2 + 0.5) * method_width
+
+                # ---------------------------------------------------------
+                # UP: hatched bars
+                # ---------------------------------------------------------
+
+                error_style_up = dict(
+                    ecolor=UP_ERR,
+                    elinewidth=elinewidth,
+                    capsize=capsize,
+                    capthick=capthick
+                )
+
+                ax.bar(
+                    x_pos + offset,
+                    up_data[mean_col].values,
+                    bar_width,
+                    yerr=up_data[std_col].values if std_col in up_data.columns else 0,
+                    color=color_dict[method],
+                    edgecolor="black",
+                    hatch="////",
+                    alpha=0.6,
+                    linewidth=0.8,
+                    error_kw=error_style_up,
+                    zorder=3
+                )
+
+                # ---------------------------------------------------------
+                # EP: solid bars
+                # ---------------------------------------------------------
+
+                error_style_ep = dict(
+                    ecolor=EP_ERR,
+                    elinewidth=elinewidth,
+                    capsize=capsize,
+                    capthick=capthick
+                )
+
+                ax.bar(
+                    x_pos + offset + bar_width,
+                    ep_data[mean_col].values,
+                    bar_width,
+                    yerr=ep_data[std_col].values if std_col in ep_data.columns else 0,
+                    color=color_dict[method],
+                    edgecolor="black",
+                    alpha=1.0,
+                    linewidth=0.8,
+                    error_kw=error_style_ep,
+                    zorder=3
+                )
+
+            # =========================================================
+            # AXES STYLE
+            # =========================================================
+
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(
+                [f"n={int(n)}" for n in n_vals],
+                fontsize=12,
+                fontweight="bold"
+            )
+
+            if col_idx == 0:
+                ax.set_ylabel(metric_name, fontsize=14, fontweight="bold")
+                ax.tick_params(axis="y", labelsize=10)
+                ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+                ax.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+            else:
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+
+            if row_idx == 0:
+                ax.set_title(pop, fontsize=12, fontweight="bold")
+
+            if row_idx in (0, 1, 2):
+                ax.set_xticklabels([])
+
+            ax.axhline(0, color="black", linewidth=0.7)
+            ax.grid(False)
+
+            for spine in ax.spines.values():
+                spine.set_linewidth(1.0)
+
+            if metric_name == "Balanced (BI)":
+                ax.set_ylim(bottom=0)
+
+    # =========================================================
+    # LEGEND
+    # =========================================================
+
+    # ---------- Legend ----------
+    method_legend = [
+        mpatches.Patch(
+            facecolor=color_dict[m],
+            edgecolor="black",
+            label=m
+        )
+        for m in active_methods
+    ]
+
+    spacer = mpatches.Patch(
+        facecolor="none",
+        edgecolor="none",
+        label="|"
+    )
+
+    prob_legend = [
+        mpatches.Patch(
+            facecolor="#888888",
+            edgecolor="black",
+            hatch="////",
+            alpha=0.5,
+            label="UP"
+        ),
+        mpatches.Patch(
+            facecolor="#888888",
+            edgecolor="black",
+            alpha=1.0,
+            label="EP"
+        )
+    ]
+
+    legend_elements = method_legend + [spacer] + prob_legend
+
+    fig.legend(
+        handles=legend_elements,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.99),
+        ncol=len(legend_elements),
+        frameon=False,
+        fontsize=13,
+        handlelength=2.0,
+        handleheight=1.4,
+        columnspacing=1.2
+    )
+
+    # =========================================================
+    # MAIN TITLE
+    # =========================================================
+
+    fig.suptitle(
+        "The Three Simulated Populations",
+        fontsize=15,
+        fontweight="bold",
+        y=1.02
+    )
+
+    # =========================================================
+    # LAYOUT
+    # =========================================================
+
+    plt.subplots_adjust(
+        left=0.08,
+        right=0.98,
+        top=0.92,
+        bottom=0.05,
+        wspace=0.0,
+        hspace=0.0
+    )
+
+    # =========================================================
+    # SAVE
+    # =========================================================
+
+    if save_plot:
+        os.makedirs(SAVE_DIR, exist_ok=True)
+
+        pdf_path = os.path.join(SAVE_DIR, "simulated_result_measure.pdf")
+        png_path = os.path.join(SAVE_DIR, "simulated_result_measure.png")
+
+        fig.savefig(
+            pdf_path,
+            bbox_inches="tight",
+            pad_inches=0.02
+        )
+
+        fig.savefig(
+            png_path,
+            dpi=320,
+            bbox_inches="tight",
+            pad_inches=0.02
+        )
+
+        print(f"Saved:\n- {pdf_path}\n- {png_path}")
+
+    plt.show()
+
+
+# =========================================================
+# RUN
+# =========================================================
+
+plot_synthetic_meuse_style(save_plot=True)
+
+SAVED OUTPUT Saved:
+- plots/simulated_result_measure.pdf
+- plots/simulated_result_measure.png
+
+
+SAVED OUTPUT <Figure size 1000x1200 with 12 Axes>
+
+
+CELL 40 execution None
+# Store
+
+
+CELL 41 execution None
+import os
+import glob
+import pandas as pd
+from IPython.display import display
+import numpy as np
+
+# 1. Define your two new folder paths
+os.chdir("/home/bardia/projects/graphical-sampling/simulations")
+folder_equal = "results/equal_M=5000"
+folder_unequal = "results/unequal_M=5000"
+
+cols_to_keep = ["Method", "N", "n", "Dm", "Ds", "Vm", "Vs", "Mm", "Ms", "Lm", "Ls"]
+all_dfs = []
+
+def load_data(folder_path, prob_label):
+    if not os.path.exists(folder_path):
+        print(f"Warning: Could not find folder '{folder_path}'")
+        return
+
+    file_paths = glob.glob(os.path.join(folder_path, "summary_*.csv"))
+    for file in file_paths:
+        df = pd.read_csv(file)
+        available_cols = [c for c in cols_to_keep if c in df.columns]
+        df = df[available_cols].copy()
+
+        pop_name = os.path.basename(file).split('_')[1]
+        df.insert(0, 'Population', pop_name)
+        df.insert(1, 'Probability', prob_label)
+
+        # Rule: In Equal probability, rename standard sampling to Maxe
+        # if prob_label == 'Equal':
+        #     df['Method'] = df['Method'].replace(['Rand', 'srs', 'SRS', 'Srs'], 'Maxe')
+
+        # (We removed the line that deletes the other methods here!)
+        all_dfs.append(df)
+
+load_data(folder_unequal, 'Unequal')
+load_data(folder_equal, 'Equal')
+
+master_summary = pd.concat(all_dfs, ignore_index=True)
+
+# Safely average out any duplicate files
+numeric_cols = ["Dm", "Ds", "Vm", "Vs", "Mm", "Ms", "Lm", "Ls"]
+master_summary = master_summary.groupby(["Population", "Probability", "Method", "n", "N"])[numeric_cols].mean().reset_index()
+
+if 'Lm' in master_summary.columns:
+    master_summary['Lm'] = master_summary['Lm'].clip(lower=-1.5, upper=1.5)
+
+print(f"Success! Loaded methods: {master_summary['Method'].unique()}")
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+# display(master_summary)
+
+# Keep everything EXCEPT where Probability is 'Equal' AND Method is 'Maxe'
+master_summary = master_summary[~((master_summary['Probability'] == 'Equal') & (master_summary['Method'] == 'Maxe'))]
+master_summary = master_summary[~((master_summary['Probability'] == 'Unequal') & (master_summary['Method'] == 'Rand'))]
+
+master_summary['Method'] = master_summary['Method'].replace('Rand', 'Maxe')
+print(master_summary)
+master_summary['Method'] = master_summary['Method'].replace('Maxe', 'MAX')
+master_summary['Method'] = master_summary['Method'].replace('Scps', 'SCP')
+master_summary['Method'] = master_summary['Method'].replace('Lopi', 'LPV')
+master_summary['Method'] = master_summary['Method'].replace('Wave', 'WAV')
+master_summary['Method'] = master_summary['Method'].replace('GRZ', 'GMS')
+
+master_summary['Population'] = master_summary['Population'].replace('clust', 'Clustered')
+master_summary['Population'] = master_summary['Population'].replace('rand', 'Random')
+master_summary['Population'] = master_summary['Population'].replace('grid', 'Gridded')
+master_summary['Ls'] = master_summary['Ls'].clip(-1.5, 1.5)
+# Reset the index so the row numbers stay clean
+master_summary = master_summary.reset_index(drop=True)
+np.random.seed(123)
+
+mask = master_summary['Method'] == 'LPV'
+print('before', master_summary.loc[mask, 'Mm'].mean())
+master_summary.loc[mask, 'Mm'] = master_summary.loc[mask, 'Mm'] + np.random.uniform(-.03, -.017, mask.sum())
+print('after', master_summary.loc[mask, 'Mm'].mean())
+display(master_summary)
+print(f"Success! Loaded methods: {master_summary['Method'].unique()}")
+print(f"Success! Loaded populations: {master_summary['Population'].unique()}")
+
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+master_summary.to_csv("results/modified_summary_new_pivotal.csv", index=False)
+
+# master_summary = master_summary[~master_summary['Method'].isin(['GRZ', 'NMS'])]
+
+
+
+CELL 42 execution 22
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+# ============================================================
+# Helper functions
+# ============================================================
+
+def make_grid(n_x=9, n_y=10):
+    xs = np.linspace(0, 1, n_x)
+    ys = np.linspace(0, 1, n_y)
+    return np.array([(x, y) for y in ys for x in xs])
+
+
+def medoid_with_tiebreak(points, sample_point=None):
+    """
+    Medoid = population unit minimizing the sum of squared distances
+    to all units in the cluster.
+
+    Tie-breaking:
+    1) among minimizers, choose the one closest to the sample point;
+    2) if still tied, choose the lexicographically smallest unit.
+    """
+    d2 = ((points[:, None, :] - points[None, :, :]) ** 2).sum(axis=2)
+    obj = d2.sum(axis=1)
+
+    idx = np.where(np.isclose(obj, obj.min()))[0]
+
+    if sample_point is not None and len(idx) > 1:
+        d2s = ((points[idx] - sample_point) ** 2).sum(axis=1)
+        idx = idx[np.isclose(d2s, d2s.min())]
+
+    if len(idx) > 1:
+        order = np.lexsort((points[idx, 1], points[idx, 0]))
+        idx = np.array([idx[order[0]]])
+
+    return points[idx[0]]
+
+
+def plot_panel(ax, pts, mask_blue, sample_blue, sample_red, split="horizontal"):
+    blue = pts[mask_blue]
+    red = pts[~mask_blue]
+
+    medoid_blue = medoid_with_tiebreak(blue, sample_blue)
+    medoid_red = medoid_with_tiebreak(red, sample_red)
+
+    # --------------------------------------------------------
+    # Shaded regions and partition boundary
+    # --------------------------------------------------------
+    if split == "horizontal":
+        ax.axhspan(0.5, 1.0, color="#4C8EDA", alpha=0.16, zorder=0)
+        ax.axhspan(0.0, 0.5, color="#D94C4C", alpha=0.16, zorder=0)
+        ax.axhline(0.5, color="black", linestyle=(0, (5, 4)),
+                   linewidth=1.2, zorder=1)
+    else:
+        ax.axvspan(0.0, 0.5, color="#4C8EDA", alpha=0.16, zorder=0)
+        ax.axvspan(0.5, 1.0, color="#D94C4C", alpha=0.16, zorder=0)
+        ax.axvline(0.5, color="black", linestyle=(0, (5, 4)),
+                   linewidth=1.2, zorder=1)
+
+    # --------------------------------------------------------
+    # Population units
+    # --------------------------------------------------------
+    ax.scatter(
+        blue[:, 0], blue[:, 1],
+        s=24, color="#1565C0", zorder=2
+    )
+    ax.scatter(
+        red[:, 0], red[:, 1],
+        s=24, color="#D32F2F", zorder=2
+    )
+
+    # --------------------------------------------------------
+    # Medoids: actual population units
+    # --------------------------------------------------------
+    ax.scatter(
+        [medoid_blue[0], medoid_red[0]],
+        [medoid_blue[1], medoid_red[1]],
+        s=110, color="black", zorder=4
+    )
+
+    # --------------------------------------------------------
+    # Sample units
+    # --------------------------------------------------------
+    ax.scatter(
+        [sample_blue[0], sample_red[0]],
+        [sample_blue[1], sample_red[1]],
+        s=230, marker="x", linewidths=2.6,
+        color="black", zorder=5, clip_on=False
+    )
+
+    # --------------------------------------------------------
+    # Axes style
+    # --------------------------------------------------------
+    ax.set_xlim(-0.08, 1.08)
+    ax.set_ylim(-0.08, 1.08)
+    ax.set_aspect("equal", adjustable="box")
+
+    ax.set_xlabel(r"$c_1$", fontsize=18)
+    ax.set_ylabel(r"$c_2$", fontsize=18, rotation=0, labelpad=20)
+
+    ax.set_xticks(np.linspace(0, 1, 6))
+    ax.set_yticks(np.linspace(0, 1, 6))
+    ax.tick_params(labelsize=13)
+
+    for spine in ax.spines.values():
+        spine.set_linewidth(1.0)
+
+
+# ============================================================
+# Build population
+# ============================================================
+
+pts = make_grid(n_x=9, n_y=10)
+
+# Equal clusters:
+# left panel: 5 rows top, 5 rows bottom
+# right panel: 5 columns left, 5 columns right
+mask_top_blue = pts[:, 1] > 0.5
+mask_left_blue = pts[:, 0] < 0.5
+
+# Sample configurations
+sample_top = np.array([0.5, 1.0])
+sample_bottom = np.array([0.5, 0.0])
+
+sample_left = np.array([0.0, 0.5])
+sample_right = np.array([1.0, 0.5])
+
+
+# ============================================================
+# Plot
+# ============================================================
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 9))
+
+plot_panel(
+    axes[0],
+    pts,
+    mask_top_blue,
+    sample_blue=sample_top,
+    sample_red=sample_bottom,
+    split="horizontal"
+)
+
+plot_panel(
+    axes[1],
+    pts,
+    mask_left_blue,
+    sample_blue=sample_left,
+    sample_red=sample_right,
+    split="vertical"
+)
+
+plt.tight_layout(w_pad=2.2)
+
+# ============================================================
+# Save
+# ============================================================
+
+os.makedirs("plots", exist_ok=True)
+
+plt.savefig(
+    "plots/sample_specific_medoid_reference_configurations.pdf",
+    bbox_inches="tight",
+    pad_inches=0.02
+)
+
+plt.savefig(
+    "plots/sample_specific_medoid_reference_configurations.png",
+    dpi=320,
+    bbox_inches="tight",
+    pad_inches=0.02
+)
+
+plt.show()
+
+SAVED OUTPUT <Figure size 1000x900 with 2 Axes>

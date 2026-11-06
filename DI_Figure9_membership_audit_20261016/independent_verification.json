@@ -1,0 +1,26 @@
+{
+  "all_checks_passed": true,
+  "independent_pdf_decoder": "Cairo SVG versus MuPDF trace",
+  "agreed_panel_points": 80,
+  "pointwise_checks": 120,
+  "central_45_outside_original_grid_points": [
+    [
+      1,
+      2
+    ],
+    [
+      17,
+      2
+    ],
+    [
+      1,
+      17
+    ],
+    [
+      17,
+      17
+    ]
+  ],
+  "DI_runs": 0,
+  "protected_files_unchanged": true
+}

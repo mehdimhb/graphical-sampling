@@ -1,0 +1,13 @@
+Paper-style version of the eight verified saved spatial panels.
+EP = equal inclusion probabilities; UP = unequal inclusion probabilities.
+Rows are Scenario 1 and Scenario 2, respectively.
+Coordinates displayed as c1=x/11, c2=y/11. Cluster colors aligned by overlap.
+Pale polygons are convex hulls of cluster members, as in the supplied reference;
+colored population points give the actual memberships. Point area is proportional
+to the population unit inclusion probability on the same scale in every panel.
+Population markers enlarged to make unequal inclusion probabilities more visible;
+area = 12*pi_i/(8/144) square points. Eta is omitted from panel titles.
+Red circles: sampled units. Black crosses: medoids. Dashed lines: saved matching.
+Top row shift: (1,1) raw grid steps; bottom row shift: (9,8).
+Values displayed to four decimal places; full precision retained in panels.json
+and the original saved results. No fits or scientific calculations rerun.

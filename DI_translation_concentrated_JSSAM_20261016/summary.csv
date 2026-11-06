@@ -1,0 +1,10 @@
+sample_description,shift_vector,DI_before,DI_after,DI_difference,changed_memberships
+compact asymmetric L,"(3, 2)",-0.9977095004212614,-0.9977095004212614,0.0,0
+compact asymmetric L,"(4, 1)",-0.9977095004212614,-0.9977095004212614,0.0,0
+compact asymmetric L,"(2, 3)",-0.9977095004212614,-0.9977095004212614,0.0,0
+compact skew cross,"(3, 2)",-0.9986475651291719,-0.9986475651291719,0.0,0
+compact skew cross,"(4, 1)",-0.9986475651291719,-0.9986475651291719,0.0,0
+compact skew cross,"(2, 3)",-0.9986475651291719,-0.9986475651291719,0.0,0
+compact asymmetric wedge,"(3, 2)",-0.9982542932548065,-0.9982542932548065,0.0,0
+compact asymmetric wedge,"(4, 1)",-0.9982542932548065,-0.9982542932548065,0.0,0
+compact asymmetric wedge,"(2, 3)",-0.9982542932548065,-0.9982542932548065,0.0,0

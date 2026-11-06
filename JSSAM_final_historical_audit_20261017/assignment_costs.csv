@@ -1,0 +1,3 @@
+metric,identity_before,swap_before,identity_after,swap_after,winner_before,winner_after
+euclidean,1.4142135623730951,3.414213562373095,5.23606797749979,5.123105625617661,identity,swap
+sqeuclidean,2.0,6.0,14.0,18.0,identity,identity

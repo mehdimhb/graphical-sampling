@@ -1,0 +1,110 @@
+0001: from ..clustering import FIPBalancedNMeans
+0002: 
+0003: import numpy as np
+0004: from scipy.optimize import linear_sum_assignment
+0005: from scipy.spatial.distance import cdist
+0006: from sklearn.neighbors import KernelDensity
+0007: from joblib import Parallel, delayed
+0008: 
+0009: 
+0010: class DensityDisparity:
+0011:     def __init__(
+0012:             self,
+0013:             population,
+0014:             n_jobs: int = -1,
+0015:             clustering_tol: float = 1e-9,
+0016:             clustering_max_iter: int = 100,
+0017:             kde_rtol: float = 1e-4
+0018:     ):
+0019:         self.pop = population
+0020:         self.coords = self.pop.coords
+0021:         self.probs = self.pop.inclusions
+0022: 
+0023:         self.n_jobs = n_jobs
+0024:         self.clustering_tol = clustering_tol
+0025:         self.clustering_max_iter = clustering_max_iter
+0026:         self.kde_rtol = kde_rtol
+0027: 
+0028:         # 1. First KDE: Calculate the original density once, as self.coords never changes
+0029:         self.original_density = self._density(self.coords)
+0030: 
+0031:         # --- Precompute and cache constants for scoring ---
+0032:         self._orig_density_sq = self.original_density ** 2
+0033:         self._sqrt_2 = np.sqrt(2)
+0034:         self._sin_pi_8 = np.sin(np.pi / 8)
+0035:         self._one_minus_cos_pi_8 = 1.0 - np.cos(np.pi / 8)
+0036: 
+0037:     def _density(self, coords: np.ndarray) -> np.ndarray:
+0038:         kde = KernelDensity(
+0039:             kernel="tophat",
+0040:             bandwidth="scott",
+0041:             rtol=self.kde_rtol
+0042:         ).fit(coords)
+0043:         return np.exp(kde.score_samples(coords))
+0044: 
+0045:     @staticmethod
+0046:     def _scale(arr, max_val):
+0047:         return np.clip(arr / max_val, -1.0, 1.0)
+0048: 
+0049:     def _score_single_density(self, translated_density: np.ndarray) -> float:
+0050:         # Adapted to process a 1D array instead of a 2D batch array
+0051:         norm = self._sqrt_2 * np.sqrt(self._orig_density_sq + translated_density ** 2)
+0052:         inv_norm = 1.0 / norm
+0053: 
+0054:         spread_arr = (self.original_density - translated_density) * inv_norm
+0055:         spread = np.mean(self._scale(spread_arr, self._sin_pi_8)).item()
+0056: 
+0057:         var_arr = 1.0 - (self.original_density + translated_density) * inv_norm
+0058:         var = np.mean(self._scale(var_arr, self._one_minus_cos_pi_8)).item()
+0059: 
+0060:         return spread + (np.sign(spread) - spread) * var
+0061: 
+0062:     def _process_one_sample(self, sample_indices: np.ndarray):
+0063:         """The complete, independent pipeline for a single sample."""
+0064:         raw_sample = self.coords[sample_indices]
+0065: 
+0066:         # 1. Clustering per sample (Using the raw_sample as initial centroids)
+0067:         fbn = FIPBalancedNMeans(
+0068:             n=self.pop.n,
+0069:             tol=self.clustering_tol,
+0070:             max_iter=self.clustering_max_iter,
+0071:             init_clust_method = 'weighted'
+0072:         )
+0073:         fbn.fit(self.pop, init_centroids=raw_sample)
+0074:         labels = fbn.labels
+0075:         centroids = fbn.centroids
+0076: 
+0077:         # 2. Assign sample points to the newly generated centroids
+0078:         cost = cdist(centroids, raw_sample)
+0079:         _, col_ind = linear_sum_assignment(cost)
+0080:         assigned_sample = raw_sample[col_ind]
+0081: 
+0082:         # 3. Translation
+0083:         translations = assigned_sample - centroids
+0084:         translated_coords = self.coords + translations[labels]
+0085: 
+0086:         # 4. Second KDE: DensityDisparity of the translated coordinates
+0087:         translated_density = self._density(translated_coords)
+0088: 
+0089:         # 5. Score Calculation
+0090:         score = self._score_single_density(translated_density)
+0091: 
+0092:         return score, translated_density
+0093: 
+0094:     def score(self, samples: np.ndarray, return_densities: bool = False):
+0095:         """
+0096:         samples: array of shape (n_samples, total_points)
+0097:                  where each row is an index array into self.coords.
+0098:         """
+0099:         # Distribute the full pipeline for each sample across available CPU cores
+0100:         results = Parallel(n_jobs=self.n_jobs)(
+0101:             delayed(self._process_one_sample)(s) for s in samples
+0102:         )
+0103: 
+0104:         # Unpack the results
+0105:         scores, densities = zip(*results)
+0106:         scores = np.array(scores)
+0107: 
+0108:         if return_densities:
+0109:             return scores, [(self.original_density, td) for td in densities]
+0110:         return scores

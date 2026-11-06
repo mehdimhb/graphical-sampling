@@ -1,0 +1,124 @@
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/12_measure_DI_OT_robustness.ipynb CELL 0 type=markdown execution_count=None outputs=0 =====
+C0:L0001 # Measure-paper DI robustness calculations using sample-initialized OT
+C0:L0002 
+C0:L0003 Reproducible notebook version of `simulations/temporary_measure_DI_OT_robustness.py`. Run the code cell from the repository root.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/12_measure_DI_OT_robustness.ipynb CELL 1 type=code execution_count=None outputs=0 =====
+C1:L0001 """Temporary 500-repetition OT-only DI robustness check for Measure Figures 7/8."""
+C1:L0002 from pathlib import Path
+C1:L0003 import warnings
+C1:L0004 import numpy as np
+C1:L0005 import pandas as pd
+C1:L0006 import matplotlib
+C1:L0007 matplotlib.use("Agg")
+C1:L0008 import matplotlib.pyplot as plt
+C1:L0009 from scipy.optimize import linear_sum_assignment
+C1:L0010 from scipy.spatial.distance import cdist
+C1:L0011 from joblib import Parallel, delayed
+C1:L0012 import rpy2.robjects as ro
+C1:L0013 from rpy2.robjects import numpy2ri
+C1:L0014 from rpy2.robjects.conversion import localconverter
+C1:L0015 from package_sampling.utils import inclusion_probabilities
+C1:L0016 from graphical_sampling.population import Population
+C1:L0017 from graphical_sampling.clustering import FIPBalancedNMeans
+C1:L0018 from graphical_sampling.index import DensityDisparity
+C1:L0019 
+C1:L0020 ROOT = Path(__file__).resolve().parents[1]
+C1:L0021 OUT = ROOT / "simulations/results/temporary_measure_DI_OT_sample_initialized_M500"
+C1:L0022 OUT.mkdir(parents=True, exist_ok=True)
+C1:L0023 M, SEED = 500, 20260904
+C1:L0024 OLD_FILE = ROOT / "simulations/Store/master_summary_DI_nmedoids_updated.csv"
+C1:L0025 METHODS = {"MAX":"Maxe", "SCP":"Scps", "LPM":"Lopi", "WAV":"Wave"}
+C1:L0026 POPS = {
+C1:L0027     "meuse": ("real/meuse.csv", [5,10,20], ["MAX","SCP","LPM"]),
+C1:L0028 }
+C1:L0029 
+C1:L0030 ro.r("suppressPackageStartupMessages(library(BalancedSampling)); suppressPackageStartupMessages(library(WaveSampling)); suppressPackageStartupMessages(library(sampling))")
+C1:L0031 
+C1:L0032 def load_pop(name, rel, n, inc):
+C1:L0033     d=pd.read_csv(ROOT/"simulations/populations"/rel); xy=d[["x","y"]].to_numpy(float); N=len(d)
+C1:L0034     if name=="meuse": y=d.cadmium.to_numpy(float); w=d.copper.to_numpy(float)
+C1:L0035     elif name=="swiss": y=np.clip(d.AREA_A.to_numpy(float),5,100); w=np.clip(d.AREA.to_numpy(float),5,100)
+C1:L0036     else: y=d["z.90"].to_numpy(float); w=d.prob.to_numpy(float)
+C1:L0037     pik=inclusion_probabilities((np.ones(N) if inc=="EP" else w).copy(),n); pik=np.asarray(pik,float); pik*=n/pik.sum()
+C1:L0038     return Population(coords=xy,inclusions=pik,variable=y,n=n), d
+C1:L0039 
+C1:L0040 def samples(method,pop,m,seed):
+C1:L0041     N,n=len(pop.coords),pop.n; ans=np.empty((m,n),int)
+C1:L0042     ro.r["set.seed"](seed)
+C1:L0043     with localconverter(ro.default_converter+numpy2ri.converter):
+C1:L0044         ro.globalenv["coords_ot_check"]=pop.coords; ro.globalenv["pik_ot_check"]=pop.inclusions
+C1:L0045         for i in range(m):
+C1:L0046             if method=="Maxe": out=ro.r("sampling::UPmaxentropy(pik_ot_check)")
+C1:L0047             elif method=="Scps": out=ro.r("BalancedSampling::scps(pik_ot_check, coords_ot_check)")
+C1:L0048             elif method=="Lopi": out=ro.r("BalancedSampling::lpm1(pik_ot_check, coords_ot_check)")
+C1:L0049             elif method=="Wave": out=ro.r("WaveSampling::wave(coords_ot_check, pik_ot_check)")
+C1:L0050             a=np.asarray(out).ravel()
+C1:L0051             idx=np.flatnonzero(a>.5) if a.size==N and np.all(np.isin(a,[0,1])) else a.astype(int)-(1 if a.size and a.min()>=1 else 0)
+C1:L0052             if len(idx)!=n: raise RuntimeError((method,N,n,len(idx)))
+C1:L0053             ans[i]=idx
+C1:L0054     return ans
+C1:L0055 
+C1:L0056 class SampleInitializedOT(FIPBalancedNMeans):
+C1:L0057     """Temporary adapter: honor the paper's sample-as-initial-centers rule."""
+C1:L0058     def _get_labels_centroids(self, coords, probs, init_centroids=None):
+C1:L0059         if init_centroids is None:
+C1:L0060             raise ValueError("A realized sample must initialize paper-defined OT IPnM.")
+C1:L0061         supplied = np.asarray(init_centroids, dtype=float)
+C1:L0062         expected_shape = (self.K, coords.shape[1])
+C1:L0063         if supplied.shape != expected_shape:
+C1:L0064             raise ValueError(f"Expected sample centers shaped {expected_shape}, got {supplied.shape}.")
+C1:L0065         # This bypasses _get_labels_centroids's internal grid and passes the
+C1:L0066         # realized sample coordinates directly into _Clustering.fit.
+C1:L0067         return self._get_labels_centroids_ot_kmeans(coords, probs, supplied.copy())
+C1:L0068 
+C1:L0069 def one_score(s,pop,scorer):
+C1:L0070     coords=pop.coords; raw=coords[s]
+C1:L0071     f=SampleInitializedOT(n=pop.n,init_clust_method="ot",split_size=.001)
+C1:L0072     f.fit(pop,init_centroids=raw)
+C1:L0073     med,_=scorer._cluster_medoids(f.labels,f.centroids)
+C1:L0074     r,c=linear_sum_assignment(cdist(med,raw)); assigned=np.empty_like(med); assigned[r]=raw[c]
+C1:L0075     moved=coords+(assigned-med)[f.labels]
+C1:L0076     return scorer._score_single_density(scorer._density(moved))
+C1:L0077 
+C1:L0078 old=pd.read_csv(OLD_FILE)
+C1:L0079 old["Method"]=old.Method.replace({"LPV":"LPM"})
+C1:L0080 checkpoint=OUT/"DI_OT_M500_vs_paper.csv"
+C1:L0081 rows=pd.read_csv(checkpoint).query("Method != 'WAV'").to_dict("records") if checkpoint.exists() else []
+C1:L0082 done={(r["Population"],r["Probability"],int(r["n"]),r["Method"]) for r in rows}
+C1:L0083 setting=0
+C1:L0084 for name,(rel,ns,methods) in POPS.items():
+C1:L0085   for inc in ["EP","UP"]:
+C1:L0086    for n in ns:
+C1:L0087     setting+=1; pop,_=load_pop(name,rel,n,inc); scorer=DensityDisparity(pop,representative="nmedoids",n_jobs=1)
+C1:L0088     for j,meth in enumerate(methods):
+C1:L0089       if (name,inc,n,meth) in done: continue
+C1:L0090       print(name,inc,n,meth,flush=True)
+C1:L0091       ss=samples(METHODS[meth],pop,M,SEED+10000*setting+100*j)
+C1:L0092       vals=np.asarray(Parallel(n_jobs=-1)(delayed(one_score)(s,pop,scorer) for s in ss))
+C1:L0093       prob={"EP":"Equal","UP":"Unequal"}[inc]
+C1:L0094       q=old[(old.Population==name)&(old.Probability==prob)&(old.Method==meth)&(old.n==n)]
+C1:L0095       if len(q)!=1: raise RuntimeError(f"old row count {len(q)}: {name} {inc} {n} {meth}")
+C1:L0096       o=q.iloc[0]
+C1:L0097       rows.append(dict(Population=name,Probability=inc,Method=meth,n=n,M=M,OT_mean_DI=vals.mean(),OT_SD=vals.std(ddof=1),paper_mean_DI=o.Dm,paper_SD=o.Ds,mean_difference=vals.mean()-o.Dm,SD_difference=vals.std(ddof=1)-o.Ds))
+C1:L0098       pd.DataFrame(rows).to_csv(checkpoint,index=False)
+C1:L0099 
+C1:L0100 res=pd.DataFrame(rows)
+C1:L0101 res.to_csv(checkpoint,index=False)
+C1:L0102 
+C1:L0103 def panel(data,pops,path,title):
+C1:L0104  fig,axs=plt.subplots(1,len(pops),figsize=(4.2*len(pops),4),sharey=True); axs=np.atleast_1d(axs)
+C1:L0105  for ax,p in zip(axs,pops):
+C1:L0106   z=data[data.Population==p]
+C1:L0107   for meth in z.Method.unique():
+C1:L0108    for inc,ls in [("EP","-"),("UP","--")]:
+C1:L0109     a=z[(z.Method==meth)&(z.Probability==inc)].sort_values("n")
+C1:L0110     ax.errorbar(a.n,a.paper_mean_DI,yerr=a.paper_SD,marker="o",ls=ls,alpha=.38,label=f"{meth} {inc} old")
+C1:L0111     ax.errorbar(a.n,a.OT_mean_DI,yerr=a.OT_SD,marker="x",ls=ls,label=f"{meth} {inc} OT")
+C1:L0112   ax.axhline(0,color="black",lw=.7); ax.set_title(p); ax.set_xlabel("n")
+C1:L0113  axs[0].set_ylabel("Mean DI ± SD"); handles,labels_=axs[-1].get_legend_handles_labels()
+C1:L0114  fig.legend(handles,labels_,loc="center left",bbox_to_anchor=(1,.5),fontsize=7); fig.suptitle(title); fig.tight_layout()
+C1:L0115  fig.savefig(path,dpi=250,bbox_inches="tight"); plt.close(fig)
+C1:L0116 
+C1:L0117 panel(res[res.Population.eq("Random")],["Random"],OUT/"Random_DI_old_vs_OT_M500.png","Random DI robustness: paper versus OT")
+C1:L0118 panel(res[res.Population.eq("meuse")],["meuse"],OUT/"Meuse_DI_old_vs_OT_M500.png","Meuse DI robustness: paper versus OT")
+C1:L0119 print(res.to_string(index=False)); print("SAVED",OUT)

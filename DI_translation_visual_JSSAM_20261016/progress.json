@@ -1,0 +1,32 @@
+{
+  "completed_full_fits": 24,
+  "completed_ids": [
+    "display_joint",
+    "display_original_replay",
+    "display_original_tight",
+    "display_translated_tight",
+    "sample1_original",
+    "sample1_shift01",
+    "sample1_shift10",
+    "sample1_shift11",
+    "sample2_original",
+    "sample2_shift01",
+    "sample2_shift10",
+    "sample2_shift11",
+    "sample3_original",
+    "sample3_shift01",
+    "sample3_shift10",
+    "sample3_shift11",
+    "sample4_original",
+    "sample4_shift01",
+    "sample4_shift10",
+    "sample4_shift11",
+    "sample5_original",
+    "sample5_shift01",
+    "sample5_shift10",
+    "sample5_shift11"
+  ],
+  "complete": true,
+  "original_study_reruns": 0,
+  "threads": 1
+}

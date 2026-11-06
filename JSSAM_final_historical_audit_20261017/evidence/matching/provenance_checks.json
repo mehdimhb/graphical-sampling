@@ -1,0 +1,134 @@
+{
+  "history_commit": "e71d6935bfe824e72a7b722067a24775ed160610",
+  "primary_notebook": "simulations/jupyters/measure_calculation_nmedoids_clean.ipynb",
+  "legacy_all_rows": 162,
+  "MC_rows": 138,
+  "saved_MC_rows": 106,
+  "design_saved_rows": 24,
+  "CSV_checks": [
+    {
+      "name": "June1 updated master",
+      "exact_mean_SD_rows": 162,
+      "total_source_rows": 166
+    },
+    {
+      "name": "current All_DI table",
+      "exact_mean_SD_rows": 162,
+      "total_source_rows": 162
+    },
+    {
+      "name": "June1 clean Monte Carlo table",
+      "exact_mean_SD_rows": 138,
+      "total_source_rows": 138
+    }
+  ],
+  "row_status_counts": {
+    "MC_retained_output_missing": 32,
+    "saved_MC_exact": 104,
+    "saved_MC_DI_mean_discrepancy": 2,
+    "saved_design_exact_import_unresolved": 24
+  },
+  "differences": [
+    {
+      "Population": "Random",
+      "Probability": "EP",
+      "Method": "MAX",
+      "n": "4",
+      "N": "144",
+      "legacy_Dm": "-0.089940",
+      "legacy_Ds": "0.347306",
+      "retained_Dm": "-0.089949",
+      "retained_Ds": "0.347306",
+      "Iterations": "2000",
+      "source_cell": 20,
+      "source_output": 101,
+      "status": "saved_MC_DI_mean_discrepancy",
+      "matching_provenance": "Euclidean unsquared in associated scorer source; historical kernel not immutable",
+      "June1_master_exact": true,
+      "current_All_DI_exact": true
+    },
+    {
+      "Population": "meuse",
+      "Probability": "EP",
+      "Method": "LPV",
+      "n": "20",
+      "N": "155",
+      "legacy_Dm": "0.034992",
+      "legacy_Ds": "0.053606",
+      "retained_Dm": "0.034492",
+      "retained_Ds": "0.053606",
+      "Iterations": "2000",
+      "source_cell": 20,
+      "source_output": 127,
+      "status": "saved_MC_DI_mean_discrepancy",
+      "matching_provenance": "Euclidean unsquared in associated scorer source; historical kernel not immutable",
+      "June1_master_exact": true,
+      "current_All_DI_exact": true
+    }
+  ],
+  "unresolved_MC_groups": {
+    "Clustered/UP": 16,
+    "Random/UP": 16
+  },
+  "MC_iterations": [
+    "2000"
+  ],
+  "June5_OT_test": {
+    "retained_cell": 15,
+    "execution_count": 9,
+    "rows_parsed": 32,
+    "Iterations": [
+      "10"
+    ],
+    "exact_mean_SD_matches_to_legacy": 0,
+    "2000_run_cell": 17,
+    "2000_run_cell_execution_count": null,
+    "2000_run_cell_outputs": 0
+  },
+  "figure_continuity": [
+    {
+      "path": "simulations/plots/simulated_result_measure_medoid.pdf",
+      "June1_SHA256": "49e23ca54d8fdbdba69ca3ea0df4d441fb7fe556cc76c124f44642fc59d15b57",
+      "current_byte_identical": true
+    },
+    {
+      "path": "simulations/plots/meuse_balance_indices_measure_medoid.pdf",
+      "June1_SHA256": "20a79b14694b06a5da87f58cfa9adf3f5593728c400ee62548e99377b731afc5",
+      "current_byte_identical": true
+    },
+    {
+      "path": "simulations/plots/swiss_balance_indices_measure_medoid.pdf",
+      "June1_SHA256": "43ad531388bc9bedf5bceaf307b3c4af37a5eab8bb45455b43fba14c3994fde3",
+      "current_byte_identical": true
+    }
+  ],
+  "later_notebook_blobs": [
+    {
+      "path": "simulations/jupyters/01_measure_calculation_spreadness_indices.ipynb",
+      "hashes": {
+        "82a7eca7d": "adb72be1158d19cfaa11b73ca0d93d2c39f9970e8b5563f7837626dd2e3358ab",
+        "7c61dbeafa6808e9eafa0b1fc678a25c077109cc": "adb72be1158d19cfaa11b73ca0d93d2c39f9970e8b5563f7837626dd2e3358ab",
+        "af36c9e3ff36f957243188ade01a1e01400f3709": "adb72be1158d19cfaa11b73ca0d93d2c39f9970e8b5563f7837626dd2e3358ab"
+      },
+      "all_identical": true
+    },
+    {
+      "path": "simulations/jupyters/03_variance_estimation_NHT.ipynb",
+      "hashes": {
+        "82a7eca7d": "b37a3a0a6902c6e0a48f70e3bc335791c55a0c0e4b2998d1ef04fc5c4b876c0e",
+        "7c61dbeafa6808e9eafa0b1fc678a25c077109cc": "b37a3a0a6902c6e0a48f70e3bc335791c55a0c0e4b2998d1ef04fc5c4b876c0e",
+        "af36c9e3ff36f957243188ade01a1e01400f3709": "b37a3a0a6902c6e0a48f70e3bc335791c55a0c0e4b2998d1ef04fc5c4b876c0e"
+      },
+      "all_identical": true
+    },
+    {
+      "path": "simulations/jupyters/04_paper_plots_and_tables.ipynb",
+      "hashes": {
+        "82a7eca7d": "4dcfe6320b4d4933f358eafc19946a6208695e3a5ebc197c9fe4c8baa107f137",
+        "7c61dbeafa6808e9eafa0b1fc678a25c077109cc": "4dcfe6320b4d4933f358eafc19946a6208695e3a5ebc197c9fe4c8baa107f137",
+        "af36c9e3ff36f957243188ade01a1e01400f3709": "4dcfe6320b4d4933f358eafc19946a6208695e3a5ebc197c9fe4c8baa107f137"
+      },
+      "all_identical": true
+    }
+  ]
+}

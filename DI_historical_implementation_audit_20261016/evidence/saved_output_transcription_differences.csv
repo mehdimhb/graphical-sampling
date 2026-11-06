@@ -1,0 +1,3 @@
+Population,Probability,Method,N,n,Dm_a,Ds_a,Iterations,source_cell,Dm_b,Ds_b
+Random,EP,MAX,144,4,-0.089949,0.347306,2000,20,-0.08994,0.347306
+meuse,EP,LPV,155,20,0.034492,0.053606,2000,20,0.034992,0.053606

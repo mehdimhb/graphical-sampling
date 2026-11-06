@@ -1,0 +1,78 @@
+{
+  "passage_checks": [
+    {
+      "id": "section3_weighted_medoid",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "section3_assignment",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "section3_historical_kernel",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "section4_replications",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "algorithm2_medoid",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "algorithm2_assignment",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "comment5_translation_qualification",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "section3_keep_squared_alternative",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "historical_clustering_disclosure",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "abstract_translation",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "introduction_translation",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "conclusion_translation",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    },
+    {
+      "id": "appendix_translation_example",
+      "exact_quote_matches": true,
+      "replacement_nonempty": true
+    }
+  ],
+  "snapshot_unchanged_since_initial_read": true,
+  "snapshot_sha256": "d91765e63c588fa646be268ca62d8fed8b69fd5bec99995f8bfb6a1c2c8a5baa",
+  "download_duplicate_identical": true,
+  "revision_wrappers_in_accessible_snapshot": {
+    "RevThree": 0,
+    "RevFive": 0
+  },
+  "no_patch_applied": true,
+  "scope": "All writes from this subtask restricted to evidence/manuscript. Current colored source missing; integration remains review-only."
+}

@@ -1,0 +1,19 @@
+{
+  "verified_saved_fits": 24,
+  "candidate_samples": 5,
+  "valid_translations_compared": 15,
+  "changed_partition_pairs": 0,
+  "maximum_absolute_DI_difference": 0.0,
+  "component_recalculation_max_error": 5.273559366969494e-16,
+  "max_row_error": 3.95516952522712e-16,
+  "max_column_error": 1.5543122344752192e-15,
+  "max_fixed_point_residual": 1.122887503750756e-11,
+  "max_independent_dual_stationarity_residual": 1.3322676295501878e-15,
+  "minimum_preliminary_assignment_margin": 0.022261972666147024,
+  "max_heuristic_TSP_length_error_against_exhaustive": 4.440892098500626e-16,
+  "original_protected_files_unchanged": 5387,
+  "tighter_control_passed": true,
+  "co_membership_checked": true,
+  "same_seed_replay_passed": true,
+  "joint_coordinate_control_passed": true
+}

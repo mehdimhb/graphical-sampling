@@ -1,0 +1,15 @@
+{
+  "completed_runs": 106,
+  "measured_clusters": 1720,
+  "summary_settings": 60,
+  "protected_sources": 62,
+  "protected_source_changes": [],
+  "unavailable_originals": [],
+  "protected_originals_fully_verified": true,
+  "all_numerical_checks_passed": true,
+  "empty_hard_clusters": 0,
+  "largest_OT_row_residual": 9.976228176888924e-11,
+  "largest_OT_column_residual": 5.551115123125783e-15,
+  "largest_fixed_point_residual": 9.627636598804553e-08,
+  "largest_soft_mass_error": 3.3306690738754696e-15
+}

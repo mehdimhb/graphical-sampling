@@ -1,0 +1,182 @@
+[
+  {
+    "archive": "/home/bardia/Downloads/GFS_Spread_Sample_JSSAM (1).zip",
+    "member": "Fig/simulated_result_measure_medoid.pdf",
+    "SHA256": "49e23ca54d8fdbdba69ca3ea0df4d441fb7fe556cc76c124f44642fc59d15b57",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/GFS_Spread_Sample_JSSAM (1).zip",
+    "member": "Fig/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "20a79b14694b06a5da87f58cfa9adf3f5593728c400ee62548e99377b731afc5",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/GFS_Spread_Sample_JSSAM (1).zip",
+    "member": "Fig/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "43ad531388bc9bedf5bceaf307b3c4af37a5eab8bb45455b43fba14c3994fde3",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/GFS_Spread_Sample_JSSAM.zip",
+    "member": "Fig/simulated_result_measure_medoid.pdf",
+    "SHA256": "49e23ca54d8fdbdba69ca3ea0df4d441fb7fe556cc76c124f44642fc59d15b57",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/GFS_Spread_Sample_JSSAM.zip",
+    "member": "Fig/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "20a79b14694b06a5da87f58cfa9adf3f5593728c400ee62548e99377b731afc5",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/GFS_Spread_Sample_JSSAM.zip",
+    "member": "Fig/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "43ad531388bc9bedf5bceaf307b3c4af37a5eab8bb45455b43fba14c3994fde3",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/JSSAM_Measure_Final_Ready.zip",
+    "member": "JSSAM_Measure_Final_Ready/figures/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "76ca00ddfd05dbb6e6be393ca33ffbd7f1b4ad1413661e06ba7a63dc5f62be1f",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/JSSAM_Measure_Final_Ready.zip",
+    "member": "JSSAM_Measure_Final_Ready/figures/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "01962399b971f232aee72bb38a689cfb5d0b5f88ebf33e403be726a2378732cd",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/JSSAM_Measure_Final_Ready.zip",
+    "member": "JSSAM_Measure_Final_Ready/figures/simulated_result_measure_medoid.pdf",
+    "SHA256": "ff947373c548c912d750cc07ec94ce62fcb532af9e332c84e10fc69191911254",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/JSSAM_Measure_Overleaf_Light.zip",
+    "member": "Fig/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "20a79b14694b06a5da87f58cfa9adf3f5593728c400ee62548e99377b731afc5",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/JSSAM_Measure_Overleaf_Light.zip",
+    "member": "Fig/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "43ad531388bc9bedf5bceaf307b3c4af37a5eab8bb45455b43fba14c3994fde3",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/JSSAM_Measure_Overleaf_Light.zip",
+    "member": "Fig/simulated_result_measure_medoid.pdf",
+    "SHA256": "49e23ca54d8fdbdba69ca3ea0df4d441fb7fe556cc76c124f44642fc59d15b57",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/Measure_JSSAM_clean.zip",
+    "member": "Measure_JSSAM_clean/figures/simulated_result_measure_medoid.pdf",
+    "SHA256": "49e23ca54d8fdbdba69ca3ea0df4d441fb7fe556cc76c124f44642fc59d15b57",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/Measure_JSSAM_clean.zip",
+    "member": "Measure_JSSAM_clean/figures/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "20a79b14694b06a5da87f58cfa9adf3f5593728c400ee62548e99377b731afc5",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/Measure_JSSAM_clean.zip",
+    "member": "Measure_JSSAM_clean/figures/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "43ad531388bc9bedf5bceaf307b3c4af37a5eab8bb45455b43fba14c3994fde3",
+    "same_as_local_plot": true
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Overleaf_FINAL_REVISED.zip",
+    "member": "Spread_Measure_Overleaf_FINAL_REVISED/figures/simulated_result_measure_medoid.pdf",
+    "SHA256": "ff947373c548c912d750cc07ec94ce62fcb532af9e332c84e10fc69191911254",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Overleaf_FINAL_REVISED.zip",
+    "member": "Spread_Measure_Overleaf_FINAL_REVISED/figures/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "76ca00ddfd05dbb6e6be393ca33ffbd7f1b4ad1413661e06ba7a63dc5f62be1f",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Overleaf_FINAL_REVISED.zip",
+    "member": "Spread_Measure_Overleaf_FINAL_REVISED/figures/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "01962399b971f232aee72bb38a689cfb5d0b5f88ebf33e403be726a2378732cd",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Overleaf_Source.zip",
+    "member": "figures/simulated_result_measure_medoid.pdf",
+    "SHA256": "ff947373c548c912d750cc07ec94ce62fcb532af9e332c84e10fc69191911254",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Overleaf_Source.zip",
+    "member": "figures/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "76ca00ddfd05dbb6e6be393ca33ffbd7f1b4ad1413661e06ba7a63dc5f62be1f",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Overleaf_Source.zip",
+    "member": "figures/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "01962399b971f232aee72bb38a689cfb5d0b5f88ebf33e403be726a2378732cd",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Submission_DRAFT.zip",
+    "member": "Spread_Measure_Submission_DRAFT/figures/simulated_result_measure_medoid.pdf",
+    "SHA256": "ff947373c548c912d750cc07ec94ce62fcb532af9e332c84e10fc69191911254",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Submission_DRAFT.zip",
+    "member": "Spread_Measure_Submission_DRAFT/figures/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "76ca00ddfd05dbb6e6be393ca33ffbd7f1b4ad1413661e06ba7a63dc5f62be1f",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Submission_DRAFT.zip",
+    "member": "Spread_Measure_Submission_DRAFT/figures/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "01962399b971f232aee72bb38a689cfb5d0b5f88ebf33e403be726a2378732cd",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Submission_FINAL.zip",
+    "member": "Spread_Measure_Submission_FINAL/figures/simulated_result_measure_medoid.pdf",
+    "SHA256": "ff947373c548c912d750cc07ec94ce62fcb532af9e332c84e10fc69191911254",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Submission_FINAL.zip",
+    "member": "Spread_Measure_Submission_FINAL/figures/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "76ca00ddfd05dbb6e6be393ca33ffbd7f1b4ad1413661e06ba7a63dc5f62be1f",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_Submission_FINAL.zip",
+    "member": "Spread_Measure_Submission_FINAL/figures/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "01962399b971f232aee72bb38a689cfb5d0b5f88ebf33e403be726a2378732cd",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_with_Mehdi.zip",
+    "member": "figures/meuse_balance_indices_measure_medoid.pdf",
+    "SHA256": "76ca00ddfd05dbb6e6be393ca33ffbd7f1b4ad1413661e06ba7a63dc5f62be1f",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_with_Mehdi.zip",
+    "member": "figures/simulated_result_measure_medoid.pdf",
+    "SHA256": "ff947373c548c912d750cc07ec94ce62fcb532af9e332c84e10fc69191911254",
+    "same_as_local_plot": false
+  },
+  {
+    "archive": "/home/bardia/Downloads/Spread_Measure_with_Mehdi.zip",
+    "member": "figures/swiss_balance_indices_measure_medoid.pdf",
+    "SHA256": "01962399b971f232aee72bb38a689cfb5d0b5f88ebf33e403be726a2378732cd",
+    "same_as_local_plot": false
+  }
+]

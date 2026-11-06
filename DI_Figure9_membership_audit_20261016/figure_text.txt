@@ -1,0 +1,39 @@
+              Translation and Rotation Properties of DI (n = 20)
+
+ Observed sample after transformation         Original-to-transformed movement     Optimal medoid sample match
+ Original sample position                     IPnM medoid (reference unit)
+
+
+
+            (a) Original sample                                         (b) Uniformly shifted sample
+           Starting configuration                                Same shift applied to every sample point
+DI 1.0
+   = 0.00; MI = -0.47; VI = 0.01; BI = 0.04                     DI = 0.00; MI = -0.44; VI = 0.03; BI = 0.08
+
+     0.8
+
+     0.6
+c2                                                                  c2
+     0.4
+
+     0.2
+
+     0.0
+                           c1                                                            c1
+
+          (c) Sample rotated 90                                            (d) Sample rotated 45
+Counterclockwise about the sample center                         Counterclockwise about the sample center
+DI 1.0
+   = 0.00; MI = -0.47; VI = 0.01; BI = 0.04                     DI = -0.14; MI = -0.23; VI = 0.15; BI = 0.19
+
+     0.8
+
+     0.6
+c2                         90                                       c2                   45
+     0.4
+
+     0.2
+
+     0.00.0    0.2   0.4        0.6     0.8   1.0                    0.0     0.2   0.4        0.6   0.8   1.0
+                           c1                                                            c1
+

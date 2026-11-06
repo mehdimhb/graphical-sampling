@@ -1,0 +1,1545 @@
+
+CELL 0 execution None
+# 01 — Measure calculation for spreadness indices
+
+This notebook computes Monte Carlo summaries of the spatial-spreadness indices used in the paper: Density Index (DI), Voronoi Index (VI), Moran's \(I\) (MI), and Local Balance (LB).
+
+**Main outputs.** CSV summaries for the benchmark designs and for the saved NMS/GMS designs.
+
+**How to use.** First run the setup and helper cells. Then run either the short smoke-test block or the full Monte Carlo block. The full block can take time because it calls the R sampling packages and repeats the sampling designs many times.
+
+**Dependencies.** Python package `graphical_sampling`, optional `package_sampling`, `rpy2`, and the R packages `BalancedSampling`, `WaveSampling`, and `sampling`.
+
+
+
+CELL 1 execution None
+## Reproducibility note
+
+Outputs and execution counts were cleared intentionally, so the notebook opens without stale errors. Run the cells section by section after confirming that the local package and data paths are available.
+
+
+CELL 2 execution 1
+# Purpose: enable autoreload so local package edits are picked up during development.
+%load_ext autoreload
+%autoreload 2
+
+
+CELL 3 execution 2
+# Purpose: import packages and configure helper functions.
+import os
+import inspect
+import warnings
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from tqdm.auto import tqdm
+
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    message='.*Environment variable ".*" redefined by R.*'
+)
+warnings.filterwarnings("ignore", category=UserWarning, module="rpy2")
+
+
+CELL 4 execution 3
+# Purpose: import packages and configure helper functions.
+# ---------------------------------------------------------------------
+# Python package imports
+# ---------------------------------------------------------------------
+from graphical_sampling.population import Population
+from graphical_sampling.index import DensityDisparity as _BaseDensityDisparity
+from graphical_sampling.index import Moran, Voronoi, LocalBalance
+from graphical_sampling.clustering import FIPBalancedNMeans
+from graphical_sampling.order import Order
+from graphical_sampling.design import Design
+
+from scipy.optimize import linear_sum_assignment
+from scipy.spatial.distance import cdist
+
+try:
+    from package_sampling.utils import inclusion_probabilities
+except Exception:
+    def inclusion_probabilities(weights, n):
+        """
+        Fallback inclusion-probability normalizer.
+
+        It scales positive weights to sum to n and caps probabilities at one.
+        """
+        w = np.asarray(weights, dtype=float)
+        if np.any(w <= 0):
+            raise ValueError("All weights must be positive.")
+        pik = n * w / w.sum()
+
+        # Iterative cap-at-one correction
+        for _ in range(1000):
+            over = pik >= 1.0
+            if not np.any(over):
+                break
+            pik[over] = 1.0
+            rem = ~over
+            if rem.sum() == 0:
+                break
+            target = n - over.sum()
+            if target <= 0:
+                pik[rem] = 0.0
+                break
+            pik[rem] *= target / pik[rem].sum()
+            if np.all(pik <= 1.0 + 1e-12):
+                pik = np.minimum(pik, 1.0)
+                break
+        return pik
+
+
+CELL 5 execution None
+## Configuration
+
+
+CELL 6 execution 4
+# Purpose: import packages and configure helper functions.
+# ---------------------------------------------------------------------
+# Main switches
+# ---------------------------------------------------------------------
+
+# Use "nmedoids" for the referee-requested DI calculation.
+# Use "nmeans" for the original DI calculation.
+DI_REPRESENTATIVE = "nmedoids"     # "nmeans" or "nmedoids"
+
+# Monte Carlo settings
+SAMPLE_CNT = 2000
+
+# Populations and sample sizes
+# Edit these lists as needed.
+POP_NAMES = ["rand_N144_perm"]
+N_SIZES = [16]
+
+# Inclusion setting
+# "UP": unequal probabilities from the population file
+# "EP": equal probabilities
+INCLUSION = "UP"
+
+# Methods to run.
+# Requested methods: MaxEnt, LPV, SPC, WAV.
+METHODS = ["Maxe", "Lopi", "Scps", "Wave"]
+
+# Keep NMS available, but disabled by default.
+INCLUDE_NMS = False
+if INCLUDE_NMS and "NMS" not in METHODS:
+    METHODS = ["NMS"] + METHODS
+
+# Optional benchmark
+INCLUDE_RAND = False
+if INCLUDE_RAND and "Rand" not in METHODS:
+    METHODS = METHODS + ["Rand"]
+
+# DensityDisparity can be expensive; -1 uses all cores through joblib.
+DI_N_JOBS = -1
+
+# Save full raw iteration-level results?
+SAVE_RAW_ITERATIONS = False
+
+# Folder resolution.
+# The first existing folder is used.
+CANDIDATE_DATA_FOLDERS = [
+    Path("populations/simulated"),
+    Path("../populations/simulated"),
+    Path("../../populations/simulated"),
+    Path("populations"),
+    Path("../populations"),
+]
+
+CANDIDATE_RESULTS_FOLDERS = [
+    Path("results/measure_indices"),
+    Path("../results/measure_indices"),
+]
+
+def first_existing_folder(candidates, create_if_missing=False):
+    for p in candidates:
+        if p.exists():
+            return p
+    if create_if_missing:
+        p = candidates[0]
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+    raise FileNotFoundError("None of the candidate folders exists:\n" + "\n".join(map(str, candidates)))
+
+DATA_FOLDER = first_existing_folder(CANDIDATE_DATA_FOLDERS, create_if_missing=False)
+RESULTS_FOLDER = first_existing_folder(CANDIDATE_RESULTS_FOLDERS, create_if_missing=True)
+RESULTS_FOLDER.mkdir(parents=True, exist_ok=True)
+
+print("DATA_FOLDER   =", DATA_FOLDER)
+print("RESULTS_FOLDER=", RESULTS_FOLDER)
+print("METHODS       =", METHODS)
+print("DI            =", DI_REPRESENTATIVE)
+
+SAVED OUTPUT DATA_FOLDER   = ../populations/simulated
+RESULTS_FOLDER= results/measure_indices
+METHODS       = ['Maxe', 'Lopi', 'Scps', 'Wave']
+DI            = nmedoids
+
+
+
+CELL 7 execution None
+## Density Index with an \(n\)-means / \(n\)-medoids switch
+
+
+CELL 8 execution 5
+# Purpose: define the DI scorer with an n-means/n-medoids representative switch.
+class DensityDisparityFlexible(_BaseDensityDisparity):
+    """
+    DensityDisparity with a safe representative switch.
+
+    representative="nmeans":
+        uses the original cluster centroids.
+
+    representative="nmedoids":
+        replaces each centroid by a population unit from the corresponding
+        cluster. This addresses the referee's concern that representatives
+        should be actual population units.
+    """
+
+    def __init__(
+        self,
+        population,
+        n_jobs: int = -1,
+        clustering_tol: float = 1e-9,
+        clustering_max_iter: int = 100,
+        kde_rtol: float = 1e-4,
+        representative: str = "nmeans",
+    ):
+        if representative not in {"nmeans", "nmedoids"}:
+            raise ValueError("representative must be either 'nmeans' or 'nmedoids'.")
+
+        # If your local package already has a representative argument, use it.
+        # Otherwise, call the original constructor and add the switch here.
+        sig = inspect.signature(_BaseDensityDisparity.__init__)
+        if "representative" in sig.parameters:
+            super().__init__(
+                population=population,
+                n_jobs=n_jobs,
+                clustering_tol=clustering_tol,
+                clustering_max_iter=clustering_max_iter,
+                kde_rtol=kde_rtol,
+                representative=representative,
+            )
+        else:
+            super().__init__(
+                population=population,
+                n_jobs=n_jobs,
+                clustering_tol=clustering_tol,
+                clustering_max_iter=clustering_max_iter,
+                kde_rtol=kde_rtol,
+            )
+
+        self.representative = representative
+
+    def _cluster_medoids(self, labels: np.ndarray, centroids: np.ndarray):
+        """
+        Compute one weighted medoid per cluster.
+
+        The medoid is the population unit inside a cluster that minimizes the
+        weighted sum of Euclidean distances to all other units in that cluster.
+        """
+        K = centroids.shape[0]
+        medoids = np.empty_like(centroids)
+        medoid_indices = np.empty(K, dtype=int)
+
+        for k in range(K):
+            idx = np.flatnonzero(labels == k)
+
+            if idx.size == 0:
+                # Fallback: should be rare, but keeps the score defined.
+                medoids[k] = centroids[k]
+                medoid_indices[k] = -1
+                continue
+
+            if idx.size == 1:
+                medoid_indices[k] = idx[0]
+                medoids[k] = self.coords[idx[0]]
+                continue
+
+            X = self.coords[idx]
+            w = self.probs[idx]
+
+            D = cdist(X, X, metric="euclidean")
+            objective = D @ w
+
+            best_local = int(np.argmin(objective))
+            medoid_indices[k] = idx[best_local]
+            medoids[k] = self.coords[medoid_indices[k]]
+
+        return medoids, medoid_indices
+
+    def _process_one_sample(self, sample_indices: np.ndarray):
+        """
+        Complete DI pipeline for one sample, with n-means/n-medoids switch.
+        """
+        raw_sample = self.coords[sample_indices]
+
+        # 1. Clustering per sample, using sample points as initial centroids.
+        fbn = FIPBalancedNMeans(
+            n=self.pop.n,
+            tol=self.clustering_tol,
+            max_iter=self.clustering_max_iter,
+            init_clust_method="ot",
+        )
+        fbn.fit(self.pop, init_centroids=raw_sample)
+
+        labels = fbn.labels
+        centroids = fbn.centroids
+
+        # 2. Choose representative points.
+        if self.representative == "nmeans":
+            reference_points = centroids
+        elif self.representative == "nmedoids":
+            reference_points, _ = self._cluster_medoids(labels, centroids)
+        else:
+            raise ValueError("representative must be either 'nmeans' or 'nmedoids'.")
+
+        # 3. Assign sample points to the selected reference points.
+        cost = cdist(reference_points, raw_sample)
+        row_ind, col_ind = linear_sum_assignment(cost)
+
+        assigned_sample = np.empty_like(reference_points)
+        assigned_sample[row_ind] = raw_sample[col_ind]
+
+        # 4. Translate each cluster according to its representative.
+        translations = assigned_sample - reference_points
+        translated_coords = self.coords + translations[labels]
+
+        # 5. KDE and final DI score.
+        translated_density = self._density(translated_coords)
+        score = self._score_single_density(translated_density)
+
+        return score, translated_density
+
+
+CELL 9 execution None
+## R sampling functions and optional NMS
+
+
+CELL 10 execution 6
+# Purpose: load the R packages used by the benchmark sampling designs.
+import rpy2.robjects as ro
+
+def install_and_load_r_packages():
+    ro.r("""
+    required_packages <- c("BalancedSampling", "WaveSampling", "sampling")
+
+    for (pkg in required_packages) {
+        if (!requireNamespace(pkg, quietly = TRUE)) {
+            install.packages(pkg, repos = "https://cloud.r-project.org")
+        }
+    }
+
+    suppressPackageStartupMessages(library(BalancedSampling))
+    suppressPackageStartupMessages(library(WaveSampling))
+    suppressPackageStartupMessages(library(sampling))
+    """)
+
+# install_and_load_r_packages()
+
+SAVED OUTPUT Error importing in API mode: ModuleNotFoundError("No module named '_rinterface_cffi_api'")
+Trying to import in ABI mode.
+
+
+
+CELL 11 execution 7
+# Purpose: import packages and configure helper functions.
+# ---------------------------------------------------------------------
+# R setup
+# ---------------------------------------------------------------------
+import rpy2.robjects as ro
+from rpy2.robjects import numpy2ri, pandas2ri
+from rpy2.robjects.conversion import localconverter
+
+combined_converter = ro.default_converter + numpy2ri.converter + pandas2ri.converter
+
+def load_r_packages():
+    ro.r("""
+    suppressPackageStartupMessages(library(BalancedSampling))
+    suppressPackageStartupMessages(library(WaveSampling))
+    suppressPackageStartupMessages(library(sampling))
+    """)
+
+load_r_packages()
+
+
+def _r_result_to_indices(result, N: int, n: int, method: str) -> np.ndarray:
+    """
+    Convert common R outputs to a zero-based integer index vector.
+
+    Handles:
+    - 1-based selected indices,
+    - 0/1 indicators,
+    - TRUE/FALSE masks.
+    """
+    arr = np.asarray(result)
+
+    # Flatten matrices/vectors.
+    arr = np.ravel(arr)
+
+    # Logical mask
+    if arr.dtype == bool and arr.size == N:
+        idx = np.where(arr)[0]
+
+    # Numeric 0/1 indicator
+    elif arr.size == N and np.all(np.isin(arr, [0, 1, 0.0, 1.0])):
+        idx = np.where(arr.astype(float) > 0.5)[0]
+
+    # Selected indices, usually 1-based in R.
+    else:
+        idx = arr.astype(int)
+        if idx.size > 0 and idx.min() >= 1:
+            idx = idx - 1
+
+    idx = np.asarray(idx, dtype=int)
+
+    if idx.size != n:
+        raise ValueError(
+            f"{method} returned sample size {idx.size}, but expected n={n}. "
+            f"First returned values: {arr[:10]}"
+        )
+
+    if np.any(idx < 0) or np.any(idx >= N):
+        raise ValueError(f"{method} returned indices outside [0, {N-1}].")
+
+    return idx
+
+
+def run_nms_design(
+    coords: np.ndarray,
+    pik: np.ndarray,
+    n: int,
+    num_samples: int,
+    y_values: np.ndarray | None = None,
+    centroid_grid_x: int | None = None,
+    num_zones: int | tuple[int, int] | None = None,
+    zone_mode: str = "sweep_xy",
+    zone_strategy: str = "lexico_yx",
+    point_strategy: str = "lexico_yx",
+):
+    """
+    Optional NMS generator.
+
+    It is kept for completeness, but INCLUDE_NMS is False by default.
+    """
+    if y_values is None:
+        y_values = np.zeros(len(coords), dtype=float)
+
+    pop = Population(coords=coords, inclusions=pik, variable=y_values)
+
+    fbn = FIPBalancedNMeans(
+        n=n,
+        r_sample_per_cluster=1,
+        centroid_grid_x=centroid_grid_x,
+        init_clust_method="expanded",
+    )
+    fbn.fit(pop)
+
+    if num_zones is not None:
+        fbn.fit_zones(num_zones=num_zones, mode=zone_mode)
+
+    order = Order.from_clusters(
+        population=pop,
+        clusters=fbn.clusters,
+        zone_strategy=zone_strategy,
+        point_strategy=point_strategy,
+    )
+
+    design = Design.from_order(pop, order)
+    return design.sample(num_samples), design
+
+
+def run_sampling_design(
+    method: str,
+    coords: np.ndarray,
+    pik: np.ndarray,
+    n: int,
+    num_samples: int,
+    y_values: np.ndarray | None = None,
+):
+    """
+    Generate samples for one design.
+
+    Method names:
+    - Maxe: maximum entropy sampling
+    - Lopi: LPV/LPM via lpm2
+    - Scps: spatially correlated Poisson sampling
+    - Wave: WAV sampling
+    - Rand: SRS benchmark
+    - NMS: optional proposed initial design
+    """
+    N = len(coords)
+
+    if method == "NMS":
+        return run_nms_design(coords, pik, n, num_samples, y_values=y_values)
+
+    if method == "Rand":
+        samples_idx = np.zeros((num_samples, n), dtype=int)
+        for i in tqdm(range(num_samples), desc="Rand", leave=False):
+            samples_idx[i] = np.random.choice(N, n, replace=False)
+        return samples_idx, None
+
+    samples_idx = np.zeros((num_samples, n), dtype=int)
+
+    with localconverter(combined_converter):
+        ro.globalenv["coords_r"] = coords
+        ro.globalenv["probs_r"] = pik
+
+        iterator = tqdm(range(num_samples), desc=method, leave=False)
+        for i in iterator:
+            if method == "Lopi":
+                out = ro.r("BalancedSampling::lpm1(probs_r, coords_r)")
+            elif method == "Scps":
+                out = ro.r("BalancedSampling::scps(probs_r, coords_r)")
+            elif method == "Wave":
+                out = ro.r("WaveSampling::wave(coords_r, probs_r)")
+            elif method == "Maxe":
+                out = ro.r("sampling::UPmaxentropy(probs_r)")
+            else:
+                raise ValueError(f"Unknown method: {method}")
+
+            samples_idx[i] = _r_result_to_indices(out, N=N, n=n, method=method)
+
+    return samples_idx, None
+
+
+CELL 12 execution None
+## Population loading and scoring helpers
+
+
+CELL 13 execution 8
+# Purpose: run the next step in the notebook workflow.
+def force_sum_to_n(pik: np.ndarray, n: int) -> np.ndarray:
+    """
+    Small numerical correction so that sum(pik) is exactly n up to floating error.
+    """
+    pik = np.asarray(pik, dtype=float).copy()
+    pik *= n / pik.sum()
+    return pik
+
+
+def load_population(name: str, n_size: int, inclusion: str, data_folder: Path):
+    """
+    Load one population and construct y-values and inclusion probabilities.
+
+    Expected columns:
+    - x, y
+    - for meuse: cadmium and copper
+    - for swiss: AREA_A and AREA
+    - for simulated populations: z.90 and prob
+    """
+    file_path = data_folder / f"{name}.csv"
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    df = pd.read_csv(file_path)
+    coords = df[["x", "y"]].to_numpy(dtype=float)
+    N = len(df)
+
+    if name == "meuse":
+        y_values = df["cadmium"].to_numpy(dtype=float)
+        weights = df["copper"].to_numpy(dtype=float)
+
+    elif name == "swiss":
+        y_values = df["AREA_A"].to_numpy(dtype=float)
+        y_values = np.clip(y_values, 5, 100)
+        weights = df["AREA"].to_numpy(dtype=float)
+        weights = np.clip(weights, 5, 100)
+
+    else:
+        if "z.90" in df.columns:
+            y_values = df["z.90"].to_numpy(dtype=float)
+        elif "z" in df.columns:
+            y_values = df["z"].to_numpy(dtype=float)
+        else:
+            # For pure measure calculation, y is not essential.
+            y_values = np.ones(N, dtype=float)
+
+        if "prob" in df.columns:
+            weights = df["prob"].to_numpy(dtype=float)
+        else:
+            weights = np.ones(N, dtype=float)
+
+    if inclusion == "EP":
+        pik = inclusion_probabilities(np.ones(N, dtype=float).copy(), n_size)
+
+    elif inclusion == "UP":
+        weights = np.asarray(weights, dtype=float).copy()
+        pik = inclusion_probabilities(weights, n_size)
+
+    else:
+        raise ValueError("inclusion must be either 'EP' or 'UP'.")
+    pik = force_sum_to_n(pik, n_size)
+    n = int(round(pik.sum()))
+
+    true_total = float(y_values.sum())
+    rho = float(np.corrcoef(y_values, pik)[0, 1]) if np.std(pik) > 0 else 0.0
+
+    return df, coords, y_values, pik, n, true_total, rho
+
+
+def build_scorers(pop_wrapped: Population, representative: str):
+    """
+    Initialize all index scorers once per population.
+    """
+    scorers = {
+        "D": DensityDisparityFlexible(
+            population=pop_wrapped,
+            representative=representative,
+            n_jobs=DI_N_JOBS,
+        ),
+        "M": Moran(population=pop_wrapped, method="tille"),
+        "V": Voronoi(population=pop_wrapped),
+        "L": LocalBalance(population=pop_wrapped),
+    }
+    return scorers
+
+
+def validate_samples(samples: np.ndarray, N: int, n: int, method: str) -> np.ndarray:
+    samples = np.asarray(samples, dtype=int)
+
+    if samples.ndim != 2:
+        raise ValueError(f"{method}: samples must be a 2D array, got shape {samples.shape}.")
+
+    if samples.shape[1] != n:
+        raise ValueError(f"{method}: expected sample size n={n}, got shape {samples.shape}.")
+
+    if np.any(samples < 0) or np.any(samples >= N):
+        raise ValueError(f"{method}: sample contains invalid unit indices.")
+
+    # Check duplicates within rows
+    bad = [i for i, s in enumerate(samples) if len(np.unique(s)) != len(s)]
+    if bad:
+        raise ValueError(f"{method}: duplicate unit(s) found in sample rows, first bad row={bad[0]}.")
+
+    return samples
+
+
+def score_samples(samples: np.ndarray, scorers: dict):
+    """
+    Vectorized score calculation.
+    DI is usually the expensive component.
+    """
+    d_scores = scorers["D"].score(samples)
+    v_scores = scorers["V"].score(samples)
+    m_scores = scorers["M"].score(samples)
+    l_scores = scorers["L"].score(samples)
+
+    return d_scores, v_scores, m_scores, l_scores
+
+
+def summarize_results(res_df: pd.DataFrame, true_total: float, rho: float, N: int, n: int, sample_cnt: int):
+    summary = res_df.groupby("Method").agg({
+        "D": ["mean", "std"],
+        "V": ["mean", "std"],
+        "M": ["mean", "std"],
+        "L": ["mean", "std"],
+        "HT": ["mean", "var"],
+    })
+
+    summary = summary[["D", "V", "M", "L", "HT"]]
+    summary.columns = ["Dm", "Ds", "Vm", "Vs", "Mm", "Ms", "Lm", "Ls", "HTm", "HTv"]
+
+    summary["RB"] = (summary["HTm"] - true_total) / true_total
+
+    if "Rand" in summary.index:
+        rand_var = summary.loc["Rand", "HTv"]
+        summary["Eff"] = rand_var / summary["HTv"].replace(0, np.nan)
+    else:
+        summary["Eff"] = np.nan
+
+    summary["rho"] = rho
+    summary["ite"] = sample_cnt
+    summary["n"] = n
+    summary["N"] = N
+    summary["DI_rep"] = DI_REPRESENTATIVE
+
+    final_cols = [
+        "N", "n", "ite", "rho", "DI_rep",
+        "HTm", "HTv", "Eff", "RB",
+        "Dm", "Ds", "Vm", "Vs", "Mm", "Ms", "Lm", "Ls",
+    ]
+
+    return summary.reindex(columns=final_cols)
+
+
+CELL 14 execution None
+## Run measure calculation
+
+
+CELL 15 execution 9
+# Purpose: save or display the final summary table.
+# ============================================================
+# DI simulation under n-medoids using your existing working functions
+# ============================================================
+
+import numpy as np
+import pandas as pd
+from IPython.display import display
+
+DI_REPRESENTATIVE_TEST = "nmedoids"
+SAMPLE_CNT_TEST = 10
+
+METHOD_LABELS = {
+    "Maxe": "MaxEnt",
+    "Scps": "SPC",
+    "Lopi": "LPV",
+    "Wave": "WAV",
+}
+INCLUSION = "EP"
+EXPERIMENTS = [
+    {
+        "population": "clust_N144_perm",
+        "n_sizes": [4, 8, 16, 32],
+        "methods": ["Maxe", "Scps", "Lopi", "Wave"],
+    },
+    {
+        "population": "grid_N144_perm",
+        "n_sizes": [4, 8, 16, 32],
+        "methods": ["Maxe", "Scps", "Lopi", "Wave"],
+    },
+    {
+        "population": "rand_N144_perm",
+        "n_sizes": [4, 8, 16, 32],
+        "methods": ["Maxe", "Scps", "Lopi", "Wave"],
+    },
+    {
+        "population": "meuse",
+        "n_sizes": [5, 10, 20],
+        "methods": ["Maxe", "Scps", "Lopi", "Wave"],
+    },
+    {
+        "population": "swiss",
+        "n_sizes": [50, 100, 150],
+        "methods": ["Maxe", "Scps", "Lopi"],   # no WAV for Swiss
+    },
+]
+
+all_rows = []
+
+for exp in EXPERIMENTS:
+    name = exp["population"]
+    pop_rows = []
+
+    print("\n" + "=" * 80)
+    print(f"Population: {name} | DI representative: {DI_REPRESENTATIVE_TEST}")
+    print("=" * 80)
+
+    for n_size in exp["n_sizes"]:
+
+        df, coords, y_values, pik, n, true_total, rho = load_population(
+            name=name,
+            n_size=n_size,
+            inclusion=INCLUSION,
+            data_folder=DATA_FOLDER,
+        )
+
+        N = len(coords)
+
+        print(
+            f"\n--- Processing {name} | N={N}, n={n}, "
+            f"samples={SAMPLE_CNT_TEST}, inclusion={INCLUSION}, "
+            f"DI={DI_REPRESENTATIVE_TEST} ---"
+        )
+
+        pop_wrapped = Population(coords=coords, inclusions=pik, variable=y_values)
+
+        # IMPORTANT: use your working wrapper, not DensityDisparity directly
+        scorers = build_scorers(
+            pop_wrapped,
+            representative=DI_REPRESENTATIVE_TEST
+        )
+
+        for method in exp["methods"]:
+            method_label = METHOD_LABELS.get(method, method)
+
+            print(f"\nRunning {method_label}...")
+
+            samples, design_obj = run_sampling_design(
+                method=method,
+                coords=coords,
+                pik=pik,
+                n=n,
+                num_samples=SAMPLE_CNT_TEST,
+                y_values=y_values,
+            )
+
+            samples = validate_samples(
+                samples,
+                N=N,
+                n=n,
+                method=method,
+            )
+
+            d_scores, v_scores, m_scores, l_scores = score_samples(samples, scorers)
+
+            row = {
+                "Population": name,
+                "N": N,
+                "n": n,
+                "Method": method_label,
+                "Dm": np.mean(d_scores),
+                "Ds": np.std(d_scores, ddof=1),
+                "Iterations": SAMPLE_CNT_TEST,
+                "DI": DI_REPRESENTATIVE_TEST,
+            }
+
+            pop_rows.append(row)
+            all_rows.append(row)
+
+            print(
+                f"{method_label}: "
+                f"Dm={row['Dm']:.6f}, Ds={row['Ds']:.6f}"
+            )
+
+    pop_table = pd.DataFrame(pop_rows)
+    pop_table = pop_table[
+        ["Population", "N", "n", "Method", "Dm", "Ds", "Iterations", "DI"]
+    ]
+
+    print(f"\nPrinted DI table for {name}")
+    display(pop_table.round(6))
+
+combined_di_table = pd.DataFrame(all_rows)
+combined_di_table = combined_di_table[
+    ["Population", "N", "n", "Method", "Dm", "Ds", "Iterations", "DI"]
+]
+
+print("\n" + "=" * 80)
+print("Combined DI table")
+print("=" * 80)
+display(combined_di_table.round(6))
+
+output_file = RESULTS_FOLDER / f"DI_nmedoids_selected_populations_{SAMPLE_CNT_TEST}.csv"
+combined_di_table.to_csv(output_file, index=False)
+
+print(f"\nSaved combined DI table to: {output_file}")
+
+SAVED OUTPUT 
+================================================================================
+Population: clust_N144_perm | DI representative: nmedoids
+================================================================================
+
+--- Processing clust_N144_perm | N=144, n=4, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=-0.121389, Ds=0.332380
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=0.063419, Ds=0.249116
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=0.032175, Ds=0.248904
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT WAV: Dm=0.010641, Ds=0.182775
+
+--- Processing clust_N144_perm | N=144, n=8, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=-0.027629, Ds=0.320875
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=0.031855, Ds=0.101155
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=0.084499, Ds=0.121836
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT WAV: Dm=0.048250, Ds=0.111250
+
+--- Processing clust_N144_perm | N=144, n=16, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=0.009125, Ds=0.299064
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=-0.022148, Ds=0.082399
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=0.039486, Ds=0.088116
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT WAV: Dm=0.023430, Ds=0.083100
+
+--- Processing clust_N144_perm | N=144, n=32, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=-0.004526, Ds=0.180246
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=-0.000967, Ds=0.068592
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=0.013059, Ds=0.047129
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT WAV: Dm=0.021817, Ds=0.051459
+
+Printed DI table for clust_N144_perm
+
+
+SAVED OUTPUT          Population    N   n  Method        Dm        Ds  Iterations        DI
+0   clust_N144_perm  144   4  MaxEnt -0.121389  0.332380          10  nmedoids
+1   clust_N144_perm  144   4     SPC  0.063419  0.249116          10  nmedoids
+2   clust_N144_perm  144   4     LPV  0.032175  0.248904          10  nmedoids
+3   clust_N144_perm  144   4     WAV  0.010641  0.182775          10  nmedoids
+4   clust_N144_perm  144   8  MaxEnt -0.027629  0.320875          10  nmedoids
+5   clust_N144_perm  144   8     SPC  0.031855  0.101155          10  nmedoids
+6   clust_N144_perm  144   8     LPV  0.084499  0.121836          10  nmedoids
+7   clust_N144_perm  144   8     WAV  0.048250  0.111250          10  nmedoids
+8   clust_N144_perm  144  16  MaxEnt  0.009125  0.299064          10  nmedoids
+9   clust_N144_perm  144  16     SPC -0.022148  0.082399          10  nmedoids
+10  clust_N144_perm  144  16     LPV  0.039486  0.088116          10  nmedoids
+11  clust_N144_perm  144  16     WAV  0.023430  0.083100          10  nmedoids
+12  clust_N144_perm  144  32  MaxEnt -0.004526  0.180246          10  nmedoids
+13  clust_N144_perm  144  32     SPC -0.000967  0.068592          10  nmedoids
+14  clust_N144_perm  144  32     LPV  0.013059  0.047129          10  nmedoids
+15  clust_N144_perm  144  32     WAV  0.021817  0.051459          10  nmedoids
+
+SAVED OUTPUT 
+================================================================================
+Population: grid_N144_perm | DI representative: nmedoids
+================================================================================
+
+--- Processing grid_N144_perm | N=144, n=4, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=-0.021883, Ds=0.349707
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=-0.039044, Ds=0.293418
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=-0.043883, Ds=0.225130
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT WAV: Dm=0.029900, Ds=0.222374
+
+--- Processing grid_N144_perm | N=144, n=8, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=-0.090441, Ds=0.343930
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=0.084284, Ds=0.189708
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=0.092202, Ds=0.289753
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT WAV: Dm=0.128502, Ds=0.186733
+
+--- Processing grid_N144_perm | N=144, n=16, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=-0.216849, Ds=0.229928
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=0.091789, Ds=0.186027
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=0.106542, Ds=0.133343
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT WAV: Dm=0.144490, Ds=0.094358
+
+--- Processing grid_N144_perm | N=144, n=32, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=-0.047523, Ds=0.226455
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=0.046594, Ds=0.097039
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=0.079544, Ds=0.073756
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT WAV: Dm=0.062842, Ds=0.078817
+
+Printed DI table for grid_N144_perm
+
+
+SAVED OUTPUT         Population    N   n  Method        Dm        Ds  Iterations        DI
+0   grid_N144_perm  144   4  MaxEnt -0.021883  0.349707          10  nmedoids
+1   grid_N144_perm  144   4     SPC -0.039044  0.293418          10  nmedoids
+2   grid_N144_perm  144   4     LPV -0.043883  0.225130          10  nmedoids
+3   grid_N144_perm  144   4     WAV  0.029900  0.222374          10  nmedoids
+4   grid_N144_perm  144   8  MaxEnt -0.090441  0.343930          10  nmedoids
+5   grid_N144_perm  144   8     SPC  0.084284  0.189708          10  nmedoids
+6   grid_N144_perm  144   8     LPV  0.092202  0.289753          10  nmedoids
+7   grid_N144_perm  144   8     WAV  0.128502  0.186733          10  nmedoids
+8   grid_N144_perm  144  16  MaxEnt -0.216849  0.229928          10  nmedoids
+9   grid_N144_perm  144  16     SPC  0.091789  0.186027          10  nmedoids
+10  grid_N144_perm  144  16     LPV  0.106542  0.133343          10  nmedoids
+11  grid_N144_perm  144  16     WAV  0.144490  0.094358          10  nmedoids
+12  grid_N144_perm  144  32  MaxEnt -0.047523  0.226455          10  nmedoids
+13  grid_N144_perm  144  32     SPC  0.046594  0.097039          10  nmedoids
+14  grid_N144_perm  144  32     LPV  0.079544  0.073756          10  nmedoids
+15  grid_N144_perm  144  32     WAV  0.062842  0.078817          10  nmedoids
+
+SAVED OUTPUT 
+================================================================================
+Population: rand_N144_perm | DI representative: nmedoids
+================================================================================
+
+--- Processing rand_N144_perm | N=144, n=4, samples=10, inclusion=EP, DI=nmedoids ---
+
+Running MaxEnt...
+
+
+SAVED OUTPUT Maxe:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT MaxEnt: Dm=-0.191156, Ds=0.303587
+
+Running SPC...
+
+
+SAVED OUTPUT Scps:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT SPC: Dm=0.084634, Ds=0.253827
+
+Running LPV...
+
+
+SAVED OUTPUT Lopi:   0%|          | 0/10 [00:00<?, ?it/s]
+
+SAVED OUTPUT LPV: Dm=-0.050254, Ds=0.316801
+
+Running WAV...
+
+
+SAVED OUTPUT Wave:   0%|          | 0/10 [00:00<?, ?it/s]
+
+
+CELL 16 execution None
+# Store
+
+
+CELL 17 execution None
+# Purpose: save or display the final summary table.
+# ============================================================
+# DI simulation under n-medoids using your existing working functions
+# ============================================================
+
+import numpy as np
+import pandas as pd
+from IPython.display import display
+
+DI_REPRESENTATIVE_TEST = "nmedoids"
+SAMPLE_CNT_TEST = 2000
+
+METHOD_LABELS = {
+    "Maxe": "MaxEnt",
+    "Scps": "SPC",
+    "Lopi": "LPV",
+    "Wave": "WAV",
+}
+
+EXPERIMENTS = [
+    # {
+    #     "population": "clust_N144_perm",
+    #     "n_sizes": [4, 8, 16, 32],
+    #     "methods": ["Maxe", "Scps", "Lopi", "Wave"],
+    # },
+    {
+        "population": "grid_N144_perm",
+        "n_sizes": [4, 8, 16, 32],
+        "methods": ["Maxe", "Scps", "Lopi", "Wave"],
+    },
+    {
+        "population": "meuse",
+        "n_sizes": [5, 10, 20],
+        "methods": ["Maxe", "Scps", "Lopi", "Wave"],
+    },
+    {
+        "population": "swiss",
+        "n_sizes": [50, 100, 150],
+        "methods": ["Maxe", "Scps", "Lopi"],   # no WAV for Swiss
+    },
+]
+
+all_rows = []
+
+for exp in EXPERIMENTS:
+    name = exp["population"]
+    pop_rows = []
+
+    print("\n" + "=" * 80)
+    print(f"Population: {name} | DI representative: {DI_REPRESENTATIVE_TEST}")
+    print("=" * 80)
+
+    for n_size in exp["n_sizes"]:
+
+        df, coords, y_values, pik, n, true_total, rho = load_population(
+            name=name,
+            n_size=n_size,
+            inclusion=INCLUSION,
+            data_folder=DATA_FOLDER,
+        )
+
+        N = len(coords)
+
+        print(
+            f"\n--- Processing {name} | N={N}, n={n}, "
+            f"samples={SAMPLE_CNT_TEST}, inclusion={INCLUSION}, "
+            f"DI={DI_REPRESENTATIVE_TEST} ---"
+        )
+
+        pop_wrapped = Population(coords=coords, inclusions=pik, variable=y_values)
+
+        # IMPORTANT: use your working wrapper, not DensityDisparity directly
+        scorers = build_scorers(
+            pop_wrapped,
+            representative=DI_REPRESENTATIVE_TEST
+        )
+
+        for method in exp["methods"]:
+            method_label = METHOD_LABELS.get(method, method)
+
+            print(f"\nRunning {method_label}...")
+
+            samples, design_obj = run_sampling_design(
+                method=method,
+                coords=coords,
+                pik=pik,
+                n=n,
+                num_samples=SAMPLE_CNT_TEST,
+                y_values=y_values,
+            )
+
+            samples = validate_samples(
+                samples,
+                N=N,
+                n=n,
+                method=method,
+            )
+
+            d_scores, v_scores, m_scores, l_scores = score_samples(samples, scorers)
+
+            row = {
+                "Population": name,
+                "N": N,
+                "n": n,
+                "Method": method_label,
+                "Dm": np.mean(d_scores),
+                "Ds": np.std(d_scores, ddof=1),
+                "Iterations": SAMPLE_CNT_TEST,
+                "DI": DI_REPRESENTATIVE_TEST,
+            }
+
+            pop_rows.append(row)
+            all_rows.append(row)
+
+            print(
+                f"{method_label}: "
+                f"Dm={row['Dm']:.6f}, Ds={row['Ds']:.6f}"
+            )
+
+    pop_table = pd.DataFrame(pop_rows)
+    pop_table = pop_table[
+        ["Population", "N", "n", "Method", "Dm", "Ds", "Iterations", "DI"]
+    ]
+
+    print(f"\nPrinted DI table for {name}")
+    display(pop_table.round(6))
+
+combined_di_table = pd.DataFrame(all_rows)
+combined_di_table = combined_di_table[
+    ["Population", "N", "n", "Method", "Dm", "Ds", "Iterations", "DI"]
+]
+
+print("\n" + "=" * 80)
+print("Combined DI table")
+print("=" * 80)
+display(combined_di_table.round(6))
+
+output_file = RESULTS_FOLDER / f"DI_nmedoids_selected_populations_{SAMPLE_CNT_TEST}.csv"
+combined_di_table.to_csv(output_file, index=False)
+
+print(f"\nSaved combined DI table to: {output_file}")
+
+
+CELL 18 execution None
+# Purpose: run the next step in the notebook workflow.
+# ============================================================
+# Quick comparison: DI with n-means vs n-medoids
+# Uses the same working structure as your main simulation cell
+# ============================================================
+
+QUICK_POP = POP_NAMES[0]          # or write: "rand_N144_perm"
+QUICK_N = N_SIZES[0]              # or write: 32
+QUICK_SAMPLE_CNT = 300            # small for quick test
+QUICK_METHODS = METHODS           # or e.g. ["Maxe"]
+
+df, coords, y_values, pik, n, true_total, rho = load_population(
+    name=QUICK_POP,
+    n_size=QUICK_N,
+    inclusion=INCLUSION,
+    data_folder=DATA_FOLDER,
+)
+
+N = len(coords)
+
+print(
+    f"\n--- Quick DI comparison | {QUICK_POP} | N={N}, n={n}, "
+    f"samples={QUICK_SAMPLE_CNT}, inclusion={INCLUSION} ---"
+)
+
+pop_wrapped = Population(coords=coords, inclusions=pik, variable=y_values)
+
+scorers_means = build_scorers(pop_wrapped, representative="nmeans")
+scorers_medoids = build_scorers(pop_wrapped, representative="nmedoids")
+
+quick_rows = []
+
+for method in QUICK_METHODS:
+    print(f"\nRunning {method}...")
+
+    samples, design_obj = run_sampling_design(
+        method=method,
+        coords=coords,
+        pik=pik,
+        n=n,
+        num_samples=QUICK_SAMPLE_CNT,
+        y_values=y_values,
+    )
+
+    samples = validate_samples(samples, N=N, n=n, method=method)
+
+    d_means, _, _, _ = score_samples(samples, scorers_means)
+    d_medoids, _, _, _ = score_samples(samples, scorers_medoids)
+
+    quick_rows.append({
+        "Population": QUICK_POP,
+        "n": n,
+        "Method": method,
+        "D_nmeans_mean": np.mean(d_means),
+        "D_nmeans_sd": np.std(d_means, ddof=1),
+        "D_nmedoids_mean": np.mean(d_medoids),
+        "D_nmedoids_sd": np.std(d_medoids, ddof=1),
+        "Difference_medoids_minus_means": np.mean(d_medoids) - np.mean(d_means),
+    })
+
+quick_compare = pd.DataFrame(quick_rows)
+
+display(quick_compare.round(6))
+
+
+CELL 19 execution None
+# Purpose: save or display the final summary table.
+# ============================================================
+# Exact DI mean and SD for saved Meuse and Swiss designs
+# Initial = NMS, Best = GMS
+# DI representative = nmedoids
+# ============================================================
+
+import pickle
+import numpy as np
+import pandas as pd
+from pathlib import Path
+from IPython.display import display
+
+# If DensityDisparity is already imported, this is harmless.
+try:
+    from package_sampling.index import DensityDisparity
+except ImportError:
+    from graphical_sampling.index import DensityDisparity
+
+
+# ------------------------------------------------------------
+# Settings
+# ------------------------------------------------------------
+
+DI_REPRESENTATIVE_DESIGNS = "nmedoids"   # "nmeans" or "nmedoids"
+
+DESIGN_BASE = Path("simulations/best_designs")
+for _ in range(5):
+    if DESIGN_BASE.exists():
+        break
+    DESIGN_BASE = Path("..") / DESIGN_BASE
+
+RESULTS_FOLDER = Path("results")
+RESULTS_FOLDER.mkdir(exist_ok=True)
+
+EXPERIMENTS = {
+    "meuse": [5, 10, 20],
+    "swiss": [50, 100, 150],
+}
+
+PROB_TYPES = {
+    "ep": "EP",
+    "up": "UP",
+}
+
+DESIGN_TYPES = {
+    "initial": "NMS",
+    "best": "GMS",
+}
+
+
+# ------------------------------------------------------------
+# Helper functions
+# ------------------------------------------------------------
+
+def load_design(path):
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
+
+def weighted_mean_sd(values, probs):
+    values = np.asarray(values, dtype=float)
+    probs = np.asarray(probs, dtype=float)
+    probs = probs / probs.sum()
+
+    mean = np.sum(values * probs)
+    sd = np.sqrt(np.sum(((values - mean) ** 2) * probs))
+
+    return mean, sd
+
+
+def exact_di_for_design(design, representative="nmedoids"):
+    samples, probs = design.all_samples_and_probs
+
+    scorer_D = DensityDisparity(
+        population=design.pop,
+        representative=representative
+    )
+
+    d_scores = scorer_D.score(samples)
+    dm, ds = weighted_mean_sd(d_scores, probs)
+
+    return dm, ds, len(probs)
+
+
+# ------------------------------------------------------------
+# Main calculation
+# ------------------------------------------------------------
+
+all_rows = []
+
+for pop_name, n_sizes in EXPERIMENTS.items():
+
+    pop_rows = []
+
+    print("\n" + "=" * 80)
+    print(f"Population: {pop_name} | DI = {DI_REPRESENTATIVE_DESIGNS}")
+    print("=" * 80)
+
+    for n in n_sizes:
+        for prob_code, prob_label in PROB_TYPES.items():
+            for design_prefix, method_label in DESIGN_TYPES.items():
+
+                file_name = f"{design_prefix}_design_df_{pop_name}_{n}_pik_{prob_code}.pkl"
+                file_path = DESIGN_BASE / pop_name / file_name
+
+                if not file_path.exists():
+                    print(f"Missing file: {file_path}")
+                    continue
+
+                print(f"Reading: {file_name}")
+
+                design = load_design(file_path)
+
+                dm, ds, support_size = exact_di_for_design(
+                    design,
+                    representative=DI_REPRESENTATIVE_DESIGNS
+                )
+
+                row = {
+                    "Population": pop_name,
+                    "Probability": prob_label,
+                    "Method": method_label,
+                    "Design": design_prefix,
+                    "N": design.pop.N,
+                    "n": design.pop.n,
+                    "Dm": dm,
+                    "Ds": ds,
+                    "Support": support_size,
+                    "DI": DI_REPRESENTATIVE_DESIGNS,
+                }
+
+                pop_rows.append(row)
+                all_rows.append(row)
+
+                print(
+                    f"{method_label} | {prob_label} | n={design.pop.n}: "
+                    f"Dm={dm:.6f}, Ds={ds:.6f}, support={support_size}"
+                )
+
+    pop_table = pd.DataFrame(pop_rows)
+    pop_table = pop_table[
+        ["Population", "Probability", "Method", "Design", "N", "n", "Dm", "Ds", "Support", "DI"]
+    ]
+
+    print(f"\nDI table for {pop_name}")
+    display(pop_table.round(6))
+
+
+# ------------------------------------------------------------
+# Combined table and save
+# ------------------------------------------------------------
+
+design_di_table = pd.DataFrame(all_rows)
+design_di_table = design_di_table[
+    ["Population", "Probability", "Method", "Design", "N", "n", "Dm", "Ds", "Support", "DI"]
+]
+
+print("\n" + "=" * 80)
+print("Combined DI table")
+print("=" * 80)
+display(design_di_table.round(6))
+
+output_file = RESULTS_FOLDER / f"DI_saved_designs_meuse_swiss_{DI_REPRESENTATIVE_DESIGNS}.csv"
+design_di_table.to_csv(output_file, index=False)
+
+print(f"\nSaved to: {output_file}")
+
+
+CELL 20 execution None
+## Combined summary table
+
+
+CELL 21 execution None
+# Purpose: save or display the final summary table.
+if all_summaries:
+    combined_summary = pd.concat(all_summaries)
+    display(combined_summary.round(4))
+
+    combined_file = RESULTS_FOLDER / f"combined_summary_EUP={INCLUSION}_DI={DI_REPRESENTATIVE}.csv"
+    combined_summary.to_csv(combined_file)
+    print(f"Saved combined summary to: {combined_file}")
+else:
+    print("No summaries were produced.")

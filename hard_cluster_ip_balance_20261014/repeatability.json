@@ -1,0 +1,29 @@
+{
+  "fixed_seed_full_pipeline_checks": [
+    {
+      "case_id": "Gridded_n4_UP_r1",
+      "all_arrays_bit_identical": true,
+      "array_count": 11,
+      "repeat_cpu_seconds": 16.876349601999998
+    },
+    {
+      "case_id": "Random_n4_UP_r1",
+      "all_arrays_bit_identical": true,
+      "array_count": 11,
+      "repeat_cpu_seconds": 13.674698888999998
+    },
+    {
+      "case_id": "Clustered_n4_UP_r1",
+      "all_arrays_bit_identical": true,
+      "array_count": 11,
+      "repeat_cpu_seconds": 8.881523903000001
+    },
+    {
+      "case_id": "Meuse_n5_UP_r1",
+      "all_arrays_bit_identical": true,
+      "array_count": 11,
+      "repeat_cpu_seconds": 14.627266753
+    }
+  ],
+  "all_passed": true
+}

@@ -1,0 +1,194 @@
+0001: from ..clustering import FIPBalancedNMeans
+0002: from ..population import _random_seed
+0003: 
+0004: import numpy as np
+0005: from scipy.optimize import linear_sum_assignment
+0006: from scipy.spatial.distance import cdist
+0007: from sklearn.neighbors import KernelDensity
+0008: from joblib import Parallel, delayed
+0009: 
+0010: 
+0011: class DensityDisparity:
+0012:     """Historical package DI with optional reproducible reference construction.
+0013: 
+0014:     An integer random_state selects a local stream for each sample-index tuple,
+0015:     independent of batch ordering and n_jobs. None preserves the unseeded API.
+0016:     Replay assumes the same input order/settings and software environment;
+0017:     cross-platform bitwise equality is not promised. Subclasses overriding
+0018:     _process_one_sample retain their signature and own seed handling.
+0019:     """
+0020:     def __init__(
+0021:             self,
+0022:             population,
+0023:             n_jobs: int = -1,
+0024:             clustering_tol: float = 1e-9,
+0025:             clustering_max_iter: int = 100,
+0026:             kde_rtol: float = 1e-4,
+0027:             representative: str = "nmeans",   # "nmeans" or "nmedoids"
+0028:             *, random_state: int | None = None,
+0029:     ):
+0030:         self.random_state = _random_seed(random_state)
+0031:         self.pop = population
+0032:         self.coords = self.pop.coords
+0033:         self.probs = self.pop.inclusions
+0034: 
+0035:         self.n_jobs = n_jobs
+0036:         self.clustering_tol = clustering_tol
+0037:         self.clustering_max_iter = clustering_max_iter
+0038:         self.kde_rtol = kde_rtol
+0039: 
+0040:         if representative not in {"nmeans", "nmedoids"}:
+0041:             raise ValueError("representative must be either 'nmeans' or 'nmedoids'.")
+0042:         self.representative = representative
+0043: 
+0044:         # 1. First KDE: Calculate the original density once, as self.coords never changes
+0045:         self.original_density = self._density(self.coords)
+0046: 
+0047:         # --- Precompute and cache constants for scoring ---
+0048:         self._orig_density_sq = self.original_density ** 2
+0049:         self._sqrt_2 = np.sqrt(2)
+0050:         self._sin_pi_8 = np.sin(np.pi / 8)
+0051:         self._one_minus_cos_pi_8 = 1.0 - np.cos(np.pi / 8)
+0052: 
+0053:     def _density(self, coords: np.ndarray) -> np.ndarray:
+0054:         kde = KernelDensity(
+0055:             kernel="tophat",
+0056:             bandwidth="scott",
+0057:             rtol=self.kde_rtol
+0058:         ).fit(coords)
+0059:         return np.exp(kde.score_samples(coords))
+0060: 
+0061:     @staticmethod
+0062:     def _scale(arr, max_val):
+0063:         return np.clip(arr / max_val, -1.0, 1.0)
+0064: 
+0065:     def _score_single_density(self, translated_density: np.ndarray) -> float:
+0066:         # Adapted to process a 1D array instead of a 2D batch array
+0067:         norm = self._sqrt_2 * np.sqrt(self._orig_density_sq + translated_density ** 2)
+0068:         inv_norm = 1.0 / norm
+0069: 
+0070:         spread_arr = (self.original_density - translated_density) * inv_norm
+0071:         spread = np.mean(self._scale(spread_arr, self._sin_pi_8)).item()
+0072: 
+0073:         var_arr = 1.0 - (self.original_density + translated_density) * inv_norm
+0074:         var = np.mean(self._scale(var_arr, self._one_minus_cos_pi_8)).item()
+0075: 
+0076:         return spread + (np.sign(spread) - spread) * var
+0077: 
+0078:     def _process_one_sample(self, sample_indices: np.ndarray):
+0079:         """The complete, independent pipeline for a single sample."""
+0080:         raw_sample = self.coords[sample_indices]
+0081: 
+0082:         # The sample tuple, rather than batch position or worker, selects its stream.
+0083:         # Normalize valid negative indices to their equivalent population indices.
+0084:         seed = None
+0085:         if self.random_state is not None:
+0086:             entropy = [self.random_state, *(int(i) % self.pop.N for i in sample_indices)]
+0087:             seed = int(np.random.SeedSequence(entropy).generate_state(1)[0])
+0088: 
+0089:         # 1. Clustering per sample
+0090:         fbn = FIPBalancedNMeans(
+0091:             n=self.pop.n,
+0092:             tol=self.clustering_tol,
+0093:             max_iter=self.clustering_max_iter,
+0094:             init_clust_method="weighted",
+0095:             random_state=seed,
+0096:         )
+0097:         fbn.fit(self.pop, init_centroids=raw_sample)
+0098: 
+0099:         labels = fbn.labels
+0100:         centroids = fbn.centroids
+0101: 
+0102:         # 2. Choose cluster representative: n-means or n-medoids
+0103:         if self.representative == "nmeans":
+0104:             reference_points = centroids
+0105: 
+0106:         elif self.representative == "nmedoids":
+0107:             reference_points, medoid_indices = self._cluster_medoids(labels, centroids)
+0108: 
+0109:         else:
+0110:             raise ValueError("representative must be either 'nmeans' or 'nmedoids'.")
+0111: 
+0112:         # 3. Assign sample points to the selected reference points
+0113:         cost = cdist(reference_points, raw_sample)
+0114:         row_ind, col_ind = linear_sum_assignment(cost)
+0115: 
+0116:         assigned_sample = np.empty_like(reference_points)
+0117:         assigned_sample[row_ind] = raw_sample[col_ind]
+0118: 
+0119:         # 4. Translation based on either centroids or medoids
+0120:         translations = assigned_sample - reference_points
+0121:         translated_coords = self.coords + translations[labels]
+0122: 
+0123:         # 5. Second KDE
+0124:         translated_density = self._density(translated_coords)
+0125: 
+0126:         # 6. Score calculation
+0127:         score = self._score_single_density(translated_density)
+0128: 
+0129:         return score, translated_density
+0130: 
+0131:     def score(self, samples: np.ndarray, return_densities: bool = False):
+0132:         """
+0133:         samples: array of shape (n_samples, total_points)
+0134:                  where each row is an index array into self.coords.
+0135:         """
+0136:         # Distribute the full pipeline for each sample across available CPU cores
+0137:         results = Parallel(n_jobs=self.n_jobs)(
+0138:             delayed(self._process_one_sample)(s) for s in samples
+0139:         )
+0140: 
+0141:         # Unpack the results
+0142:         scores, densities = zip(*results)
+0143:         scores = np.array(scores)
+0144: 
+0145:         if return_densities:
+0146:             return scores, [(self.original_density, td) for td in densities]
+0147:         return scores
+0148:     
+0149:     def _cluster_medoids(self, labels: np.ndarray, centroids: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+0150:         """
+0151:         Return one medoid for each cluster.
+0152: 
+0153:         The medoid is the population unit inside the cluster that minimizes
+0154:         the weighted sum of distances to all other units in that cluster.
+0155:         """
+0156:         K = centroids.shape[0]
+0157:         medoids = np.empty_like(centroids)
+0158:         medoid_indices = np.empty(K, dtype=int)
+0159: 
+0160:         for k in range(K):
+0161:             idx = np.flatnonzero(labels == k)
+0162: 
+0163:             if idx.size == 0:
+0164:                 # Very rare fallback: keep the centroid if a cluster is empty
+0165:                 medoids[k] = centroids[k]
+0166:                 medoid_indices[k] = -1
+0167:                 continue
+0168: 
+0169:             if idx.size == 1:
+0170:                 medoid_indices[k] = idx[0]
+0171:                 medoids[k] = self.coords[idx[0]]
+0172:                 continue
+0173: 
+0174:             X = self.coords[idx]
+0175:             w = self.probs[idx]
+0176: 
+0177:             # Weighted medoid objective
+0178:             D = cdist(X, X, metric="euclidean")
+0179:             objective = D @ w
+0180: 
+0181:             min_obj = objective.min()
+0182:             candidate_locals = np.flatnonzero(np.isclose(objective, min_obj))
+0183: 
+0184:             # Tie-breaking 1: choose the candidate with the largest IP
+0185:             candidate_probs = self.probs[idx[candidate_locals]]
+0186:             max_prob = candidate_probs.max()
+0187:             candidate_locals = candidate_locals[np.isclose(candidate_probs, max_prob)]
+0188: 
+0189:             # Tie-breaking 2: if still tied, choose the smallest population index
+0190:             best_local = candidate_locals[np.argmin(idx[candidate_locals])]
+0191: 
+0192:             medoid_indices[k] = idx[best_local]
+0193:             medoids[k] = self.coords[medoid_indices[k]]
+0194:         return medoids, medoid_indices

@@ -1,0 +1,1018 @@
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 0 type=markdown execution_count=None outputs=0 =====
+C0:L0001 ### GFS sampling paper plot
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 1 type=code execution_count=20 outputs=1 =====
+C1:L0001 %load_ext autoreload
+C1:L0002 %autoreload 2
+OUTPUT 0 stream
+The autoreload extension is already loaded. To reload it, use:
+  %reload_ext autoreload
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 2 type=code execution_count=10 outputs=0 =====
+C2:L0001 import numpy as np
+C2:L0002 import matplotlib.pyplot as plt
+C2:L0003 import graphical_sampling as gs
+C2:L0004 from graphical_sampling.index import Moran
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 3 type=code execution_count=11 outputs=0 =====
+C3:L0001 # --- Population ---
+C3:L0002 coords_data = np.array([
+C3:L0003     (1,1),(1,2),(1,3),
+C3:L0004     (2,1),(2,2),(2,3),
+C3:L0005     (3,1),(3,2),(3,3)
+C3:L0006 ])
+C3:L0007 
+C3:L0008 inclusions_data = np.array([0.7, 0.3, 0.4, 0.8, 0.3, 0.65, 0.45, 0.2, 0.2])
+C3:L0009 n = int(inclusions_data.sum())
+C3:L0010 
+C3:L0011 pop = gs.Population(coords_data, inclusions_data, n=n, variable=inclusions_data)
+C3:L0012 
+C3:L0013 # --- Clustering ---
+C3:L0014 fbn = gs.clustering.FIPBalancedNMeans(
+C3:L0015     n=n,
+C3:L0016     centroid_grid_x=1,
+C3:L0017     r_sample_per_cluster=1,
+C3:L0018     init_clust_method='expanded',
+C3:L0019     split_size=.001
+C3:L0020 )
+C3:L0021 
+C3:L0022 fbn.fit(pop)
+C3:L0023 fbn.fit_zones(num_zones=(1,1), mode='sweep_yx')
+C3:L0024 
+C3:L0025 # --- Order & Design ---
+C3:L0026 order = gs.Order.from_clusters(
+C3:L0027     pop,
+C3:L0028     fbn.clusters,
+C3:L0029     zone_strategy='lexico_yx',
+C3:L0030     point_strategy='lexico_yx',
+C3:L0031     num_splits=1,
+C3:L0032     topological=True
+C3:L0033 )
+C3:L0034 
+C3:L0035 design = gs.Design.from_order(pop, order)
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 4 type=code execution_count=12 outputs=2 =====
+C4:L0001 
+C4:L0002 # =========================================================
+C4:L0003 # 🔴 STEP 1: draw ONE sample from the design
+C4:L0004 # =========================================================
+C4:L0005 sample = design.sample(1)[0]
+C4:L0006 sample = np.array([1,3,5,7]) -1  # shape (n,)
+C4:L0007 print("Sample:", sample+1)
+C4:L0008 
+C4:L0009 # =========================================================
+C4:L0010 # 🔴 STEP 2: Moran for THIS sample (not expected value)
+C4:L0011 # =========================================================
+C4:L0012 moran_index = Moran(pop)
+C4:L0013 moran_val = moran_index.score(np.array([sample]))[0]
+C4:L0014 
+C4:L0015 print("Moran(sample):", moran_val)
+C4:L0016 
+C4:L0017 # =========================================================
+C4:L0018 # 🔴 STEP 3: Plot
+C4:L0019 # =========================================================
+C4:L0020 fig, ax = plt.subplots()
+C4:L0021 
+C4:L0022 # background clusters
+C4:L0023 fbn.plot(mode='soft', ax=ax)
+C4:L0024 
+C4:L0025 coords = pop.coords
+C4:L0026 
+C4:L0027 # highlight selected units
+C4:L0028 ax.scatter(coords[sample, 0], coords[sample, 1],
+C4:L0029            color="darkred", marker='x', s=120, linewidths=2, zorder=10)
+C4:L0030 
+C4:L0031 # label
+C4:L0032 x, y = coords[sample].mean(axis=0)
+C4:L0033 ax.text(x-0.1, y+0.2, f"Moran={moran_val:.3f}", fontsize=12)
+C4:L0034 
+C4:L0035 plt.show()
+OUTPUT 0 stream
+Sample: [1 3 5 7]
+Moran(sample): -0.9087389347953035
+OUTPUT 1 display_data
+<Figure size 640x480 with 1 Axes>
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 5 type=code execution_count=13 outputs=1 =====
+C5:L0001 import numpy as np
+C5:L0002 import matplotlib.pyplot as plt
+C5:L0003 from graphical_sampling.index import Moran
+C5:L0004 coords_data = np.array([
+C5:L0005     (1,1),(1,2),(1,3),
+C5:L0006     (2,1),(2,2),(2,3),
+C5:L0007     (3,1),(3,2),(3,3)
+C5:L0008 ])
+C5:L0009 coords = coords_data
+C5:L0010 sample = design.sample(1)[0]
+C5:L0011 
+C5:L0012 # Moran
+C5:L0013 moran_index = Moran(pop)
+C5:L0014 moran_val = moran_index.score(np.array([sample]))[0]
+C5:L0015 
+C5:L0016 # =========================================================
+C5:L0017 # 🔴 Figure (match your style)
+C5:L0018 # =========================================================
+C5:L0019 fig, ax = plt.subplots(figsize=(8, 4))
+C5:L0020 
+C5:L0021 # --- background ---
+C5:L0022 ax.set_facecolor("#d9d9d9")   # light gray panel
+C5:L0023 # --- grid lines (only internal structure) ---
+C5:L0024 x_vals = np.unique(coords[:,0])
+C5:L0025 y_vals = np.unique(coords[:,1])
+C5:L0026 
+C5:L0027 for x in x_vals:
+C5:L0028     ax.axvline(x, color='black', lw=0.8, alpha=0.6, zorder=0)
+C5:L0029 
+C5:L0030 for y in y_vals:
+C5:L0031     ax.axhline(y, color='black', lw=0.8, alpha=0.6, zorder=0)
+C5:L0032 
+C5:L0033 # --- sample (crosses only, no population dots) ---
+C5:L0034 ax.scatter(coords[sample, 0], coords[sample, 1],
+C5:L0035            color="red", marker='x', s=80, linewidths=1.8, zorder=5)
+C5:L0036 
+C5:L0037 # --- ticks exactly like figure ---
+C5:L0038 ax.set_xticks(x_vals)
+C5:L0039 ax.set_yticks(y_vals)
+C5:L0040 
+C5:L0041 # --- limits tight ---
+C5:L0042 ax.set_xlim(x_vals.min(), x_vals.max())
+C5:L0043 ax.set_ylim(y_vals.min(), y_vals.max())
+C5:L0044 
+C5:L0045 # --- clean axes ---
+C5:L0046 ax.spines['top'].set_visible(False)
+C5:L0047 ax.spines['right'].set_visible(False)
+C5:L0048 
+C5:L0049 # --- Moran annotation (subtle, like your figure) ---
+C5:L0050 ax.text(1.5, y_vals.min()+0.5,
+C5:L0051         rf"$Moran={moran_val:.2f}$",
+C5:L0052         ha='center', fontsize=11)
+C5:L0053 
+C5:L0054 plt.tight_layout()
+C5:L0055 plt.show()
+OUTPUT 0 display_data
+<Figure size 800x400 with 1 Axes>
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 6 type=code execution_count=14 outputs=1 =====
+C6:L0001 import numpy as np
+C6:L0002 import matplotlib.pyplot as plt
+C6:L0003 from graphical_sampling.index import Moran
+C6:L0004 
+C6:L0005 # --- coords & sample already defined ---
+C6:L0006 coords = pop.coords
+C6:L0007 
+C6:L0008 # --- sample ---
+C6:L0009 sample = design.sample(1)[0]
+C6:L0010 
+C6:L0011 # --- Moran ---
+C6:L0012 moran_index = Moran(pop)
+C6:L0013 moran_val = moran_index.score(np.array([sample]))[0]
+C6:L0014 
+C6:L0015 # =========================================================
+C6:L0016 # 🔴 Manual plotting
+C6:L0017 # =========================================================
+C6:L0018 fig, ax = plt.subplots(figsize=(6, 4))
+C6:L0019 
+C6:L0020 # --- population points (light) ---
+C6:L0021 ax.scatter(coords[:, 0], coords[:, 1],
+C6:L0022            color="black", s=40, alpha=0.6, zorder=1)
+C6:L0023 
+C6:L0024 # --- sample (crosses) ---
+C6:L0025 ax.scatter(coords[sample, 0], coords[sample, 1],
+C6:L0026            color="red", marker='x', s=120, linewidths=2, zorder=3)
+C6:L0027 
+C6:L0028 # --- optional: grid lines (like your figure) ---
+C6:L0029 for x in np.unique(coords[:,0]):
+C6:L0030     ax.axvline(x, color='black', lw=0.8, alpha=0.5, zorder=0)
+C6:L0031 
+C6:L0032 for y in np.unique(coords[:,1]):
+C6:L0033     ax.axhline(y, color='black', lw=0.8, alpha=0.5, zorder=0)
+C6:L0034 
+C6:L0035 # --- limits & ticks ---
+C6:L0036 ax.set_xlim(coords[:,0].min()-0.2, coords[:,0].max()+0.2)
+C6:L0037 ax.set_ylim(coords[:,1].min()-0.2, coords[:,1].max()+0.2)
+C6:L0038 
+C6:L0039 ax.set_xticks(np.unique(coords[:,0]))
+C6:L0040 ax.set_yticks(np.unique(coords[:,1]))
+C6:L0041 
+C6:L0042 # --- Moran text ---
+C6:L0043 x_mean, y_mean = coords[sample].mean(axis=0)
+C6:L0044 ax.text(x_mean-0.5, y_mean+0.3,
+C6:L0045         rf"$I={moran_val:.2f}$",
+C6:L0046         fontsize=12)
+C6:L0047 
+C6:L0048 # --- style (paper-like) ---
+C6:L0049 ax.set_aspect('equal')
+C6:L0050 ax.spines['top'].set_visible(False)
+C6:L0051 ax.spines['right'].set_visible(False)
+C6:L0052 
+C6:L0053 plt.tight_layout()
+C6:L0054 plt.show()
+OUTPUT 0 display_data
+<Figure size 600x400 with 1 Axes>
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 7 type=markdown execution_count=None outputs=0 =====
+C7:L0001 ### For sampling
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 8 type=code execution_count=21 outputs=0 =====
+C8:L0001 import os
+C8:L0002 os.getcwd()
+C8:L0003 # os.chdir("/home/bardia/graphical-sampling")
+C8:L0004 # os.chdir("/home/bardia/graphical-sampling/simulations")
+C8:L0005 # os.chdir('/config/ws/graphical-sampling/simulations')
+C8:L0006 os.chdir('/Users/Apc/graphical-sampling/simulations')
+C8:L0007 from package_sampling.utils import inclusion_probabilities
+C8:L0008 
+C8:L0009 import os
+C8:L0010 import pandas as pd
+C8:L0011 import numpy as np
+C8:L0012 
+C8:L0013 # Assuming inclusion_probabilities is defined elsewhere or imported
+C8:L0014 # from your package
+C8:L0015 files = ["aggregated.csv", "regular.csv", "meuse.csv", "swiss.csv", "aggregated_1000.csv", "regular_1000.csv",
+C8:L0016          "AggregatedPop1000.csv", "RegularPop1000.csv"]
+C8:L0017 
+C8:L0018 def popus(n, path="populations/real"):
+C8:L0019     dfs = {} # Better to define inside to keep it clean
+C8:L0020     for f in files:
+C8:L0021         full_path = os.path.join(path, f)
+C8:L0022         if not os.path.exists(full_path):
+C8:L0023             print(f"Warning: {full_path} not found.")
+C8:L0024             continue
+C8:L0025             
+C8:L0026         df = pd.read_csv(full_path)
+C8:L0027         N_pop = len(df)
+C8:L0028         name = f.replace('.csv', '')
+C8:L0029         
+C8:L0030         # Equal Probabilities (Standard for all)
+C8:L0031         pik_ep = np.repeat(n / N_pop, N_pop)
+C8:L0032         
+C8:L0033         if f in ["aggregated.csv", "regular.csv",  "aggregated_1000.csv", "regular_1000.csv",
+C8:L0034                   "AggregatedPop1000.csv", "RegularPop1000.csv"]:
+C8:L0035             coords = df.to_numpy()
+C8:L0036             dfs[f'df_{name}'] = pd.DataFrame({
+C8:L0037                 'coord_x': coords[:, 0],
+C8:L0038                 'coord_y': coords[:, 1],
+C8:L0039                 'pik_ep' : pik_ep,
+C8:L0040                 'z'      : np.ones(N_pop) # Placeholder if z is missing
+C8:L0041             })
+C8:L0042 
+C8:L0043         elif f == "meuse.csv":
+C8:L0044             coords = df[['x', 'y']].to_numpy()
+C8:L0045             # Unequal Probabilities (UP)
+C8:L0046             pik_up = inclusion_probabilities(df['copper'].to_numpy().copy(), n)
+C8:L0047             dfs[f'df_{name}'] = pd.DataFrame({
+C8:L0048                 'coord_x': coords[:, 0],
+C8:L0049                 'coord_y': coords[:, 1],
+C8:L0050                 'pik_ep' : pik_ep,
+C8:L0051                 'pik_up' : pik_up,
+C8:L0052                 'z'      : df['cadmium']
+C8:L0053             })
+C8:L0054 
+C8:L0055         elif f == "swiss.csv":
+C8:L0056             coords = df[['x', 'y']].to_numpy()
+C8:L0057             AREA = df['AREA'].to_numpy().clip(5, 100)
+C8:L0058             pik_up = inclusion_probabilities(AREA.copy(), n)
+C8:L0059             dfs[f'df_{name}'] = pd.DataFrame({
+C8:L0060                 'coord_x': coords[:, 0],
+C8:L0061                 'coord_y': coords[:, 1],
+C8:L0062                 'pik_ep' : pik_ep,
+C8:L0063                 'pik_up' : pik_up,
+C8:L0064                 'z'      : df['AREA_A']
+C8:L0065             })
+C8:L0066             
+C8:L0067     return dfs
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 9 type=code execution_count=85 outputs=3 =====
+C9:L0001 import matplotlib.pyplot as plt
+C9:L0002 import numpy as np
+C9:L0003 import graphical_sampling as gs
+C9:L0004 
+C9:L0005 from graphical_sampling.index import (
+C9:L0006     Moran,
+C9:L0007     Voronoi,
+C9:L0008     LocalBalance,
+C9:L0009     DensityDisparity
+C9:L0010 )
+C9:L0011 
+C9:L0012 from package_sampling.utils import inclusion_probabilities
+C9:L0013 
+C9:L0014 # =========================================================
+C9:L0015 # PARAMETERS
+C9:L0016 # =========================================================
+C9:L0017 popu = 'df_RegularPop1000'
+C9:L0018 ep_or_up = 'pik_ep'
+C9:L0019 n = 20
+C9:L0020 
+C9:L0021 df = popus(n)[popu]
+C9:L0022 
+C9:L0023 coords_data = df[['coord_x', 'coord_y']].to_numpy()
+C9:L0024 
+C9:L0025 variable_data = df['z'].to_numpy()
+C9:L0026 
+C9:L0027 N = len(coords_data)
+C9:L0028 
+C9:L0029 # =========================================================
+C9:L0030 # EQUAL PROBABILITIES
+C9:L0031 # =========================================================
+C9:L0032 inclusions_equal = df[ep_or_up].to_numpy()
+C9:L0033 
+C9:L0034 pop_equal = gs.Population(
+C9:L0035     coords_data,
+C9:L0036     inclusions_equal,
+C9:L0037     n=n,
+C9:L0038     variable=variable_data
+C9:L0039 )
+C9:L0040 
+C9:L0041 # =========================================================
+C9:L0042 # UNEQUAL PROBABILITIES
+C9:L0043 # =========================================================
+C9:L0044 inclusions_unequal = inclusion_probabilities(
+C9:L0045     np.clip(np.random.random(N), .2, .8),
+C9:L0046     n
+C9:L0047 )
+C9:L0048 
+C9:L0049 pop_unequal = gs.Population(
+C9:L0050     coords_data,
+C9:L0051     inclusions_unequal,
+C9:L0052     n=n,
+C9:L0053     variable=variable_data
+C9:L0054 )
+C9:L0055 
+C9:L0056 # =========================================================
+C9:L0057 # CONFIGURATIONS
+C9:L0058 # =========================================================
+C9:L0059 configs = [
+C9:L0060 
+C9:L0061     dict(
+C9:L0062         point_strategy='random',
+C9:L0063         zone_strategy='random',
+C9:L0064         zone_mode='sweep_yx',
+C9:L0065         num_zones=(1,1),
+C9:L0066         centroid_grid_x=1,
+C9:L0067         r_sample_per_cluster=20,
+C9:L0068         title='Pure Random Order GFS Baseline'
+C9:L0069     ),
+C9:L0070 
+C9:L0071     dict(
+C9:L0072         point_strategy='random',
+C9:L0073         zone_strategy='random',
+C9:L0074         zone_mode='sweep_yx',
+C9:L0075         num_zones=(2,2),
+C9:L0076         centroid_grid_x=4,
+C9:L0077         r_sample_per_cluster=1,
+C9:L0078     ),
+C9:L0079 
+C9:L0080     dict(
+C9:L0081         point_strategy='snake_move',
+C9:L0082         zone_strategy='lexicoYX',
+C9:L0083         zone_mode='sweep_yx',
+C9:L0084         num_zones=(2,2),
+C9:L0085         centroid_grid_x=4,
+C9:L0086         r_sample_per_cluster=1,
+C9:L0087     )
+C9:L0088 ]
+C9:L0089 
+C9:L0090 # =========================================================
+C9:L0091 # AUTOMATIC TITLES
+C9:L0092 # =========================================================
+C9:L0093 for cfg in configs:
+C9:L0094 
+C9:L0095     if cfg['r_sample_per_cluster'] == 20:
+C9:L0096 
+C9:L0097         cfg['title'] = 'Pure Random Order GFS Baseline'
+C9:L0098 
+C9:L0099     else:
+C9:L0100 
+C9:L0101         cfg['title'] = (
+C9:L0102             f"Points: {cfg['point_strategy'].replace('_', ' ').title()}, "
+C9:L0103             f"Zones: {cfg['zone_strategy'].replace('_', ' ').title()}"
+C9:L0104         )
+C9:L0105 
+C9:L0106 # =========================================================
+C9:L0107 # POPULATIONS
+C9:L0108 # =========================================================
+C9:L0109 all_pops = [
+C9:L0110 
+C9:L0111     (
+C9:L0112         "EP",
+C9:L0113         pop_equal,
+C9:L0114         inclusions_equal,
+C9:L0115         1
+C9:L0116     ),
+C9:L0117 
+C9:L0118     (
+C9:L0119         "UP",
+C9:L0120         pop_unequal,
+C9:L0121         inclusions_unequal,
+C9:L0122         0.001
+C9:L0123     )
+C9:L0124 ]
+C9:L0125 
+C9:L0126 # =========================================================
+C9:L0127 # PANEL LABELS
+C9:L0128 # =========================================================
+C9:L0129 panel_labels = ['a', 'b', 'c', 'd', 'e', 'f']
+C9:L0130 
+C9:L0131 # =========================================================
+C9:L0132 # STORAGE
+C9:L0133 # =========================================================
+C9:L0134 stored_results = []
+C9:L0135 
+C9:L0136 panel_counter = 0
+C9:L0137 
+C9:L0138 # =========================================================
+C9:L0139 # COMPUTE EVERYTHING ONCE
+C9:L0140 # =========================================================
+C9:L0141 for row_idx, (
+C9:L0142     row_title,
+C9:L0143     current_pop,
+C9:L0144     current_inclusions,
+C9:L0145     current_split_size
+C9:L0146 ) in enumerate(all_pops):
+C9:L0147 
+C9:L0148     # -----------------------------------------------------
+C9:L0149     # INDEXERS
+C9:L0150     # -----------------------------------------------------
+C9:L0151     moran_indexer = Moran(current_pop, method='tille')
+C9:L0152 
+C9:L0153     voronoi_indexer = Voronoi(current_pop)
+C9:L0154 
+C9:L0155     balance_indexer = LocalBalance(current_pop)
+C9:L0156 
+C9:L0157     disparity_indexer = DensityDisparity(current_pop)
+C9:L0158 
+C9:L0159     # -----------------------------------------------------
+C9:L0160     # LOOP OVER CONFIGS
+C9:L0161     # -----------------------------------------------------
+C9:L0162     for col_idx, cfg in enumerate(configs):
+C9:L0163 
+C9:L0164         print(f"Computing : {row_title} | {cfg['title']}")
+C9:L0165 
+C9:L0166         # -------------------------------------------------
+C9:L0167         # CLUSTERING
+C9:L0168         # -------------------------------------------------
+C9:L0169         fbn = gs.clustering.FIPBalancedNMeans(
+C9:L0170             n=n,
+C9:L0171             centroid_grid_x=cfg['centroid_grid_x'],
+C9:L0172             r_sample_per_cluster=cfg['r_sample_per_cluster'],
+C9:L0173             init_clust_method='expanded',
+C9:L0174             split_size=current_split_size
+C9:L0175         )
+C9:L0176 
+C9:L0177         fbn.fit(current_pop)
+C9:L0178 
+C9:L0179         fbn.fit_zones(
+C9:L0180             num_zones=cfg['num_zones'],
+C9:L0181             mode=cfg['zone_mode']
+C9:L0182         )
+C9:L0183 
+C9:L0184         # -------------------------------------------------
+C9:L0185         # ORDER
+C9:L0186         # -------------------------------------------------
+C9:L0187         order = gs.Order.from_clusters(
+C9:L0188             current_pop,
+C9:L0189             fbn.clusters,
+C9:L0190             zone_strategy=cfg['zone_strategy'],
+C9:L0191             point_strategy=cfg['point_strategy'],
+C9:L0192             num_splits=1,
+C9:L0193             topological=True,
+C9:L0194             shift_jump=2,
+C9:L0195             shuffle=False,
+C9:L0196             grid_dims=cfg['num_zones']
+C9:L0197         )
+C9:L0198 
+C9:L0199         fbn.clusters = order.clusters
+C9:L0200 
+C9:L0201         # -------------------------------------------------
+C9:L0202         # DESIGN
+C9:L0203         # -------------------------------------------------
+C9:L0204         design = gs.Design.from_order(
+C9:L0205             current_pop,
+C9:L0206             order
+C9:L0207         )
+C9:L0208 
+C9:L0209         coords = design.pop.coords
+C9:L0210 
+C9:L0211         # -------------------------------------------------
+C9:L0212         # SAMPLE
+C9:L0213         # -------------------------------------------------
+C9:L0214         sample_indices_2d = design.sample(1)
+C9:L0215 
+C9:L0216         sample_indices = sample_indices_2d[0]
+C9:L0217 
+C9:L0218         # -------------------------------------------------
+C9:L0219         # SAMPLE METRICS
+C9:L0220         # -------------------------------------------------
+C9:L0221         mi_s = moran_indexer.score(sample_indices_2d)[0]
+C9:L0222 
+C9:L0223         vi_s = voronoi_indexer.score(sample_indices_2d)[0]
+C9:L0224 
+C9:L0225         bi_s = balance_indexer.score(sample_indices_2d)[0]
+C9:L0226 
+C9:L0227         di_s = disparity_indexer.score(sample_indices_2d)[0]
+C9:L0228 
+C9:L0229         # -------------------------------------------------
+C9:L0230         # DESIGN METRICS
+C9:L0231         # -------------------------------------------------
+C9:L0232         mi_e = design.moran[0]
+C9:L0233 
+C9:L0234         vi_e = design.voronoi[0]
+C9:L0235 
+C9:L0236         bi_e = design.local_balance[0]
+C9:L0237 
+C9:L0238         di_e = design.density_disparity[0]
+C9:L0239 
+C9:L0240         # -------------------------------------------------
+C9:L0241         # STORE
+C9:L0242         # -------------------------------------------------
+C9:L0243         stored_results.append({
+C9:L0244 
+C9:L0245             'row_title': row_title,
+C9:L0246 
+C9:L0247             'cfg': cfg,
+C9:L0248 
+C9:L0249             'fbn': fbn,
+C9:L0250 
+C9:L0251             'coords': coords,
+C9:L0252 
+C9:L0253             'sample_indices': sample_indices,
+C9:L0254 
+C9:L0255             'sample_metrics': (
+C9:L0256                 mi_s,
+C9:L0257                 vi_s,
+C9:L0258                 bi_s,
+C9:L0259                 di_s
+C9:L0260             ),
+C9:L0261 
+C9:L0262             'design_metrics': (
+C9:L0263                 mi_e,
+C9:L0264                 vi_e,
+C9:L0265                 bi_e,
+C9:L0266                 di_e
+C9:L0267             ),
+C9:L0268 
+C9:L0269             'panel_label': panel_labels[panel_counter]
+C9:L0270         })
+C9:L0271 
+C9:L0272         panel_counter += 1
+C9:L0273 
+C9:L0274 # =========================================================
+C9:L0275 # PLOTTING FUNCTION
+C9:L0276 # =========================================================
+C9:L0277 def draw_panel(ax, res, show_x=True, show_y=True, show_panel_label=True):
+C9:L0278 
+C9:L0279     fbn = res['fbn']
+C9:L0280 
+C9:L0281     coords = res['coords']
+C9:L0282 
+C9:L0283     sample_indices = res['sample_indices']
+C9:L0284 
+C9:L0285     cfg = res['cfg']
+C9:L0286 
+C9:L0287     row_title = res['row_title']
+C9:L0288 
+C9:L0289     mi_s, vi_s, bi_s, di_s = res['sample_metrics']
+C9:L0290 
+C9:L0291     mi_e, vi_e, bi_e, di_e = res['design_metrics']
+C9:L0292 
+C9:L0293     # -----------------------------------------------------
+C9:L0294     # SIZE SCALE
+C9:L0295     # -----------------------------------------------------
+C9:L0296     if row_title == "EP":
+C9:L0297 
+C9:L0298         size_scale = 300
+C9:L0299 
+C9:L0300     else:
+C9:L0301 
+C9:L0302         size_scale = 500
+C9:L0303 
+C9:L0304     # -----------------------------------------------------
+C9:L0305     # BACKGROUND
+C9:L0306     # -----------------------------------------------------
+C9:L0307     fbn.plot(
+C9:L0308         mode='soft',
+C9:L0309         ax=ax,
+C9:L0310         show_zone_sub_hulls=True,
+C9:L0311         show_zone_labels=True,
+C9:L0312         zone_color_mode=True,
+C9:L0313         size_scale=size_scale
+C9:L0314     )
+C9:L0315 
+C9:L0316     # -----------------------------------------------------
+C9:L0317     # FADE UNEQUAL
+C9:L0318     # -----------------------------------------------------
+C9:L0319     if row_title == "UP":
+C9:L0320 
+C9:L0321         for coll in ax.collections[:-1]:
+C9:L0322 
+C9:L0323             try:
+C9:L0324                 coll.set_alpha(0.50)
+C9:L0325 
+C9:L0326             except:
+C9:L0327                 pass
+C9:L0328 
+C9:L0329     # -----------------------------------------------------
+C9:L0330     # CLUSTER LABELS
+C9:L0331     # -----------------------------------------------------
+C9:L0332     for i, cluster in enumerate(fbn.clusters):
+C9:L0333 
+C9:L0334         cluster_points = []
+C9:L0335 
+C9:L0336         for zone in cluster.zones:
+C9:L0337 
+C9:L0338             cluster_points.extend(zone.indices)
+C9:L0339 
+C9:L0340         cluster_points = np.array(cluster_points)
+C9:L0341 
+C9:L0342         centroid = coords[cluster_points].mean(axis=0)
+C9:L0343 
+C9:L0344         ax.text(
+C9:L0345             centroid[0],
+C9:L0346             centroid[1],
+C9:L0347             f"{i+1}",
+C9:L0348             fontsize=30,
+C9:L0349             color='black',
+C9:L0350             alpha=0.14,
+C9:L0351             ha='center',
+C9:L0352             va='center',
+C9:L0353             weight='bold',
+C9:L0354             zorder=1
+C9:L0355         )
+C9:L0356 
+C9:L0357     # -----------------------------------------------------
+C9:L0358     # SAMPLE POINTS
+C9:L0359     # -----------------------------------------------------
+C9:L0360     ax.scatter(
+C9:L0361         coords[sample_indices, 0],
+C9:L0362         coords[sample_indices, 1],
+C9:L0363         marker='*',
+C9:L0364         color='red',
+C9:L0365         s=42,
+C9:L0366         linewidths=1.8,
+C9:L0367         zorder=20
+C9:L0368     )
+C9:L0369 
+C9:L0370     # -----------------------------------------------------
+C9:L0371     # TITLE
+C9:L0372     # -----------------------------------------------------
+C9:L0373     title = (
+C9:L0374         f"{row_title} - {cfg['title']}\n"
+C9:L0375         f"Design : "
+C9:L0376         f"MI={mi_e:.2f} | "
+C9:L0377         f"VI={vi_e:.2f} | "
+C9:L0378         f"BI={bi_e:.2f} | "
+C9:L0379         f"DI={di_e:.2f}\n"
+C9:L0380         f"Sample : "
+C9:L0381         f"MI={mi_s:.2f} | "
+C9:L0382         f"VI={vi_s:.2f} | "
+C9:L0383         f"BI={bi_s:.2f} | "
+C9:L0384         f"DI={di_s:.2f}"
+C9:L0385     )
+C9:L0386 
+C9:L0387     ax.set_title(
+C9:L0388         title,
+C9:L0389         fontsize=10,
+C9:L0390         fontweight='bold',
+C9:L0391         family='DejaVu Sans',
+C9:L0392         pad=2
+C9:L0393     )
+C9:L0394 
+C9:L0395     # -----------------------------------------------------
+C9:L0396     # PANEL LABEL
+C9:L0397     # -----------------------------------------------------
+C9:L0398     # -----------------------------------------------------
+C9:L0399 # PANEL LABEL
+C9:L0400 # -----------------------------------------------------
+C9:L0401     if show_panel_label:
+C9:L0402 
+C9:L0403 								ax.text(
+C9:L0404 												-0.10,
+C9:L0405 												1.03,
+C9:L0406 												f"({res['panel_label']})",
+C9:L0407 												transform=ax.transAxes,
+C9:L0408 												fontsize=15,
+C9:L0409 												fontweight='bold',
+C9:L0410 												va='center'
+C9:L0411 								)
+C9:L0412 
+C9:L0413     # -----------------------------------------------------
+C9:L0414     # SAMPLE SYMBOL
+C9:L0415     # -----------------------------------------------------
+C9:L0416     ax.scatter(
+C9:L0417     [0.00],
+C9:L0418     [1.025],
+C9:L0419     transform=ax.transAxes,
+C9:L0420     marker='*',
+C9:L0421     color='red',
+C9:L0422     s=130,
+C9:L0423     linewidths=1.8,
+C9:L0424     clip_on=False,
+C9:L0425     zorder=100
+C9:L0426 )
+C9:L0427 
+C9:L0428     # -----------------------------------------------------
+C9:L0429     # AXES
+C9:L0430     # -----------------------------------------------------
+C9:L0431     if show_x:
+C9:L0432 
+C9:L0433         ax.set_xlabel(r"$c_1$", fontsize=13)
+C9:L0434 
+C9:L0435     else:
+C9:L0436 
+C9:L0437         ax.set_xticks([])
+C9:L0438         ax.set_xlabel("")
+C9:L0439 
+C9:L0440     if show_y:
+C9:L0441 
+C9:L0442         ax.set_ylabel(r"$c_2$", fontsize=13)
+C9:L0443 
+C9:L0444     else:
+C9:L0445 
+C9:L0446         ax.set_ylabel("")
+C9:L0447         ax.set_yticks([])
+C9:L0448 
+C9:L0449     ax.set_aspect('equal')
+C9:L0450 
+C9:L0451     ax.margins(0)
+C9:L0452 
+C9:L0453     ax.set_xlim(coords[:,0].min(), coords[:,0].max())
+C9:L0454 
+C9:L0455     ax.set_ylim(coords[:,1].min(), coords[:,1].max())
+C9:L0456 
+C9:L0457 # =========================================================
+C9:L0458 # CREATE ALL-IN-ONE FIGURE
+C9:L0459 # =========================================================
+C9:L0460 fig, axes = plt.subplots(
+C9:L0461     2, 3,
+C9:L0462     figsize=(15, 10),
+C9:L0463     constrained_layout=False,
+C9:L0464     gridspec_kw={
+C9:L0465         'wspace': -0.05,
+C9:L0466         'hspace': 0.12
+C9:L0467     }
+C9:L0468 )
+C9:L0469 
+C9:L0470 for k, res in enumerate(stored_results):
+C9:L0471 
+C9:L0472     row = k // 3
+C9:L0473 
+C9:L0474     col = k % 3
+C9:L0475 
+C9:L0476     ax = axes[row, col]
+C9:L0477 
+C9:L0478     draw_panel(
+C9:L0479         ax,
+C9:L0480         res,
+C9:L0481         show_x=(row == 1),
+C9:L0482         show_y=(col == 0)
+C9:L0483     )
+C9:L0484 
+C9:L0485 plt.subplots_adjust(
+C9:L0486     left=0.01,
+C9:L0487     right=0.995,
+C9:L0488     top=0.96,
+C9:L0489     bottom=0.05,
+C9:L0490     wspace=-0.20,
+C9:L0491     hspace=0.16
+C9:L0492 )
+C9:L0493 
+C9:L0494 plt.show()
+C9:L0495 
+C9:L0496 # =========================================================
+C9:L0497 # SAVE INDEPENDENT PANELS
+C9:L0498 # =========================================================
+C9:L0499 for k, res in enumerate(stored_results):
+C9:L0500 
+C9:L0501     fig, ax = plt.subplots(
+C9:L0502         figsize=(6.2, 5.2)
+C9:L0503     )
+C9:L0504 
+C9:L0505     draw_panel(
+C9:L0506         ax,
+C9:L0507         res,
+C9:L0508         show_x=True,
+C9:L0509         show_y=True,
+C9:L0510         show_panel_label=False
+C9:L0511     )
+C9:L0512 
+C9:L0513     plt.tight_layout()
+C9:L0514 
+C9:L0515     filename = f"panel_{res['panel_label']}.png"
+C9:L0516 
+C9:L0517     plt.savefig(
+C9:L0518         filename,
+C9:L0519         dpi=400,
+C9:L0520         bbox_inches='tight'
+C9:L0521     )
+C9:L0522 
+C9:L0523     plt.close()
+C9:L0524 
+C9:L0525     print(f"Saved : {filename}")
+OUTPUT 0 stream
+Computing : EP | Pure Random Order GFS Baseline
+Computing : EP | Points: Random, Zones: Random
+Computing : EP | Points: Snake Move, Zones: Lexicoyx
+Computing : UP | Pure Random Order GFS Baseline
+Computing : UP | Points: Random, Zones: Random
+Computing : UP | Points: Snake Move, Zones: Lexicoyx
+OUTPUT 1 display_data
+<Figure size 1500x1000 with 6 Axes>
+OUTPUT 2 stream
+Saved : panel_a.png
+Saved : panel_b.png
+Saved : panel_c.png
+Saved : panel_d.png
+Saved : panel_e.png
+Saved : panel_f.png
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 10 type=markdown execution_count=None outputs=0 =====
+C10:L0001 ### plot a simple example of orders
+===== Git a6102e6cce06e5693d8224efcaffac78e02b30f8:simulations/jupyters/paper_plots.ipynb CELL 11 type=code execution_count=None outputs=1 =====
+C11:L0001 import matplotlib.pyplot as plt
+C11:L0002 import numpy as np
+C11:L0003 import pandas as pd
+C11:L0004 import graphical_sampling as gs
+C11:L0005 
+C11:L0006 # =========================================================
+C11:L0007 # CREATE PERFECT GRID POPULATION
+C11:L0008 # =========================================================
+C11:L0009 M = 6
+C11:L0010 
+C11:L0011 x = np.repeat(np.arange(M), M)
+C11:L0012 y = np.tile(np.arange(M)[::-1], M)
+C11:L0013 
+C11:L0014 coords = np.column_stack([
+C11:L0015     x,
+C11:L0016     y
+C11:L0017 ]).astype(float)
+C11:L0018 
+C11:L0019 N = len(coords)
+C11:L0020 n = 16
+C11:L0021 
+C11:L0022 # =========================================================
+C11:L0023 # EQUAL INCLUSION PROBABILITIES
+C11:L0024 # =========================================================
+C11:L0025 pik = np.repeat(n / N, N)
+C11:L0026 
+C11:L0027 z = np.arange(N)
+C11:L0028 
+C11:L0029 df = pd.DataFrame({
+C11:L0030     'coord_x': coords[:, 0],
+C11:L0031     'coord_y': coords[:, 1],
+C11:L0032     'pik_ep': pik,
+C11:L0033     'z': z
+C11:L0034 })
+C11:L0035 
+C11:L0036 # =========================================================
+C11:L0037 # POPULATION
+C11:L0038 # =========================================================
+C11:L0039 pop = gs.Population(
+C11:L0040     coords,
+C11:L0041     pik,
+C11:L0042     n=n,
+C11:L0043     variable=z
+C11:L0044 )
+C11:L0045 
+C11:L0046 # =========================================================
+C11:L0047 # STRATEGIES
+C11:L0048 # =========================================================
+C11:L0049 strategies = [
+C11:L0050     'lexicoYX',
+C11:L0051     'snake_move',
+C11:L0052     'projection',
+C11:L0053     'random'
+C11:L0054 ]
+C11:L0055 
+C11:L0056 titles = [
+C11:L0057     "Lexicoyx",
+C11:L0058     "Snake Move",
+C11:L0059     "Projection",
+C11:L0060     "Random"
+C11:L0061 ]
+C11:L0062 
+C11:L0063 # =========================================================
+C11:L0064 # FIGURE
+C11:L0065 # =========================================================
+C11:L0066 fig, axes = plt.subplots(
+C11:L0067     1,
+C11:L0068     4,
+C11:L0069     figsize=(24, 6),
+C11:L0070     gridspec_kw={'wspace': 0.04}
+C11:L0071 )
+C11:L0072 
+C11:L0073 # =========================================================
+C11:L0074 # MAIN LOOP
+C11:L0075 # =========================================================
+C11:L0076 for ax, strategy, title in zip(axes, strategies, titles):
+C11:L0077 
+C11:L0078     # -----------------------------------------------------
+C11:L0079     # ORDER
+C11:L0080     # -----------------------------------------------------
+C11:L0081     order_idx = gs.Order(pop)._get_strategy_order(
+C11:L0082         coords,
+C11:L0083         strategy=strategy,
+C11:L0084         topological=True,
+C11:L0085         grid_dims=(M, M)
+C11:L0086     )
+C11:L0087 
+C11:L0088     ordered_coords = coords[order_idx]
+C11:L0089 
+C11:L0090     # -----------------------------------------------------
+C11:L0091     # CONNECTION PATH
+C11:L0092     # -----------------------------------------------------
+C11:L0093     ax.plot(
+C11:L0094         ordered_coords[:, 0],
+C11:L0095         ordered_coords[:, 1],
+C11:L0096         color='black',
+C11:L0097         linewidth=2.7,
+C11:L0098         solid_capstyle='round',
+C11:L0099         solid_joinstyle='round',
+C11:L0100         alpha=0.9,
+C11:L0101         zorder=1
+C11:L0102     )
+C11:L0103 
+C11:L0104     # -----------------------------------------------------
+C11:L0105     # MAIN POINTS
+C11:L0106     # -----------------------------------------------------
+C11:L0107     ax.scatter(
+C11:L0108         coords[:, 0],
+C11:L0109         coords[:, 1],
+C11:L0110         s=620,
+C11:L0111         color='#7da9d8',
+C11:L0112         edgecolors='none',
+C11:L0113         alpha=0.95,
+C11:L0114         zorder=5
+C11:L0115     )
+C11:L0116 
+C11:L0117     # -----------------------------------------------------
+C11:L0118     # START POINT
+C11:L0119     # -----------------------------------------------------
+C11:L0120     ax.scatter(
+C11:L0121         ordered_coords[0, 0],
+C11:L0122         ordered_coords[0, 1],
+C11:L0123         s=700,
+C11:L0124         color='#74c476',
+C11:L0125         edgecolors='none',
+C11:L0126         zorder=15
+C11:L0127     )
+C11:L0128 
+C11:L0129     # -----------------------------------------------------
+C11:L0130     # END POINT
+C11:L0131     # -----------------------------------------------------
+C11:L0132     ax.scatter(
+C11:L0133         ordered_coords[-1, 0],
+C11:L0134         ordered_coords[-1, 1],
+C11:L0135         s=700,
+C11:L0136         color='#ef6548',
+C11:L0137         edgecolors='none',
+C11:L0138         zorder=15
+C11:L0139     )
+C11:L0140 
+C11:L0141     # -----------------------------------------------------
+C11:L0142     # LABELS
+C11:L0143     # -----------------------------------------------------
+C11:L0144     for rank, idx in enumerate(order_idx):
+C11:L0145 
+C11:L0146         cx, cy = coords[idx]
+C11:L0147 
+C11:L0148         ax.text(
+C11:L0149             cx,
+C11:L0150             cy,
+C11:L0151             str(rank + 1),
+C11:L0152             fontsize=15,
+C11:L0153             fontweight='bold',
+C11:L0154             color='white',
+C11:L0155             ha='center',
+C11:L0156             va='center',
+C11:L0157             zorder=20
+C11:L0158         )
+C11:L0159 
+C11:L0160     # -----------------------------------------------------
+C11:L0161     # TITLE
+C11:L0162     # -----------------------------------------------------
+C11:L0163     ax.set_title(
+C11:L0164         title,
+C11:L0165         fontsize=22,
+C11:L0166         fontweight='bold',
+C11:L0167         pad=18
+C11:L0168     )
+C11:L0169 
+C11:L0170     # -----------------------------------------------------
+C11:L0171     # STYLE
+C11:L0172     # -----------------------------------------------------
+C11:L0173     ax.set_xticks([])
+C11:L0174     ax.set_yticks([])
+C11:L0175 
+C11:L0176     ax.set_aspect('equal')
+C11:L0177 
+C11:L0178     ax.set_xlim(-0.7, M - 0.3)
+C11:L0179     ax.set_ylim(-0.7, M - 0.3)
+C11:L0180 
+C11:L0181     # remove borders
+C11:L0182     for spine in ax.spines.values():
+C11:L0183         spine.set_visible(False)
+C11:L0184 
+C11:L0185 # =========================================================
+C11:L0186 # FINAL LAYOUT
+C11:L0187 # =========================================================
+C11:L0188 plt.subplots_adjust(
+C11:L0189     left=0.02,
+C11:L0190     right=0.985,
+C11:L0191     top=0.90,
+C11:L0192     bottom=0.05,
+C11:L0193     wspace=0.05
+C11:L0194 )
+C11:L0195 
+C11:L0196 plt.show()
+OUTPUT 0 display_data
+<Figure size 2400x600 with 4 Axes>

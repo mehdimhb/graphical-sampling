@@ -1,0 +1,290 @@
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/11_compare_IPnM_initializations.ipynb CELL 0 type=markdown execution_count=None outputs=0 =====
+C0:L0001 # Comparison of OT and expanded IPnM initialization methods
+C0:L0002 
+C0:L0003 Reproducible notebook version of `simulations/temporary_compare_ipnm_initializations.py`. Run the code cell from the repository root.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/11_compare_IPnM_initializations.ipynb CELL 1 type=code execution_count=None outputs=0 =====
+C1:L0001 """Temporary, read-only-method comparison of OT and expanded IPnM DI evaluation.
+C1:L0002 
+C1:L0003 This script does not modify package code or existing results. It writes a new,
+C1:L0004 isolated results folder under simulations/results/ipnm_ot_vs_expanded/.
+C1:L0005 """
+C1:L0006 
+C1:L0007 from __future__ import annotations
+C1:L0008 
+C1:L0009 from pathlib import Path
+C1:L0010 
+C1:L0011 import matplotlib
+C1:L0012 
+C1:L0013 matplotlib.use("Agg")
+C1:L0014 import matplotlib.pyplot as plt
+C1:L0015 import numpy as np
+C1:L0016 import pandas as pd
+C1:L0017 import seaborn as sns
+C1:L0018 from scipy.optimize import linear_sum_assignment
+C1:L0019 from scipy.spatial.distance import cdist
+C1:L0020 from sklearn.metrics import adjusted_rand_score
+C1:L0021 from tqdm.auto import tqdm
+C1:L0022 
+C1:L0023 import rpy2.robjects as ro
+C1:L0024 from rpy2.robjects import numpy2ri
+C1:L0025 from rpy2.robjects.conversion import localconverter
+C1:L0026 
+C1:L0027 from graphical_sampling.clustering import FIPBalancedNMeans
+C1:L0028 from graphical_sampling.index import DensityDisparity
+C1:L0029 from graphical_sampling.population import Population
+C1:L0030 
+C1:L0031 
+C1:L0032 ROOT = Path(__file__).resolve().parents[1]
+C1:L0033 OUTPUT_DIR = ROOT / "simulations/results/ipnm_ot_vs_expanded"
+C1:L0034 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+C1:L0035 
+C1:L0036 M = 200
+C1:L0037 SEED = 20260903
+C1:L0038 SIGN_TOL = 0.01
+C1:L0039 PARTITION_CHECK_SAMPLES = 5
+C1:L0040 
+C1:L0041 EXPERIMENTS = {
+C1:L0042     "grid": (ROOT / "simulations/populations/simulated/grid_N144_perm.csv", [4, 16]),
+C1:L0043     "random": (ROOT / "simulations/populations/simulated/rand_N144_perm.csv", [4, 16]),
+C1:L0044     "clustered": (ROOT / "simulations/populations/simulated/clust_N144_perm.csv", [4, 16]),
+C1:L0045     "meuse": (ROOT / "simulations/populations/real/meuse.csv", [5, 20]),
+C1:L0046 }
+C1:L0047 
+C1:L0048 
+C1:L0049 def load_population(path: Path, population_name: str, n: int, inclusion: str):
+C1:L0050     df = pd.read_csv(path)
+C1:L0051     coords = df[["x", "y"]].to_numpy(float)
+C1:L0052     if inclusion == "EP":
+C1:L0053         weights = np.ones(len(df), dtype=float)
+C1:L0054     elif population_name == "meuse":
+C1:L0055         weights = df["copper"].to_numpy(float)
+C1:L0056     else:
+C1:L0057         weights = df["prob"].to_numpy(float)
+C1:L0058 
+C1:L0059     variable_col = "cadmium" if population_name == "meuse" else "z.90"
+C1:L0060     pop = Population(
+C1:L0061         coords=coords,
+C1:L0062         inclusions=weights,
+C1:L0063         variable=df[variable_col].to_numpy(float),
+C1:L0064         n=n,
+C1:L0065     )
+C1:L0066     return pop
+C1:L0067 
+C1:L0068 
+C1:L0069 def maxentropy_samples(pik: np.ndarray, m: int, seed: int) -> np.ndarray:
+C1:L0070     """Draw fixed-size samples; one matrix is reused by both DI methods."""
+C1:L0071     N = len(pik)
+C1:L0072     n = int(round(pik.sum()))
+C1:L0073     samples = np.empty((m, n), dtype=int)
+C1:L0074     ro.r("suppressPackageStartupMessages(library(sampling))")
+C1:L0075     ro.r["set.seed"](seed)
+C1:L0076     with localconverter(ro.default_converter + numpy2ri.converter):
+C1:L0077         ro.globalenv["pik_compare"] = np.asarray(pik, dtype=float)
+C1:L0078         for i in range(m):
+C1:L0079             out = np.asarray(ro.r("sampling::UPmaxentropy(pik_compare)")).ravel()
+C1:L0080             idx = np.flatnonzero(out > 0.5) if out.size == N else out.astype(int) - 1
+C1:L0081             if len(idx) != n or len(np.unique(idx)) != n:
+C1:L0082                 raise RuntimeError(f"Invalid sample at iteration {i}.")
+C1:L0083             samples[i] = idx
+C1:L0084     return samples
+C1:L0085 
+C1:L0086 
+C1:L0087 def fit_partition(pop: Population, method: str):
+C1:L0088     """Fit exactly the requested FIPBalancedNMeans branch."""
+C1:L0089     fit = FIPBalancedNMeans(
+C1:L0090         n=pop.n,
+C1:L0091         init_clust_method=method,
+C1:L0092         split_size=0.001,
+C1:L0093     )
+C1:L0094     fit.fit(pop)
+C1:L0095     return fit.labels, fit.centroids
+C1:L0096 
+C1:L0097 
+C1:L0098 def weighted_medoids(coords, pik, labels, n_clusters):
+C1:L0099     medoids = np.empty((n_clusters, coords.shape[1]), dtype=float)
+C1:L0100     indices = np.empty(n_clusters, dtype=int)
+C1:L0101     for k in range(n_clusters):
+C1:L0102         idx = np.flatnonzero(labels == k)
+C1:L0103         distances = cdist(coords[idx], coords[idx])
+C1:L0104         objective = distances @ pik[idx]
+C1:L0105         best = int(np.argmin(objective))
+C1:L0106         indices[k] = idx[best]
+C1:L0107         medoids[k] = coords[indices[k]]
+C1:L0108     return medoids, indices
+C1:L0109 
+C1:L0110 
+C1:L0111 def score_with_reference(sample, coords, labels, medoids, scorer):
+C1:L0112     raw_sample = coords[sample]
+C1:L0113     rows, cols = linear_sum_assignment(cdist(medoids, raw_sample))
+C1:L0114     assigned = np.empty_like(medoids)
+C1:L0115     assigned[rows] = raw_sample[cols]
+C1:L0116     translated = coords + (assigned - medoids)[labels]
+C1:L0117     return scorer._score_single_density(scorer._density(translated))
+C1:L0118 
+C1:L0119 
+C1:L0120 def sign_class(values):
+C1:L0121     values = np.asarray(values)
+C1:L0122     return np.where(values < -SIGN_TOL, "negative", np.where(values > SIGN_TOL, "positive", "near_zero"))
+C1:L0123 
+C1:L0124 
+C1:L0125 def coassignment_disagreement(labels_a, labels_b):
+C1:L0126     same_a = labels_a[:, None] == labels_a[None, :]
+C1:L0127     same_b = labels_b[:, None] == labels_b[None, :]
+C1:L0128     upper = np.triu_indices(len(labels_a), k=1)
+C1:L0129     return np.mean(same_a[upper] != same_b[upper])
+C1:L0130 
+C1:L0131 
+C1:L0132 raw_rows = []
+C1:L0133 partition_rows = []
+C1:L0134 setting_number = 0
+C1:L0135 
+C1:L0136 for population_name, (path, sample_sizes) in EXPERIMENTS.items():
+C1:L0137     for inclusion in ["EP", "UP"]:
+C1:L0138         for n in sample_sizes:
+C1:L0139             setting_number += 1
+C1:L0140             print(f"[{setting_number}/16] {population_name}, {inclusion}, n={n}")
+C1:L0141             pop = load_population(path, population_name, n, inclusion)
+C1:L0142             samples = maxentropy_samples(pop.inclusions, M, SEED + 1000 * setting_number)
+C1:L0143             scorer = DensityDisparity(population=pop, representative="nmedoids", n_jobs=1)
+C1:L0144 
+C1:L0145             references = {}
+C1:L0146             for method in ["ot", "expanded"]:
+C1:L0147                 labels, _ = fit_partition(pop, method)
+C1:L0148                 medoids, medoid_indices = weighted_medoids(pop.coords, pop.inclusions, labels, pop.n)
+C1:L0149                 references[method] = {
+C1:L0150                     "labels": labels,
+C1:L0151                     "medoids": medoids,
+C1:L0152                     "medoid_indices": medoid_indices,
+C1:L0153                 }
+C1:L0154 
+C1:L0155             ot_labels = references["ot"]["labels"]
+C1:L0156             ex_labels = references["expanded"]["labels"]
+C1:L0157             ot_medoids = references["ot"]["medoids"]
+C1:L0158             ex_medoids = references["expanded"]["medoids"]
+C1:L0159             medoid_rows, medoid_cols = linear_sum_assignment(cdist(ot_medoids, ex_medoids))
+C1:L0160             medoid_set_ot = set(references["ot"]["medoid_indices"].tolist())
+C1:L0161             medoid_set_ex = set(references["expanded"]["medoid_indices"].tolist())
+C1:L0162             medoid_union = medoid_set_ot | medoid_set_ex
+C1:L0163 
+C1:L0164             common_partition_metrics = {
+C1:L0165                 "adjusted_rand_index": adjusted_rand_score(ot_labels, ex_labels),
+C1:L0166                 "coassignment_disagreement": coassignment_disagreement(ot_labels, ex_labels),
+C1:L0167                 "medoid_set_jaccard": len(medoid_set_ot & medoid_set_ex) / len(medoid_union),
+C1:L0168                 "mean_matched_medoid_distance": cdist(ot_medoids, ex_medoids)[medoid_rows, medoid_cols].mean(),
+C1:L0169                 "identical_partition_up_to_labels": bool(adjusted_rand_score(ot_labels, ex_labels) == 1.0),
+C1:L0170                 "identical_medoid_set": medoid_set_ot == medoid_set_ex,
+C1:L0171             }
+C1:L0172 
+C1:L0173             for iteration, sample in enumerate(tqdm(samples, leave=False), start=1):
+C1:L0174                 di_ot = score_with_reference(sample, pop.coords, ot_labels, ot_medoids, scorer)
+C1:L0175                 di_expanded = score_with_reference(sample, pop.coords, ex_labels, ex_medoids, scorer)
+C1:L0176                 raw_rows.append(
+C1:L0177                     {
+C1:L0178                         "population": population_name,
+C1:L0179                         "inclusion": inclusion,
+C1:L0180                         "n": n,
+C1:L0181                         "iteration": iteration,
+C1:L0182                         "sample_indices": " ".join(map(str, sample.tolist())),
+C1:L0183                         "DI_ot": di_ot,
+C1:L0184                         "DI_expanded": di_expanded,
+C1:L0185                         "absolute_difference": abs(di_ot - di_expanded),
+C1:L0186                     }
+C1:L0187                 )
+C1:L0188                 if iteration <= PARTITION_CHECK_SAMPLES:
+C1:L0189                     partition_rows.append(
+C1:L0190                         {
+C1:L0191                             "population": population_name,
+C1:L0192                             "inclusion": inclusion,
+C1:L0193                             "n": n,
+C1:L0194                             "iteration": iteration,
+C1:L0195                             "sample_indices": " ".join(map(str, sample.tolist())),
+C1:L0196                             **common_partition_metrics,
+C1:L0197                         }
+C1:L0198                     )
+C1:L0199 
+C1:L0200 raw = pd.DataFrame(raw_rows)
+C1:L0201 raw["sign_ot"] = sign_class(raw["DI_ot"])
+C1:L0202 raw["sign_expanded"] = sign_class(raw["DI_expanded"])
+C1:L0203 raw["same_sign"] = raw["sign_ot"] == raw["sign_expanded"]
+C1:L0204 
+C1:L0205 summary_rows = []
+C1:L0206 group_cols = ["population", "inclusion", "n"]
+C1:L0207 for keys, group in raw.groupby(group_cols, sort=False):
+C1:L0208     correlation = group[["DI_ot", "DI_expanded"]].corr().iloc[0, 1]
+C1:L0209     summary_rows.append(
+C1:L0210         {
+C1:L0211             **dict(zip(group_cols, keys)),
+C1:L0212             "M": len(group),
+C1:L0213             "mean_DI_ot": group["DI_ot"].mean(),
+C1:L0214             "mean_DI_expanded": group["DI_expanded"].mean(),
+C1:L0215             "sd_DI_ot": group["DI_ot"].std(ddof=1),
+C1:L0216             "sd_DI_expanded": group["DI_expanded"].std(ddof=1),
+C1:L0217             "mean_absolute_difference": group["absolute_difference"].mean(),
+C1:L0218             "median_absolute_difference": group["absolute_difference"].median(),
+C1:L0219             "maximum_absolute_difference": group["absolute_difference"].max(),
+C1:L0220             "correlation": correlation,
+C1:L0221             "same_sign_proportion": group["same_sign"].mean(),
+C1:L0222         }
+C1:L0223     )
+C1:L0224 
+C1:L0225 summary = pd.DataFrame(summary_rows)
+C1:L0226 partitions = pd.DataFrame(partition_rows)
+C1:L0227 
+C1:L0228 raw.to_csv(OUTPUT_DIR / "sample_level_DI_ot_vs_expanded.csv", index=False)
+C1:L0229 summary.to_csv(OUTPUT_DIR / "summary_DI_ot_vs_expanded.csv", index=False)
+C1:L0230 partitions.to_csv(OUTPUT_DIR / "partition_medoid_checks.csv", index=False)
+C1:L0231 
+C1:L0232 sns.set_theme(style="whitegrid", context="notebook")
+C1:L0233 fig, axes = plt.subplots(2, 2, figsize=(11, 9), sharex=True, sharey=True)
+C1:L0234 for ax, population_name in zip(axes.flat, EXPERIMENTS):
+C1:L0235     plot_data = raw[raw["population"] == population_name]
+C1:L0236     sns.scatterplot(
+C1:L0237         data=plot_data,
+C1:L0238         x="DI_ot",
+C1:L0239         y="DI_expanded",
+C1:L0240         hue="inclusion",
+C1:L0241         style="n",
+C1:L0242         alpha=0.48,
+C1:L0243         s=30,
+C1:L0244         ax=ax,
+C1:L0245     )
+C1:L0246     lo = min(plot_data["DI_ot"].min(), plot_data["DI_expanded"].min())
+C1:L0247     hi = max(plot_data["DI_ot"].max(), plot_data["DI_expanded"].max())
+C1:L0248     ax.plot([lo, hi], [lo, hi], color="black", linestyle="--", linewidth=1.2)
+C1:L0249     ax.set_title(population_name.capitalize())
+C1:L0250     ax.set_xlabel("DI (OT)")
+C1:L0251     ax.set_ylabel("DI (expanded)")
+C1:L0252     ax.set_aspect("equal", adjustable="box")
+C1:L0253 
+C1:L0254 fig.suptitle("IPnM initialization comparison using identical realized samples", y=1.01)
+C1:L0255 fig.tight_layout()
+C1:L0256 fig.savefig(OUTPUT_DIR / "scatter_DI_ot_vs_expanded.png", dpi=300, bbox_inches="tight")
+C1:L0257 plt.close(fig)
+C1:L0258 
+C1:L0259 overall_mad = raw["absolute_difference"].mean()
+C1:L0260 overall_corr = raw[["DI_ot", "DI_expanded"]].corr().iloc[0, 1]
+C1:L0261 overall_sign = raw["same_sign"].mean()
+C1:L0262 if overall_mad < 0.01 and overall_corr >= 0.99:
+C1:L0263     category = "numerically almost identical"
+C1:L0264 elif overall_mad < 0.05 and overall_corr >= 0.90:
+C1:L0265     category = "strongly correlated but not identical"
+C1:L0266 else:
+C1:L0267     category = "materially different"
+C1:L0268 
+C1:L0269 conclusion = pd.DataFrame(
+C1:L0270     [{
+C1:L0271         "M_per_setting": M,
+C1:L0272         "total_samples": len(raw),
+C1:L0273         "overall_mean_absolute_difference": overall_mad,
+C1:L0274         "overall_correlation": overall_corr,
+C1:L0275         "overall_same_sign_proportion": overall_sign,
+C1:L0276         "classification": category,
+C1:L0277     }]
+C1:L0278 )
+C1:L0279 conclusion.to_csv(OUTPUT_DIR / "overall_conclusion.csv", index=False)
+C1:L0280 
+C1:L0281 print("\nPer-setting summary")
+C1:L0282 print(summary.round(5).to_string(index=False))
+C1:L0283 print("\nOverall conclusion")
+C1:L0284 print(conclusion.round(5).to_string(index=False))
+C1:L0285 print(f"\nResults written to {OUTPUT_DIR}")

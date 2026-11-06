@@ -1,0 +1,23 @@
+{
+  "completed_fits": 14,
+  "planned_fits": 14,
+  "completed_ids": [
+    "compact_equal_original",
+    "compact_equal_shifted",
+    "compact_unequal_original",
+    "compact_unequal_original_tight",
+    "compact_unequal_shifted",
+    "compact_unequal_shifted_tight",
+    "dispersed_equal_original",
+    "dispersed_equal_shifted",
+    "dispersed_unequal_joint_coordinates",
+    "dispersed_unequal_original",
+    "dispersed_unequal_original_tight",
+    "dispersed_unequal_replay",
+    "dispersed_unequal_shifted",
+    "dispersed_unequal_shifted_tight"
+  ],
+  "complete": true,
+  "threads": 1,
+  "workers": 1
+}

@@ -1,0 +1,992 @@
+[
+  {
+    "candidate": 1,
+    "description": "compact asymmetric L",
+    "original_id": "sample1_original",
+    "translated_id": "sample1_shift32",
+    "delta": [
+      3,
+      2
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 4.048744400293541e-12,
+    "minimum_preliminary_gap": 0.02489024730995404,
+    "minimum_TSP_distinct_route_gap": 0.0008751601002394693,
+    "classification": "unchanged partition"
+  },
+  {
+    "candidate": 1,
+    "description": "compact asymmetric L",
+    "original_id": "sample1_original",
+    "translated_id": "sample1_shift41",
+    "delta": [
+      4,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 3.5971344494264744e-12,
+    "minimum_preliminary_gap": 0.02489024730995404,
+    "minimum_TSP_distinct_route_gap": 0.0008751601003726961,
+    "classification": "unchanged partition"
+  },
+  {
+    "candidate": 1,
+    "description": "compact asymmetric L",
+    "original_id": "sample1_original",
+    "translated_id": "sample1_shift23",
+    "delta": [
+      2,
+      3
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 4.048659286663316e-12,
+    "minimum_preliminary_gap": 0.02489024730995404,
+    "minimum_TSP_distinct_route_gap": 0.0008751601002394693,
+    "classification": "unchanged partition"
+  },
+  {
+    "candidate": 2,
+    "description": "compact skew cross",
+    "original_id": "sample2_original",
+    "translated_id": "sample2_shift32",
+    "delta": [
+      3,
+      2
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 4.971856291016917e-13,
+    "minimum_preliminary_gap": 0.05271492930146029,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16,
+    "classification": "unchanged partition"
+  },
+  {
+    "candidate": 2,
+    "description": "compact skew cross",
+    "original_id": "sample2_original",
+    "translated_id": "sample2_shift41",
+    "delta": [
+      4,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 9.146017344246297e-13,
+    "minimum_preliminary_gap": 0.052714929301450164,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16,
+    "classification": "unchanged partition"
+  },
+  {
+    "candidate": 2,
+    "description": "compact skew cross",
+    "original_id": "sample2_original",
+    "translated_id": "sample2_shift23",
+    "delta": [
+      2,
+      3
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 5.976608200431659e-13,
+    "minimum_preliminary_gap": 0.05271492930145796,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16,
+    "classification": "unchanged partition"
+  },
+  {
+    "candidate": 3,
+    "description": "compact asymmetric wedge",
+    "original_id": "sample3_original",
+    "translated_id": "sample3_shift32",
+    "delta": [
+      3,
+      2
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 4.610936117730962e-12,
+    "minimum_preliminary_gap": 0.022261972669228667,
+    "minimum_TSP_distinct_route_gap": 1.7288392939462938e-12,
+    "classification": "unchanged partition"
+  },
+  {
+    "candidate": 3,
+    "description": "compact asymmetric wedge",
+    "original_id": "sample3_original",
+    "translated_id": "sample3_shift41",
+    "delta": [
+      4,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 5.439757052802405e-12,
+    "minimum_preliminary_gap": 0.022261972667719523,
+    "minimum_TSP_distinct_route_gap": 1.7288392939462938e-12,
+    "classification": "unchanged partition"
+  },
+  {
+    "candidate": 3,
+    "description": "compact asymmetric wedge",
+    "original_id": "sample3_original",
+    "translated_id": "sample3_shift23",
+    "delta": [
+      2,
+      3
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 4.610936117730962e-12,
+    "minimum_preliminary_gap": 0.022261972669228518,
+    "minimum_TSP_distinct_route_gap": 1.7288392939462938e-12,
+    "classification": "unchanged partition"
+  }
+]

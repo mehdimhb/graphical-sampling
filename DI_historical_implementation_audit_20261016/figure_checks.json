@@ -1,0 +1,165 @@
+{
+  "all_passed": true,
+  "DI_bars_checked_per_figure": 96,
+  "records": [
+    {
+      "file": "original_synthetic.svg",
+      "probability": "Equal",
+      "bar_count": 48,
+      "tick_calibrated_points_per_DI_unit": 166.53063575806146,
+      "calibration_ticks": [
+        {
+          "value": 0.3,
+          "y": 109.2865615
+        },
+        {
+          "value": 0.0,
+          "y": 159.3139015
+        },
+        {
+          "value": -0.3,
+          "y": 209.3412425
+        },
+        {
+          "value": -0.6,
+          "y": 259.3685825
+        }
+      ],
+      "maximum_DI_recovery_difference": 1.1852303041764989e-05,
+      "method": "Axis scale comes from the displayed 0.3, 0, -0.3, -0.6 tick positions, independently of the expected DI vector. Transform rectangle coordinates to SVG page coordinates; account for Cairo integer-canvas normalization. Tolerance 1e-4 DI units allows PDF coordinate quantization, not equality at six-decimal CSV precision."
+    },
+    {
+      "file": "original_synthetic.svg",
+      "probability": "Unequal",
+      "bar_count": 48,
+      "tick_calibrated_points_per_DI_unit": 166.53063575806146,
+      "calibration_ticks": [
+        {
+          "value": 0.3,
+          "y": 109.2865615
+        },
+        {
+          "value": 0.0,
+          "y": 159.3139015
+        },
+        {
+          "value": -0.3,
+          "y": 209.3412425
+        },
+        {
+          "value": -0.6,
+          "y": 259.3685825
+        }
+      ],
+      "maximum_DI_recovery_difference": 1.1567497473038979e-05,
+      "method": "Axis scale comes from the displayed 0.3, 0, -0.3, -0.6 tick positions, independently of the expected DI vector. Transform rectangle coordinates to SVG page coordinates; account for Cairo integer-canvas normalization. Tolerance 1e-4 DI units allows PDF coordinate quantization, not equality at six-decimal CSV precision."
+    },
+    {
+      "file": "submission_synthetic.svg",
+      "probability": "Equal",
+      "bar_count": 48,
+      "tick_calibrated_points_per_DI_unit": 166.53064174792502,
+      "calibration_ticks": [
+        {
+          "value": 0.3,
+          "y": 109.2865615
+        },
+        {
+          "value": 0.0,
+          "y": 159.3139015
+        },
+        {
+          "value": -0.3,
+          "y": 209.3412425
+        },
+        {
+          "value": -0.6,
+          "y": 259.3685825
+        }
+      ],
+      "maximum_DI_recovery_difference": 1.1871220639253499e-05,
+      "method": "Axis scale comes from the displayed 0.3, 0, -0.3, -0.6 tick positions, independently of the expected DI vector. Transform rectangle coordinates to SVG page coordinates; account for Cairo integer-canvas normalization. Tolerance 1e-4 DI units allows PDF coordinate quantization, not equality at six-decimal CSV precision."
+    },
+    {
+      "file": "submission_synthetic.svg",
+      "probability": "Unequal",
+      "bar_count": 48,
+      "tick_calibrated_points_per_DI_unit": 166.53064174792502,
+      "calibration_ticks": [
+        {
+          "value": 0.3,
+          "y": 109.2865615
+        },
+        {
+          "value": 0.0,
+          "y": 159.3139015
+        },
+        {
+          "value": -0.3,
+          "y": 209.3412425
+        },
+        {
+          "value": -0.6,
+          "y": 259.3685825
+        }
+      ],
+      "maximum_DI_recovery_difference": 1.1569863211213782e-05,
+      "method": "Axis scale comes from the displayed 0.3, 0, -0.3, -0.6 tick positions, independently of the expected DI vector. Transform rectangle coordinates to SVG page coordinates; account for Cairo integer-canvas normalization. Tolerance 1e-4 DI units allows PDF coordinate quantization, not equality at six-decimal CSV precision."
+    },
+    {
+      "file": "proof_synthetic.svg",
+      "probability": "Equal",
+      "bar_count": 48,
+      "tick_calibrated_points_per_DI_unit": 112.28136166666651,
+      "calibration_ticks": [
+        {
+          "value": 0.3,
+          "y": 171.49005449999999
+        },
+        {
+          "value": 0.0,
+          "y": 205.174463
+        },
+        {
+          "value": -0.3,
+          "y": 238.85887150000002
+        },
+        {
+          "value": -0.6,
+          "y": 272.54328
+        }
+      ],
+      "maximum_DI_recovery_difference": 2.58550570954863e-05,
+      "method": "Axis scale comes from the displayed 0.3, 0, -0.3, -0.6 tick positions, independently of the expected DI vector. Transform rectangle coordinates to SVG page coordinates; account for Cairo integer-canvas normalization. Tolerance 1e-4 DI units allows PDF coordinate quantization, not equality at six-decimal CSV precision."
+    },
+    {
+      "file": "proof_synthetic.svg",
+      "probability": "Unequal",
+      "bar_count": 48,
+      "tick_calibrated_points_per_DI_unit": 112.28136166666651,
+      "calibration_ticks": [
+        {
+          "value": 0.3,
+          "y": 171.49005449999999
+        },
+        {
+          "value": 0.0,
+          "y": 205.174463
+        },
+        {
+          "value": -0.3,
+          "y": 238.85887150000002
+        },
+        {
+          "value": -0.6,
+          "y": 272.54328
+        }
+      ],
+      "maximum_DI_recovery_difference": 6.022110306601325e-05,
+      "method": "Axis scale comes from the displayed 0.3, 0, -0.3, -0.6 tick positions, independently of the expected DI vector. Transform rectangle coordinates to SVG page coordinates; account for Cairo integer-canvas normalization. Tolerance 1e-4 DI units allows PDF coordinate quantization, not equality at six-decimal CSV precision."
+    }
+  ],
+  "proof_pdf": "/home/bardia/Downloads/JSSAM-2025-203.R1_Proof_hi_0.pdf",
+  "proof_page": 31,
+  "scope": "Geometric identity at rendering precision supports the link to these reported figures; it is not a per-run execution log or proof for every other manuscript output."
+}

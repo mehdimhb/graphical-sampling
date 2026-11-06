@@ -1,0 +1,4585 @@
+{
+  "designs": [
+    {
+      "path": "simulations/best_designs/meuse/best_design_df_meuse_10_pik_ep.pkl",
+      "sha256": "16ea7c599d38c53e72b6ed9107dd5fb40405bb6f8fcb54dca17e974cd04e4169",
+      "population": "Meuse",
+      "method": "GMS",
+      "N": 155,
+      "n": 10,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 160,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 150,
+        "2": 5
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 1.4876988529977098e-14,
+      "raw": {
+        "support": 31,
+        "probability_sum": 1.0000000150000001,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.032258065,
+        "max_fip_error": 9.677419282594357e-10,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 31,
+        "probability_sum": 1.0000002011656761,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.03225807100534439,
+        "max_fip_error": 1.2978430705135047e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.8616567604157197e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 10,
+        "mass_min": 0.9999999999999993,
+        "mass_max": 1.0000000000000013,
+        "max_unit_share_error": 1.4876988529977098e-14,
+        "fraction_weighted_count_not_one_mass": 0.06451613,
+        "hard_argmax_count_not_one_mass": 0.06451613,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/meuse/initial_design_df_meuse_10_pik_ep.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 31,
+        "probability_sum": 0.9999999999997574,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.03225806451611979,
+        "max_fip_error": 1.6833756610878936e-14,
+        "valid_ids": true
+      },
+      "replay_l1": 1.5000242645224482e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 31,
+          "probability_sum": 0.9999999999998107,
+          "sizes": [
+            10
+          ],
+          "min_probability": 0.032258064516121565,
+          "max_fip_error": 1.3281042932078435e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.50001893545193e-08
+        },
+        "after": {
+          "support": 31,
+          "probability_sum": 0.9999999999998107,
+          "sizes": [
+            10
+          ],
+          "min_probability": 0.032258064516121565,
+          "max_fip_error": 1.3281042932078435e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.50001893545193e-08
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.48733849581897853,
+      "fresh_current_VI": 0.07980264100739412,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 67,
+          "MI": -0.4873384958189778,
+          "VI": 0.0798026410073941
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 9,
+          "MI": -0.4873384958189786,
+          "VI": 0.0798026410073941
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/best_design_df_meuse_10_pik_up.pkl",
+      "sha256": "b15dece03fc3f9f7d6db1bbfa8eb1b48ef4e470793f00820a798eeaaeb50df2d",
+      "population": "Meuse",
+      "method": "GMS",
+      "N": 155,
+      "n": 10,
+      "IP": "UP",
+      "num_splits": 1,
+      "order_rows": 164,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 146,
+        "2": 9
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 155,
+        "probability_sum": 1.0,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.000160026,
+        "max_fip_error": 3.476876314634225e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 155,
+        "probability_sum": 0.9999999967840267,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.00016002600023057312,
+        "max_fip_error": 2.5262953812221767e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.3117289180439376e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 10,
+        "mass_min": 0.9999999999999978,
+        "mass_max": 1.000000000000002,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.261321811,
+        "hard_argmax_count_not_one_mass": 0.054568731,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/meuse/initial_design_df_meuse_10_pik_up.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 155,
+        "probability_sum": 1.0,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.00016002560409678068,
+        "max_fip_error": 1.2906342661267445e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 4.124820406864829e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            10
+          ],
+          "min_probability": 0.00016002560409511535,
+          "max_fip_error": 9.922618282587337e-16,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.124818541690147e-08
+        },
+        "after": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            10
+          ],
+          "min_probability": 0.00016002560409511535,
+          "max_fip_error": 9.922618282587337e-16,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.124818541690147e-08
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.33305455357883934,
+      "fresh_current_VI": 0.08979412076791375,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 85,
+          "MI": -0.3424864904874197,
+          "VI": 0.0897941207679137
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 6,
+          "MI": -0.3330545535788394,
+          "VI": 0.08979412076791375
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/best_design_df_meuse_20_pik_ep.pkl",
+      "sha256": "b6bbd928f9d20d48314ace5cc486e67a8b1af087940273be943f30b1701b6b95",
+      "population": "Meuse",
+      "method": "GMS",
+      "N": 155,
+      "n": 20,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 170,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 140,
+        "2": 15
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 1.4876988529977098e-14,
+      "raw": {
+        "support": 352,
+        "probability_sum": 1.0000000150000001,
+        "sizes": [
+          20
+        ],
+        "min_probability": 5.814337048530581e-06,
+        "max_fip_error": 1.935483884274447e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 352,
+        "probability_sum": 1.0000000153740984,
+        "sizes": [
+          20
+        ],
+        "min_probability": 5.814336873299908e-06,
+        "max_fip_error": 3.4959802552858577e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.5169059293644175e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 20,
+        "mass_min": 0.9999999999999976,
+        "mass_max": 1.000000000000001,
+        "max_unit_share_error": 1.4876988529977098e-14,
+        "fraction_weighted_count_not_one_mass": 0.5279834272765589,
+        "hard_argmax_count_not_one_mass": 0.5269753627453089,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.4858688919591523
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/meuse/initial_design_df_meuse_20_pik_ep.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.4858688919591523
+      },
+      "replay": {
+        "support": 31,
+        "probability_sum": 0.9999999999995148,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.03225806451611124,
+        "max_fip_error": 6.586398093588741e-14,
+        "valid_ids": true
+      },
+      "replay_l1": 1.8379290921779836,
+      "current_rebuild": {
+        "before": {
+          "support": 31,
+          "probability_sum": 0.9999999999996214,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.03225806451611479,
+          "max_fip_error": 5.165312622068541e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.8379290921780902
+        },
+        "after": {
+          "support": 31,
+          "probability_sum": 0.9999999999996214,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.03225806451611479,
+          "max_fip_error": 5.165312622068541e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.8379290921780902
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.5908170041878127,
+      "fresh_current_VI": 0.09351019148693683,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 68,
+          "MI": -0.5908170041878114,
+          "VI": 0.0935101914869368
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 12,
+          "MI": -0.5908170041878127,
+          "VI": 0.09351019148693682
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/best_design_df_meuse_20_pik_up.pkl",
+      "sha256": "d9d4779941dac25275f06c68ab95668f55902b3426095c886313d502846db307",
+      "population": "Meuse",
+      "method": "GMS",
+      "N": 155,
+      "n": 20,
+      "IP": "UP",
+      "num_splits": 1,
+      "order_rows": 174,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 136,
+        "2": 19
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 221,
+        "probability_sum": 1.000000001,
+        "sizes": [
+          20
+        ],
+        "min_probability": 4.000649999999999e-05,
+        "max_fip_error": 3.3634179885666526e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 221,
+        "probability_sum": 1.000000112791895,
+        "sizes": [
+          20
+        ],
+        "min_probability": 4.0006503695622087e-05,
+        "max_fip_error": 4.365211292434168e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.1179189492584e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 20,
+        "mass_min": 0.9999999999999977,
+        "mass_max": 1.0000000000000033,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.468652487125,
+        "hard_argmax_count_not_one_mass": 0.3276324229375,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.13004080743750002
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/meuse/initial_design_df_meuse_20_pik_up.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.13004080743750002
+      },
+      "replay": {
+        "support": 155,
+        "probability_sum": 1.0,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.00016002560409367206,
+        "max_fip_error": 1.7486012637846216e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 0.5398764068999311,
+      "current_rebuild": {
+        "before": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.0001600256040918957,
+          "max_fip_error": 4.9404924595819466e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.53987640689994
+        },
+        "after": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.0001600256040918957,
+          "max_fip_error": 4.9404924595819466e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.53987640689994
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.37646498053922517,
+      "fresh_current_VI": 0.08653188129930751,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 86,
+          "MI": -0.3929305565244289,
+          "VI": 0.0865318812993075
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 3,
+          "MI": -0.37646498053922517,
+          "VI": 0.08653188129930753
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/best_design_df_meuse_5_pik_ep.pkl",
+      "sha256": "02bfddfd28bebcdcc3137cc89797e53f23711d479df5d7d786f0ed7ec4ba9d19",
+      "population": "Meuse",
+      "method": "GMS",
+      "N": 155,
+      "n": 5,
+      "IP": "EP",
+      "num_splits": 4,
+      "order_rows": 608,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "4": 151,
+        "1": 4
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 1.4876988529977098e-14,
+      "raw": {
+        "support": 51,
+        "probability_sum": 0.9999999840000001,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.0015120967500000006,
+        "max_fip_error": 5.161290353439263e-10,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 51,
+        "probability_sum": 1.0000000977888703,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.0015120969619601965,
+        "max_fip_error": 3.9280782723749574e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.1378887024293682e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 5,
+        "mass_min": 0.9999999999999997,
+        "mass_max": 1.0000000000000002,
+        "max_unit_share_error": 1.4876988529977098e-14,
+        "fraction_weighted_count_not_one_mass": 0.09677419200000001,
+        "hard_argmax_count_not_one_mass": 0.09677419200000001,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.09677419200000001
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/meuse/initial_design_df_meuse_5_pik_ep.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.37449596175000005
+      },
+      "replay": {
+        "support": 31,
+        "probability_sum": 0.9999999999946683,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.032258064515926055,
+        "max_fip_error": 2.0298346337099815e-13,
+        "valid_ids": true
+      },
+      "replay_l1": 0.5866935549946682,
+      "current_rebuild": {
+        "before": {
+          "support": 31,
+          "probability_sum": 0.9999999999943776,
+          "sizes": [
+            5
+          ],
+          "min_probability": 0.03225806451594537,
+          "max_fip_error": 1.8366558274252043e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.5866935549943776
+        },
+        "after": {
+          "support": 31,
+          "probability_sum": 0.9999999999943776,
+          "sizes": [
+            5
+          ],
+          "min_probability": 0.032258064515920504,
+          "max_fip_error": 2.0853457849412393e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.5866935549943776
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.4498144602411071,
+      "fresh_current_VI": 0.0809046858964287,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 66,
+          "MI": -0.4080402689077337,
+          "VI": 0.0711355921691214
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 4,
+          "MI": -0.4498144602411071,
+          "VI": 0.08090468589642869
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/best_design_df_meuse_5_pik_up.pkl",
+      "sha256": "97fd9416a4e658c9e9bcf6c06b586c04b31c40da3f7baa1a2391603e956b55ef",
+      "population": "Meuse",
+      "method": "GMS",
+      "N": 155,
+      "n": 5,
+      "IP": "UP",
+      "num_splits": 1,
+      "order_rows": 159,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 151,
+        "2": 4
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 155,
+        "probability_sum": 0.999999995,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.000160026,
+        "max_fip_error": 1.8602976450954323e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 155,
+        "probability_sum": 0.9999999899882823,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.00016002600023057312,
+        "max_fip_error": 3.085844357819667e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.265652096223583e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 5,
+        "mass_min": 0.9999999999999988,
+        "mass_max": 1.0000000000000018,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.093614978,
+        "hard_argmax_count_not_one_mass": 0.006080972,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/meuse/initial_design_df_meuse_5_pik_up.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 155,
+        "probability_sum": 1.0,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.00016002560409678068,
+        "max_fip_error": 1.7069679003611782e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 4.4980141311308595e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            5
+          ],
+          "min_probability": 0.00016002560409678068,
+          "max_fip_error": 1.7069679003611782e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.4980141311308595e-08
+        },
+        "after": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            5
+          ],
+          "min_probability": 0.00016002560409678068,
+          "max_fip_error": 1.7069679003611782e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.4980141311308595e-08
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.2639500337618457,
+      "fresh_current_VI": 0.08349204036193343,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 84,
+          "MI": -0.3126731499318271,
+          "VI": 0.0834920403619334
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 8,
+          "MI": -0.26395003376184567,
+          "VI": 0.08349204036193343
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/initial_design_df_meuse_10_pik_ep.pkl",
+      "sha256": "479766cb9634ddab2ddf25ecff634f0b4b920f48c3533735aa5f82977d57c735",
+      "population": "Meuse",
+      "method": "NMS",
+      "N": 155,
+      "n": 10,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 160,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 150,
+        "2": 5
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 1.4876988529977098e-14,
+      "raw": {
+        "support": 31,
+        "probability_sum": 1.0000000150000001,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.032258065,
+        "max_fip_error": 9.677419282594357e-10,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 31,
+        "probability_sum": 1.0000002011656761,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.03225807100534439,
+        "max_fip_error": 1.2978430705135047e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.8616567604157197e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 10,
+        "mass_min": 0.9999999999999993,
+        "mass_max": 1.0000000000000013,
+        "max_unit_share_error": 1.4876988529977098e-14,
+        "fraction_weighted_count_not_one_mass": 0.06451613,
+        "hard_argmax_count_not_one_mass": 0.06451613,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 31,
+        "probability_sum": 0.9999999999997574,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.03225806451611979,
+        "max_fip_error": 1.6833756610878936e-14,
+        "valid_ids": true
+      },
+      "replay_l1": 1.5000242645224482e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 31,
+          "probability_sum": 0.9999999999998107,
+          "sizes": [
+            10
+          ],
+          "min_probability": 0.032258064516121565,
+          "max_fip_error": 1.3281042932078435e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.50001893545193e-08
+        },
+        "after": {
+          "support": 31,
+          "probability_sum": 0.9999999999998107,
+          "sizes": [
+            10
+          ],
+          "min_probability": 0.032258064516121565,
+          "max_fip_error": 1.3281042932078435e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.50001893545193e-08
+        }
+      },
+      "cached_MI": -0.4300600096463541,
+      "cached_VI": 0.07429762160585772,
+      "fresh_current_MI": -0.4300600096463546,
+      "fresh_current_VI": 0.0742976216058577,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 73,
+          "MI": -0.4300600096463541,
+          "VI": 0.0742976216058577
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 2,
+          "MI": -0.4300600096463541,
+          "VI": 0.07429762160585772
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/initial_design_df_meuse_10_pik_up.pkl",
+      "sha256": "3a64cb81f2931528356702dbf3d1d236b653de6039a50013f076199c6af0c2ac",
+      "population": "Meuse",
+      "method": "NMS",
+      "N": 155,
+      "n": 10,
+      "IP": "UP",
+      "num_splits": 1,
+      "order_rows": 164,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 146,
+        "2": 9
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 155,
+        "probability_sum": 0.999999999,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.000160026,
+        "max_fip_error": 2.7562809257197785e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 155,
+        "probability_sum": 0.9999999974388629,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.00016002600023057312,
+        "max_fip_error": 3.235005541224467e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.0612368830383917e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 10,
+        "mass_min": 0.9999999999999978,
+        "mass_max": 1.000000000000002,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.261321814,
+        "hard_argmax_count_not_one_mass": 0.054568731,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 155,
+        "probability_sum": 1.0,
+        "sizes": [
+          10
+        ],
+        "min_probability": 0.00016002560409644762,
+        "max_fip_error": 1.2906342661267445e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 4.2821084298273835e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            10
+          ],
+          "min_probability": 0.0001600256040968917,
+          "max_fip_error": 9.922618282587337e-16,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.282106742288386e-08
+        },
+        "after": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            10
+          ],
+          "min_probability": 0.0001600256040968917,
+          "max_fip_error": 9.922618282587337e-16,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.282106742288386e-08
+        }
+      },
+      "cached_MI": -0.29437401712153904,
+      "cached_VI": 0.08651053396188116,
+      "fresh_current_MI": -0.3151650627742983,
+      "fresh_current_VI": 0.08651053396188114,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 94,
+          "MI": -0.294374017121539,
+          "VI": 0.0865105339618811
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 11,
+          "MI": -0.29437401712153904,
+          "VI": 0.08651053396188116
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/initial_design_df_meuse_20_pik_ep.pkl",
+      "sha256": "5993ceb426d20120abe3c445c14100aa7ba3f1e0b42d9d34baa342e9b9290da7",
+      "population": "Meuse",
+      "method": "NMS",
+      "N": 155,
+      "n": 20,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 170,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 140,
+        "2": 15
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 1.4876988529977098e-14,
+      "raw": {
+        "support": 31,
+        "probability_sum": 1.0000000150000001,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.032258065,
+        "max_fip_error": 1.9354838565188714e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 31,
+        "probability_sum": 1.0000002011656761,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.03225807100534439,
+        "max_fip_error": 2.5956861410270093e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.8616567604157197e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 20,
+        "mass_min": 0.9999999999999976,
+        "mass_max": 1.000000000000001,
+        "max_unit_share_error": 1.4876988529977098e-14,
+        "fraction_weighted_count_not_one_mass": 0.19354839000000001,
+        "hard_argmax_count_not_one_mass": 0.12903226,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 31,
+        "probability_sum": 0.9999999999995148,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.03225806451611124,
+        "max_fip_error": 6.586398093588741e-14,
+        "valid_ids": true
+      },
+      "replay_l1": 1.5000485215077575e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 31,
+          "probability_sum": 0.9999999999996214,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.03225806451611479,
+          "max_fip_error": 5.165312622068541e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.500037863366721e-08
+        },
+        "after": {
+          "support": 31,
+          "probability_sum": 0.9999999999996214,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.03225806451611479,
+          "max_fip_error": 5.165312622068541e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.500037863366721e-08
+        }
+      },
+      "cached_MI": -0.49143171628023496,
+      "cached_VI": 0.08169583060645919,
+      "fresh_current_MI": -0.49143171628023574,
+      "fresh_current_VI": 0.08169583060645917,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 74,
+          "MI": -0.4914317162802349,
+          "VI": 0.0816958306064591
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 10,
+          "MI": -0.49143171628023496,
+          "VI": 0.08169583060645919
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/initial_design_df_meuse_20_pik_up.pkl",
+      "sha256": "e8526333734c64bbb74700018dd84192dda615bf1641b6fb6520f05b6a6e0a23",
+      "population": "Meuse",
+      "method": "NMS",
+      "N": 155,
+      "n": 20,
+      "IP": "UP",
+      "num_splits": 1,
+      "order_rows": 174,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 136,
+        "2": 19
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 155,
+        "probability_sum": 0.999999997,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.000160026,
+        "max_fip_error": 3.5210434568000437e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 155,
+        "probability_sum": 0.9999999994615791,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.00016002600023057312,
+        "max_fip_error": 3.9542064345088335e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.1295287774516407e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 20,
+        "mass_min": 0.9999999999999977,
+        "mass_max": 1.0000000000000033,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.387421987,
+        "hard_argmax_count_not_one_mass": 0.221955514,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 155,
+        "probability_sum": 1.0,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.00016002560409322797,
+        "max_fip_error": 1.7486012637846216e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 3.986738696806834e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.0001600256040918957,
+          "max_fip_error": 4.9404924595819466e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 3.9867417166134607e-08
+        },
+        "after": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.0001600256040918957,
+          "max_fip_error": 4.9404924595819466e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 3.9867417166134607e-08
+        }
+      },
+      "cached_MI": -0.3409443351816528,
+      "cached_VI": 0.07610542105731485,
+      "fresh_current_MI": -0.338849894302096,
+      "fresh_current_VI": 0.07610542105731484,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 95,
+          "MI": -0.3409443351816528,
+          "VI": 0.0761054210573148
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 7,
+          "MI": -0.3409443351816528,
+          "VI": 0.07610542105731485
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/initial_design_df_meuse_5_pik_ep.pkl",
+      "sha256": "5f8173f779f6628550daf2f9be9fca1ee26e16b320a99f26c264f7f0732e87c3",
+      "population": "Meuse",
+      "method": "NMS",
+      "N": 155,
+      "n": 5,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 155,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 155
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 31,
+        "probability_sum": 0.9999999999999054,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.03225806451612567,
+        "max_fip_error": 3.3653635433950058e-15,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 31,
+        "probability_sum": 1.000000087544322,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.03225806728005409,
+        "max_fip_error": 3.695247628721088e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 8.754441665342894e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 5,
+        "mass_min": 0.9999999999999971,
+        "mass_max": 1.0000000000000002,
+        "max_unit_share_error": 8.260059303211165e-14,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": false,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 31,
+        "probability_sum": 0.9999999999999054,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.03225806451612567,
+        "max_fip_error": 3.3653635433950058e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 31,
+          "probability_sum": 0.9999999999999054,
+          "sizes": [
+            5
+          ],
+          "min_probability": 0.03225806451612567,
+          "max_fip_error": 3.3653635433950058e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 31,
+          "probability_sum": 0.9999999999999054,
+          "sizes": [
+            5
+          ],
+          "min_probability": 0.03225806451612567,
+          "max_fip_error": 3.3653635433950058e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.33372758550393344,
+      "cached_VI": null,
+      "fresh_current_MI": -0.33372758550393344,
+      "fresh_current_VI": 0.06563056528289152,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 72,
+          "MI": -0.357764549535861,
+          "VI": 0.0776207645977075
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 13,
+          "MI": -0.33372758550393344,
+          "VI": 0.06563056528289152
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/meuse/initial_design_df_meuse_5_pik_up.pkl",
+      "sha256": "4b586eebce52f3c4547cf8b1cf73c3c96a46767e2fc07adc56b5dad3af48cf26",
+      "population": "Meuse",
+      "method": "NMS",
+      "N": 155,
+      "n": 5,
+      "IP": "UP",
+      "num_splits": 1,
+      "order_rows": 159,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "1": 151,
+        "2": 4
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 755,
+        "probability_sum": 1.0000000022274007,
+        "sizes": [
+          5
+        ],
+        "min_probability": 1.0301324129104613e-09,
+        "max_fip_error": 2.402304383197773e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 755,
+        "probability_sum": 1.000000002455418,
+        "sizes": [
+          5
+        ],
+        "min_probability": 1.0301324238071174e-09,
+        "max_fip_error": 3.329535841478659e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.967951588023426e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 5,
+        "mass_min": 0.9999999999999988,
+        "mass_max": 1.0000000000000018,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.23130425170936897,
+        "hard_argmax_count_not_one_mass": 0.15708616598134162,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.13967275618446662
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 155,
+        "probability_sum": 1.0,
+        "sizes": [
+          5
+        ],
+        "min_probability": 0.00016002560409666966,
+        "max_fip_error": 1.8596235662471372e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 1.1898996693122574,
+      "current_rebuild": {
+        "before": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            5
+          ],
+          "min_probability": 0.00016002560409666966,
+          "max_fip_error": 1.8596235662471372e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.1898996693122574
+        },
+        "after": {
+          "support": 155,
+          "probability_sum": 1.0,
+          "sizes": [
+            5
+          ],
+          "min_probability": 0.00016002560409666966,
+          "max_fip_error": 1.8596235662471372e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.1898996693122574
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.25735134230462375,
+      "fresh_current_VI": 0.09072745952583885,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 93,
+          "MI": -0.2686897056602468,
+          "VI": 0.0849464090201337
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 5,
+          "MI": -0.2573513423046238,
+          "VI": 0.09072745952583887
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_C100Z1_Aggregated1000.pkl",
+      "sha256": "dbf741bc871b86f9cf500a3b7d18a407ad166a2c14305d9e104a8323bbdf0512",
+      "population": "Aggregated",
+      "method": "GMS",
+      "N": 1000,
+      "n": 100,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 10,
+        "probability_sum": 0.9999999999818954,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.09999999999796216,
+        "max_fip_error": 2.0378282394872826e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 10,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.10000000149011612,
+        "max_fip_error": 1.4901161277114383e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919265822754824e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 100,
+        "mass_min": 0.9999999999986499,
+        "mass_max": 0.9999999999999999,
+        "max_unit_share_error": 1.3500311979441904e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_design_C100Z4_Aggregated1000_none-none.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 10,
+        "probability_sum": 0.9999999999818954,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.09999999999796216,
+        "max_fip_error": 2.0378282394872826e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 10,
+          "probability_sum": 0.9999999999818954,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.09999999999796216,
+          "max_fip_error": 2.0378282394872826e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 10,
+          "probability_sum": 0.9999999999818954,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.09999999999796216,
+          "max_fip_error": 2.0378282394872826e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.7256497694802845,
+      "fresh_current_VI": 0.08650000128895047,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_C100Z1_RegularPop1000.pkl",
+      "sha256": "ec32b247193108aad4d5dbccc7b4ddd3c060a278706107c09a698d02cb0706a5",
+      "population": "Regular",
+      "method": "GMS",
+      "N": 1000,
+      "n": 100,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 10,
+        "probability_sum": 0.9999999999818954,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.09999999999796216,
+        "max_fip_error": 2.0378282394872826e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 10,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.10000000149011612,
+        "max_fip_error": 1.4901161277114383e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919265822754824e-08,
+      "retained_hierarchy": {
+        "available": false,
+        "clusters": 1
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_desing_C100Z4_Regular1000_lexico_angle.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.9999999999818954
+      },
+      "replay": {
+        "support": 10,
+        "probability_sum": 0.9999999999818954,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.09999999999796216,
+        "max_fip_error": 2.0378282394872826e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 10,
+          "probability_sum": 0.9999999999818954,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.09999999999796216,
+          "max_fip_error": 2.0378282394872826e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 10,
+          "probability_sum": 0.9999999999818954,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.09999999999796216,
+          "max_fip_error": 2.0378282394872826e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.5849649769955333,
+      "fresh_current_VI": 0.046785000697150844,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_C200Z1_Aggregated1000.pkl",
+      "sha256": "4f0615a01d8a66e40f0556e89d67e19a4e16aa902a4d53a6d9eab2353ca6df5a",
+      "population": "Aggregated",
+      "method": "GMS",
+      "N": 1000,
+      "n": 200,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 5,
+        "probability_sum": 0.9999999999837712,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.19999999999592433,
+        "max_fip_error": 4.075656478974565e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 5,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.20000000298023224,
+        "max_fip_error": 2.9802322554228766e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4917389989932417e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 200,
+        "mass_min": 0.9999999999972431,
+        "mass_max": 1.0,
+        "max_unit_share_error": 1.3784529073745944e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_design_C200Z1_Aggregated1000_none-none.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 5,
+        "probability_sum": 0.9999999999837712,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.19999999999592433,
+        "max_fip_error": 4.075656478974565e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 5,
+          "probability_sum": 0.9999999999837712,
+          "sizes": [
+            200
+          ],
+          "min_probability": 0.19999999999592433,
+          "max_fip_error": 4.075656478974565e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 5,
+          "probability_sum": 0.9999999999837712,
+          "sizes": [
+            200
+          ],
+          "min_probability": 0.19999999999592433,
+          "max_fip_error": 4.075656478974565e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.7662050037877193,
+      "fresh_current_VI": 0.1428000021278858,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_C200Z1_pop_df_Regular1000.pkl",
+      "sha256": "a93c3a860c61e14fed8d1a99ed37479798d5058f8b2c20c2e385832c4b107524",
+      "population": "Regular",
+      "method": "GMS",
+      "N": 1000,
+      "n": 200,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 5,
+        "probability_sum": 0.9999999999837712,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.19999999999592433,
+        "max_fip_error": 4.075656478974565e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 5,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.20000000298023224,
+        "max_fip_error": 2.9802322554228766e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4917389989932417e-08,
+      "retained_hierarchy": {
+        "available": false,
+        "clusters": 1
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_design_C200Z1_Regular1000_none-none.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.9999999999837712
+      },
+      "replay": {
+        "support": 5,
+        "probability_sum": 0.9999999999837712,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.19999999999592433,
+        "max_fip_error": 4.075656478974565e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 5,
+          "probability_sum": 0.9999999999837712,
+          "sizes": [
+            200
+          ],
+          "min_probability": 0.19999999999592433,
+          "max_fip_error": 4.075656478974565e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 5,
+          "probability_sum": 0.9999999999837712,
+          "sizes": [
+            200
+          ],
+          "min_probability": 0.19999999999592433,
+          "max_fip_error": 4.075656478974565e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.7158844842629438,
+      "fresh_current_VI": 0.07376000109910964,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_C20Z4_Aggregated1000.pkl",
+      "sha256": "fb7be0fd8674964a26c9d9ce15af582faa76efcb60091792c70363958f6f40ee",
+      "population": "Aggregated",
+      "method": "GMS",
+      "N": 1000,
+      "n": 20,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 50,
+        "probability_sum": 0.9999999999838538,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.019999999999659845,
+        "max_fip_error": 3.401549875103882e-13,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 50,
+        "probability_sum": 1.0000000707805157,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.020000001415610313,
+        "max_fip_error": 1.4156103129991937e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 7.07966618662681e-08,
+      "retained_hierarchy": {
+        "available": false,
+        "clusters": 1
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_design_C20Z4_Aggregated1000_angle_snake_staggered.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.979999999984194
+      },
+      "replay": {
+        "support": 50,
+        "probability_sum": 0.9999999999838538,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.019999999999659845,
+        "max_fip_error": 3.401549875103882e-13,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 50,
+          "probability_sum": 0.9999999999838538,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.019999999999659845,
+          "max_fip_error": 3.401549875103882e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 50,
+          "probability_sum": 0.9999999999838538,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.019999999999659845,
+          "max_fip_error": 3.401549875103882e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.4307355540534017,
+      "cached_VI": null,
+      "fresh_current_MI": -0.4307355540534016,
+      "fresh_current_VI": 0.08617360609941198,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 21,
+          "MI": -0.4307355540534017,
+          "VI": 0.08617360609941198
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_C20Z4_RegularPop1000.pkl",
+      "sha256": "546b2aefa910679f7fa4e244f3751fff696af2cbbf3b5cfcf40bd6ea6aabf2a2",
+      "population": "Regular",
+      "method": "GMS",
+      "N": 1000,
+      "n": 20,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 50,
+        "probability_sum": 0.9999999999838538,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.019999999999659845,
+        "max_fip_error": 3.401549875103882e-13,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 50,
+        "probability_sum": 1.0000000707805157,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.020000001415610313,
+        "max_fip_error": 1.4156103129991937e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 7.07966618662681e-08,
+      "retained_hierarchy": {
+        "available": false,
+        "clusters": 1
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_design_C20Z4_Regular1000_angle_snake_staggered.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.4599999999924269
+      },
+      "replay": {
+        "support": 50,
+        "probability_sum": 0.9999999999838538,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.019999999999659845,
+        "max_fip_error": 3.401549875103882e-13,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 50,
+          "probability_sum": 0.9999999999838538,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.019999999999659845,
+          "max_fip_error": 3.401549875103882e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 50,
+          "probability_sum": 0.9999999999838538,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.019999999999659845,
+          "max_fip_error": 3.401549875103882e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.3608223938870024,
+      "cached_VI": null,
+      "fresh_current_MI": -0.36082239388700227,
+      "fresh_current_VI": 0.048519203434214064,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 20,
+          "MI": -0.3608223938870024,
+          "VI": 0.048519203434214064
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_C50Z4_Regular1000.pkl",
+      "sha256": "f1ec9cca4f1fc5daaa0539dc5970869d83f644d2aa0e8eff3089f96b2fdddad7",
+      "population": "Regular",
+      "method": "GMS",
+      "N": 1000,
+      "n": 50,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 20,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.05000000074505806,
+        "max_fip_error": 7.450580638557192e-10,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919947943781153e-08,
+      "retained_hierarchy": {
+        "available": false,
+        "clusters": 1
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_design_C50Z4_RegularPop1000_hilbert_None.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.9999999999812133
+      },
+      "replay": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.4652251017407493,
+      "cached_VI": null,
+      "fresh_current_MI": -0.4652251017407493,
+      "fresh_current_VI": 0.04067000060603028,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 15,
+          "MI": -0.4652251017407493,
+          "VI": 0.04067000060603028
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_C50Z4__Aggregated1000.pkl",
+      "sha256": "f37d5c53542e9fec7ade9214c7ef9a24c355f8ebfba86d6592476dde8c417018",
+      "population": "Aggregated",
+      "method": "GMS",
+      "N": 1000,
+      "n": 50,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 20,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.05000000074505806,
+        "max_fip_error": 7.450580638557192e-10,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919947943781153e-08,
+      "retained_hierarchy": {
+        "available": false,
+        "clusters": 1
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_design_C50Z4_Aggregated1000_angle_None.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.9999999999812133
+      },
+      "replay": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.6100110574530695,
+      "cached_VI": null,
+      "fresh_current_MI": -0.6100110574530696,
+      "fresh_current_VI": 0.1073500015996398,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 16,
+          "MI": -0.5951494050836093,
+          "VI": 0.1073500015996398
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/best_design_Var-MI_C50Z4__Aggregated1000.pkl",
+      "sha256": "9905899627d3ef3f03f77ff7ef667a661d3046788c9c99a80acd39b1bbf2cb26",
+      "population": "Aggregated",
+      "method": "GMS",
+      "N": 1000,
+      "n": 50,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 20,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.05000000074505806,
+        "max_fip_error": 7.450580638557192e-10,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919947943781153e-08,
+      "retained_hierarchy": {
+        "available": false,
+        "clusters": 1
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/robertson/initial_design_C50Z4_Aggregated1000_angle_None.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.9999999999812133
+      },
+      "replay": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.5951494050836094,
+      "fresh_current_VI": 0.1073500015996398,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 16,
+          "MI": -0.5951494050836093,
+          "VI": 0.1073500015996398
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/initial_design_C100Z4_Aggregated1000_none-none.pkl",
+      "sha256": "3a49c95461fd0e5044e5461efe79cd043d3ff9adb084f94dbc49ce8cf9b1e576",
+      "population": "Aggregated",
+      "method": "NMS",
+      "N": 1000,
+      "n": 100,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 10,
+        "probability_sum": 0.9999999999818954,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.09999999999796216,
+        "max_fip_error": 2.0378282394872826e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 10,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.10000000149011612,
+        "max_fip_error": 1.4901161277114383e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919265822754824e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 100,
+        "mass_min": 0.9999999999986499,
+        "mass_max": 0.9999999999999999,
+        "max_unit_share_error": 1.3500311979441904e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 10,
+        "probability_sum": 0.9999999999818954,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.09999999999796216,
+        "max_fip_error": 2.0378282394872826e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 10,
+          "probability_sum": 0.9999999999818954,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.09999999999796216,
+          "max_fip_error": 2.0378282394872826e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 10,
+          "probability_sum": 0.9999999999818954,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.09999999999796216,
+          "max_fip_error": 2.0378282394872826e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.4505246181342804,
+      "cached_VI": 0.07952000118494038,
+      "fresh_current_MI": -0.4505246181342804,
+      "fresh_current_VI": 0.07952000118494038,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/best_designs/robertson/initial_design_C200Z1_Aggregated1000_none-none.pkl",
+      "sha256": "9e28cf4c8a68ccbbee3fea373a70c23e3b2a1584e4d0913d7e68c7df3cc94d63",
+      "population": "Aggregated",
+      "method": "NMS",
+      "N": 1000,
+      "n": 200,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 5,
+        "probability_sum": 0.9999999999837712,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.19999999999592433,
+        "max_fip_error": 4.075656478974565e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 5,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.20000000298023224,
+        "max_fip_error": 2.9802322554228766e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4917389989932417e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 200,
+        "mass_min": 0.999999999997243,
+        "mass_max": 1.0,
+        "max_unit_share_error": 1.3784529073745944e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 5,
+        "probability_sum": 0.9999999999837712,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.19999999999592433,
+        "max_fip_error": 4.075656478974565e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 5,
+          "probability_sum": 0.9999999999837712,
+          "sizes": [
+            200
+          ],
+          "min_probability": 0.19999999999592433,
+          "max_fip_error": 4.075656478974565e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 5,
+          "probability_sum": 0.9999999999837712,
+          "sizes": [
+            200
+          ],
+          "min_probability": 0.19999999999592433,
+          "max_fip_error": 4.075656478974565e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.42848492152872303,
+      "cached_VI": null,
+      "fresh_current_MI": -0.428484921528723,
+      "fresh_current_VI": 0.16360000243782996,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/best_designs/robertson/initial_design_C200Z1_Regular1000_none-none.pkl",
+      "sha256": "509d95801bb24a366a38774d1e75efd218e4ca93a8e375d91fab9fbee1ecdb5b",
+      "population": "Regular",
+      "method": "NMS",
+      "N": 1000,
+      "n": 200,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 5,
+        "probability_sum": 0.9999999999837712,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.19999999999592433,
+        "max_fip_error": 4.075656478974565e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 5,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.20000000298023224,
+        "max_fip_error": 2.9802322554228766e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4917389989932417e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 200,
+        "mass_min": 0.999999999997243,
+        "mass_max": 0.9999999999999999,
+        "max_unit_share_error": 1.3784529073745944e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 5,
+        "probability_sum": 0.9999999999837712,
+        "sizes": [
+          200
+        ],
+        "min_probability": 0.19999999999592433,
+        "max_fip_error": 4.075656478974565e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 5,
+          "probability_sum": 0.9999999999837712,
+          "sizes": [
+            200
+          ],
+          "min_probability": 0.19999999999592433,
+          "max_fip_error": 4.075656478974565e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 5,
+          "probability_sum": 0.9999999999837712,
+          "sizes": [
+            200
+          ],
+          "min_probability": 0.19999999999592433,
+          "max_fip_error": 4.075656478974565e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.40689883869568744,
+      "cached_VI": null,
+      "fresh_current_MI": -0.40689883869568744,
+      "fresh_current_VI": 0.09568000142574308,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/best_designs/robertson/initial_design_C20Z4_Aggregated1000_angle_snake_staggered.pkl",
+      "sha256": "3ac9309b93cdab7bce3c77f92d6e1be17503b8c79b466c06392e0f3a4602a428",
+      "population": "Aggregated",
+      "method": "NMS",
+      "N": 1000,
+      "n": 20,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 50,
+        "probability_sum": 0.9999999999838538,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.019999999999659845,
+        "max_fip_error": 3.401549875103882e-13,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 50,
+        "probability_sum": 1.0000000707805157,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.020000001415610313,
+        "max_fip_error": 1.4156103129991937e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 7.07966618662681e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 20,
+        "mass_min": 0.9999999999996838,
+        "mass_max": 1.0,
+        "max_unit_share_error": 1.580957587066223e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": false,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 50,
+        "probability_sum": 0.9999999999838538,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.019999999999659845,
+        "max_fip_error": 3.401549875103882e-13,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 50,
+          "probability_sum": 0.9999999999838538,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.019999999999659845,
+          "max_fip_error": 3.401549875103882e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 50,
+          "probability_sum": 0.9999999999838538,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.019999999999659845,
+          "max_fip_error": 3.401549875103882e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.22128345642324335,
+      "cached_VI": null,
+      "fresh_current_MI": -0.22128345642324315,
+      "fresh_current_VI": 0.10468240740947442,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 18,
+          "MI": -0.22128345642324335,
+          "VI": 0.1046824074094744
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/initial_design_C20Z4_Regular1000_angle_snake_staggered.pkl",
+      "sha256": "10db0ba9e02be285d505b8d8efc1660bef89406f106d48f65c8f8870bd88fca6",
+      "population": "Regular",
+      "method": "NMS",
+      "N": 1000,
+      "n": 20,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 50,
+        "probability_sum": 0.9999999999838538,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.019999999999659845,
+        "max_fip_error": 3.401549875103882e-13,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 50,
+        "probability_sum": 1.0000000707805157,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.020000001415610313,
+        "max_fip_error": 1.4156103129991937e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 7.07966618662681e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 20,
+        "mass_min": 0.9999999999996844,
+        "mass_max": 1.0000000000000004,
+        "max_unit_share_error": 1.580957587066223e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": false,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 50,
+        "probability_sum": 0.9999999999838538,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.019999999999659845,
+        "max_fip_error": 3.401549875103882e-13,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 50,
+          "probability_sum": 0.9999999999838538,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.019999999999659845,
+          "max_fip_error": 3.401549875103882e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 50,
+          "probability_sum": 0.9999999999838538,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.019999999999659845,
+          "max_fip_error": 3.401549875103882e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.26219934252191657,
+      "cached_VI": null,
+      "fresh_current_MI": -0.26219934252191646,
+      "fresh_current_VI": 0.06837680483974526,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 14,
+          "MI": -0.26219934252191657,
+          "VI": 0.06837680483974524
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/initial_design_C50Z4_Aggregated1000_angle_None.pkl",
+      "sha256": "eb5581219e7f594711cdbf441091d19af6baa72e9fe5e2f1d0aa37e7abf8d3bd",
+      "population": "Aggregated",
+      "method": "NMS",
+      "N": 1000,
+      "n": 50,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 20,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.05000000074505806,
+        "max_fip_error": 7.450580638557192e-10,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919947943781153e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 50,
+        "mass_min": 0.9999999999993537,
+        "mass_max": 1.0,
+        "max_unit_share_error": 1.2931877790833823e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.3752271602788289,
+      "cached_VI": null,
+      "fresh_current_MI": -0.37522716027882885,
+      "fresh_current_VI": 0.0984800014674665,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 19,
+          "MI": -0.3752271602788289,
+          "VI": 0.0984800014674665
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/initial_design_C50Z4_RegularPop1000_hilbert_None.pkl",
+      "sha256": "3c94bc2e5bd4c93bf903354319feb9b6aec46a9ce9b502403783f031f3e9b5d2",
+      "population": "Regular",
+      "method": "NMS",
+      "N": 1000,
+      "n": 50,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 20,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.05000000074505806,
+        "max_fip_error": 7.450580638557192e-10,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919947943781153e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 50,
+        "mass_min": 0.9999999999993537,
+        "mass_max": 1.0000000000000002,
+        "max_unit_share_error": 1.2931877790833823e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 20,
+        "probability_sum": 0.9999999999812133,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.04999999999898108,
+        "max_fip_error": 1.0189141197436413e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 20,
+          "probability_sum": 0.9999999999812133,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.04999999999898108,
+          "max_fip_error": 1.0189141197436413e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.3197561471474754,
+      "cached_VI": null,
+      "fresh_current_MI": -0.3197561471474754,
+      "fresh_current_VI": 0.06697500099800535,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 17,
+          "MI": -0.3197561471474754,
+          "VI": 0.06697500099800535
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/robertson/initial_desing_C100Z4_Regular1000_lexico_angle.pkl",
+      "sha256": "b3851f235c1f5a2e601c18d5dac1c2e34c4645d83c7b5d01273adc96c6990c70",
+      "population": "Regular",
+      "method": "NMS",
+      "N": 1000,
+      "n": 100,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1000,
+      "unique_unit_ids": 1000,
+      "count_frequencies": {
+        "1": 1000
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 10,
+        "probability_sum": 0.9999999999818954,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.09999999999796216,
+        "max_fip_error": 2.0378282394872826e-12,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 10,
+        "probability_sum": 1.0000000149011612,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.10000000149011612,
+        "max_fip_error": 1.4901161277114383e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.4919265822754824e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 100,
+        "mass_min": 0.9999999999986499,
+        "mass_max": 0.9999999999999999,
+        "max_unit_share_error": 1.3500311979441904e-11,
+        "fraction_weighted_count_not_one_mass": 0.0,
+        "hard_argmax_count_not_one_mass": 0.0,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 10,
+        "probability_sum": 0.9999999999818954,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.09999999999796216,
+        "max_fip_error": 2.0378282394872826e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 0.0,
+      "current_rebuild": {
+        "before": {
+          "support": 10,
+          "probability_sum": 0.9999999999818954,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.09999999999796216,
+          "max_fip_error": 2.0378282394872826e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        },
+        "after": {
+          "support": 10,
+          "probability_sum": 0.9999999999818954,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.09999999999796216,
+          "max_fip_error": 2.0378282394872826e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 0.0
+        }
+      },
+      "cached_MI": -0.40354638628090045,
+      "cached_VI": null,
+      "fresh_current_MI": -0.40354638628090045,
+      "fresh_current_VI": 0.0649150009673089,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/best_designs/swiss/best_design_df_swiss_100_pik_ep.pkl",
+      "sha256": "54383fa7451565c9a57e74325af1324d2df8a1c61629ea133e64715213fceaa1",
+      "population": "Swiss",
+      "method": "GMS",
+      "N": 959,
+      "n": 100,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1058,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "1": 860,
+        "2": 99
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000127,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.001042753,
+        "max_fip_error": 1.3242961213744131e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999997847480699,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.0010427526431158185,
+        "max_fip_error": 2.244545668772524e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 3.42251930054039e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 100,
+        "mass_min": 0.9999999999999432,
+        "mass_max": 1.0000000000000284,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.206465094,
+        "hard_argmax_count_not_one_mass": 0.103232547,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/swiss/initial_design_df_swiss_100_pik_ep.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.0010427528656649088,
+        "max_fip_error": 1.3159195955125824e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 1.2699999999603653e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.0010427528656720142,
+          "max_fip_error": 1.3017087407973804e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.0010427528656720142,
+          "max_fip_error": 1.3017087407973804e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.5024629961627646,
+      "fresh_current_VI": 0.10419784822087272,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 137,
+          "MI": -0.5024629961627645,
+          "VI": 0.1041978482208727
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 33,
+          "MI": -0.5024629961627645,
+          "VI": 0.10419784822087272
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/best_design_df_swiss_100_pik_up.pkl",
+      "sha256": "9eb9a8a893cd6010993cbdd05f85f1997891ce238d0cfb6418816aca1d1ede68",
+      "population": "Swiss",
+      "method": "GMS",
+      "N": 959,
+      "n": 100,
+      "IP": "UP",
+      "num_splits": 4,
+      "order_rows": 3638,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "4": 860,
+        "2": 99
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 0.9999999980000001,
+        "sizes": [
+          100
+        ],
+        "min_probability": 1.146e-06,
+        "max_fip_error": 1.6116332268723e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999999981044994,
+        "sizes": [
+          100
+        ],
+        "min_probability": 1.1460000450824737e-06,
+        "max_fip_error": 1.63196145208655e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.191542779958863e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 100,
+        "mass_min": 0.9999999999998977,
+        "mass_max": 1.0000000000000264,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.9999999980000001,
+        "hard_argmax_count_not_one_mass": 0.519589444,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/swiss/initial_design_df_swiss_100_pik_up.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 959,
+        "probability_sum": 0.9999999999971152,
+        "sizes": [
+          100
+        ],
+        "min_probability": 1.1458816420173434e-06,
+        "max_fip_error": 2.9125035716504044e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 3.9193566649746266e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 0.9999999982489495,
+          "sizes": [
+            25
+          ],
+          "min_probability": 2.864706075911272e-06,
+          "max_fip_error": 0.42970634470737934,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.9999999962489494
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 0.9999999999952394,
+          "sizes": [
+            100
+          ],
+          "min_probability": 1.1458818125476e-06,
+          "max_fip_error": 4.773959005888173e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 3.9193723664609617e-07
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.11831484797185304,
+      "fresh_current_VI": 0.1531278601439292,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 152,
+          "MI": -0.2030429609749427,
+          "VI": 0.1531278601439292
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 31,
+          "MI": -0.11831484797185304,
+          "VI": 0.15312786014392926
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/best_design_df_swiss_150_pik_ep.pkl",
+      "sha256": "fde27a9075b2bba57d1b2e2a94f6597d07702b412bb688136ad9bb14ff852d20",
+      "population": "Swiss",
+      "method": "GMS",
+      "N": 959,
+      "n": 150,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1108,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "1": 810,
+        "2": 149
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000127,
+        "sizes": [
+          150
+        ],
+        "min_probability": 0.001042753,
+        "max_fip_error": 1.9864441980210756e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999997847480699,
+        "sizes": [
+          150
+        ],
+        "min_probability": 0.0010427526431158185,
+        "max_fip_error": 3.36681851009768e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 3.42251930054039e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 150,
+        "mass_min": 0.9999999999999905,
+        "mass_max": 1.0000000000000204,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.310740394,
+        "hard_argmax_count_not_one_mass": 0.155370197,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/swiss/initial_design_df_swiss_150_pik_ep.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          150
+        ],
+        "min_probability": 0.0010427528667946717,
+        "max_fip_error": 1.1355083540109945e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 1.2699999999603653e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            150
+          ],
+          "min_probability": 0.0010427528667946717,
+          "max_fip_error": 1.1355083540109945e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            150
+          ],
+          "min_probability": 0.0010427528667946717,
+          "max_fip_error": 1.1355083540109945e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.5827191975075539,
+      "fresh_current_VI": 0.12023748849121672,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 138,
+          "MI": -0.5827191975075422,
+          "VI": 0.1202374884912167
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 22,
+          "MI": -0.582719197507554,
+          "VI": 0.12023748849121675
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/best_design_df_swiss_150_pik_up.pkl",
+      "sha256": "f94ca6b939fb82e278d9783c1265b86ba8d58b1b8593ca4a9da951982e3834c9",
+      "population": "Swiss",
+      "method": "GMS",
+      "N": 959,
+      "n": 150,
+      "IP": "UP",
+      "num_splits": 4,
+      "order_rows": 3538,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "4": 810,
+        "2": 149
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000037,
+        "sizes": [
+          150
+        ],
+        "min_probability": 1.146e-06,
+        "max_fip_error": 5.063918195880035e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 1.0000000385268777,
+        "sizes": [
+          150
+        ],
+        "min_probability": 1.1460000450824737e-06,
+        "max_fip_error": 5.1588364802235276e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.1363930956161432e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 150,
+        "mass_min": 0.9999999999999469,
+        "mass_max": 1.0000000000000646,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 1.000000037,
+        "hard_argmax_count_not_one_mass": 0.825704271,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/swiss/initial_design_df_swiss_150_pik_up.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 959,
+        "probability_sum": 0.999999999999166,
+        "sizes": [
+          150
+        ],
+        "min_probability": 1.1458825275312279e-06,
+        "max_fip_error": 2.6473268022186858e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 3.963353991617957e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 0.9999999980568972,
+          "sizes": [
+            75
+          ],
+          "min_probability": 5.729389300768162e-07,
+          "max_fip_error": 0.4297063452759444,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 2.0000000350568974
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 0.9999999999995071,
+          "sizes": [
+            150
+          ],
+          "min_probability": 1.1458827975374675e-06,
+          "max_fip_error": 3.443134666269998e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 3.9634031611752714e-07
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.01086057677065502,
+      "fresh_current_VI": 0.15906757295233967,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 153,
+          "MI": -0.1949796682982568,
+          "VI": 0.1617972697491258
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 23,
+          "MI": -0.010860576770655017,
+          "VI": 0.15906757295233964
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/best_design_df_swiss_50_pik_ep.pkl",
+      "sha256": "c32be184c2b0df5be640feecbdba484f7c45f5aefb47ae48ea60cd4e92f18f6e",
+      "population": "Swiss",
+      "method": "GMS",
+      "N": 959,
+      "n": 50,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1008,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "1": 910,
+        "2": 49
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000127,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.001042753,
+        "max_fip_error": 6.621480745649944e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999997847480699,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.0010427526431158185,
+        "max_fip_error": 1.122272834386262e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 3.42251930054039e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 50,
+        "mass_min": 0.9999999999999528,
+        "mass_max": 1.0000000000000284,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.102189794,
+        "hard_argmax_count_not_one_mass": 0.051094897,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/swiss/initial_design_df_swiss_50_pik_ep.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.0010427528668941477,
+        "max_fip_error": 6.508543703986902e-13,
+        "valid_ids": true
+      },
+      "replay_l1": 1.2699999999603653e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.0010427528668941477,
+          "max_fip_error": 6.508543703986902e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.0010427528668941477,
+          "max_fip_error": 6.508543703986902e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.38483275456792976,
+      "fresh_current_VI": 0.09499774988851338,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 136,
+          "MI": -0.3848327545679273,
+          "VI": 0.0949977498885133
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 28,
+          "MI": -0.38483275456792987,
+          "VI": 0.09499774988851337
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/best_design_df_swiss_50_pik_up.pkl",
+      "sha256": "0fcd3ff78a88b0bfd89abed9b17d46bbc01cb72c805abc6b3b24f014e6bb746d",
+      "population": "Swiss",
+      "method": "GMS",
+      "N": 959,
+      "n": 50,
+      "IP": "UP",
+      "num_splits": 4,
+      "order_rows": 3738,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "4": 910,
+        "2": 49
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 0.999999967,
+        "sizes": [
+          50
+        ],
+        "min_probability": 1.146e-06,
+        "max_fip_error": 3.027576378489272e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999999666449639,
+        "sizes": [
+          50
+        ],
+        "min_probability": 1.1460000450824737e-06,
+        "max_fip_error": 3.0728064925877874e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.1102563637342507e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 50,
+        "mass_min": 0.9999999999999408,
+        "mass_max": 1.0000000000000244,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.535128777,
+        "hard_argmax_count_not_one_mass": 0.270247483,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/best_designs/swiss/initial_design_df_swiss_50_pik_up.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          50
+        ],
+        "min_probability": 1.1458822832821625e-06,
+        "max_fip_error": 2.0567783587388533e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 4.067357557063099e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 0.9999999987788311,
+          "sizes": [
+            25
+          ],
+          "min_probability": 5.729401522103217e-07,
+          "max_fip_error": 0.14323544834013108,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.999999965778831
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 0.9999999999987885,
+          "sizes": [
+            50
+          ],
+          "min_probability": 1.145882233544171e-06,
+          "max_fip_error": 2.1349380596724643e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.0673662168026913e-07
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.151387711941062,
+      "fresh_current_VI": 0.12598884235076674,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 151,
+          "MI": -0.199574423111536,
+          "VI": 0.1259888423507666
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 25,
+          "MI": -0.15138771194106201,
+          "VI": 0.12598884235076668
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/initial_design_df_swiss_100_pik_ep.pkl",
+      "sha256": "1401fda7b62cac85af33469fb3bcf21676d2e54ec6c2bd98b30ac5fcadffe108",
+      "population": "Swiss",
+      "method": "NMS",
+      "N": 959,
+      "n": 100,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1058,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "1": 860,
+        "2": 99
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000127,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.001042753,
+        "max_fip_error": 1.3242961213744131e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999997847480699,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.0010427526431158185,
+        "max_fip_error": 2.244545668772524e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 3.42251930054039e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 100,
+        "mass_min": 0.9999999999999432,
+        "mass_max": 1.0000000000000284,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.206465094,
+        "hard_argmax_count_not_one_mass": 0.103232547,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          100
+        ],
+        "min_probability": 0.0010427528656649088,
+        "max_fip_error": 1.3159195955125824e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 1.2699999999603653e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.0010427528656720142,
+          "max_fip_error": 1.3017087407973804e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            100
+          ],
+          "min_probability": 0.0010427528656720142,
+          "max_fip_error": 1.3017087407973804e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        }
+      },
+      "cached_MI": -0.4379975453856688,
+      "cached_VI": 0.10426474359649082,
+      "fresh_current_MI": -0.43799754538566765,
+      "fresh_current_VI": 0.10426474359649082,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 143,
+          "MI": -0.4379975453856688,
+          "VI": 0.1042647435964908
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 32,
+          "MI": -0.4379975453856688,
+          "VI": 0.10426474359649082
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/initial_design_df_swiss_100_pik_up.pkl",
+      "sha256": "4a6e7888425aeab1bf0e6c8cca5c57658c0896a3cd53711e473c0bf7823e675e",
+      "population": "Swiss",
+      "method": "NMS",
+      "N": 959,
+      "n": 100,
+      "IP": "UP",
+      "num_splits": 4,
+      "order_rows": 3638,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "4": 860,
+        "2": 99
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          100
+        ],
+        "min_probability": 1.146e-06,
+        "max_fip_error": 1.771090496482941e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 1.0000000002125375,
+        "sizes": [
+          100
+        ],
+        "min_probability": 1.1460000450824737e-06,
+        "max_fip_error": 1.7774243188384276e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.2698812200909472e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 100,
+        "mass_min": 0.9999999999998977,
+        "mass_max": 1.0000000000000264,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 1.0,
+        "hard_argmax_count_not_one_mass": 0.519589438,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 959,
+        "probability_sum": 0.999999999993257,
+        "sizes": [
+          100
+        ],
+        "min_probability": 1.1458816429055219e-06,
+        "max_fip_error": 6.757761017439634e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 4.008000564351742e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 0.999999998248752,
+          "sizes": [
+            25
+          ],
+          "min_probability": 2.864706075911272e-06,
+          "max_fip_error": 0.42970634470268265,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.999999998248752
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 0.9999999999914841,
+          "sizes": [
+            100
+          ],
+          "min_probability": 1.1458818125476e-06,
+          "max_fip_error": 6.5126237736023995e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.007992881608412e-07
+        }
+      },
+      "cached_MI": -0.17672433023217282,
+      "cached_VI": 0.161377832537337,
+      "fresh_current_MI": -0.10649431787269398,
+      "fresh_current_VI": 0.161377832537337,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 161,
+          "MI": -0.1767243302321728,
+          "VI": 0.161377832537337
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 26,
+          "MI": -0.17672433023217282,
+          "VI": 0.161377832537337
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/initial_design_df_swiss_150_pik_ep.pkl",
+      "sha256": "530f4b054272a590a7364e1e56e7898e2a038f9f368f15c2b2548f005aab0dd8",
+      "population": "Swiss",
+      "method": "NMS",
+      "N": 959,
+      "n": 150,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1108,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "1": 810,
+        "2": 149
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000127,
+        "sizes": [
+          150
+        ],
+        "min_probability": 0.001042753,
+        "max_fip_error": 1.9864441980210756e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999997847480699,
+        "sizes": [
+          150
+        ],
+        "min_probability": 0.0010427526431158185,
+        "max_fip_error": 3.36681851009768e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 3.42251930054039e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 150,
+        "mass_min": 0.9999999999999905,
+        "mass_max": 1.0000000000000204,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.310740394,
+        "hard_argmax_count_not_one_mass": 0.155370197,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          150
+        ],
+        "min_probability": 0.0010427528667946717,
+        "max_fip_error": 1.1355083540109945e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 1.2699999999603653e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            150
+          ],
+          "min_probability": 0.0010427528667946717,
+          "max_fip_error": 1.1355083540109945e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            150
+          ],
+          "min_probability": 0.0010427528667946717,
+          "max_fip_error": 1.1355083540109945e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        }
+      },
+      "cached_MI": -0.5170112964568612,
+      "cached_VI": 0.12011197462543838,
+      "fresh_current_MI": -0.5170112964568695,
+      "fresh_current_VI": 0.12011197462543839,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 144,
+          "MI": -0.5170112964568612,
+          "VI": 0.1201119746254383
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 27,
+          "MI": -0.5170112964568612,
+          "VI": 0.12011197462543838
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/initial_design_df_swiss_150_pik_up.pkl",
+      "sha256": "94edf229933e0f312f47ceb3acf7a36d4d5e1ad1c80b994462d08fc335a68144",
+      "population": "Swiss",
+      "method": "NMS",
+      "N": 959,
+      "n": 150,
+      "IP": "UP",
+      "num_splits": 4,
+      "order_rows": 3538,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "4": 810,
+        "2": 149
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000015,
+        "sizes": [
+          150
+        ],
+        "min_probability": 1.146e-06,
+        "max_fip_error": 3.047187691063158e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 1.0000000148664867,
+        "sizes": [
+          150
+        ],
+        "min_probability": 1.1460000450824737e-06,
+        "max_fip_error": 3.0668789174903566e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.2412266869051044e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 150,
+        "mass_min": 0.9999999999999469,
+        "mass_max": 1.0000000000000646,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 1.000000015,
+        "hard_argmax_count_not_one_mass": 0.82570424,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 959,
+        "probability_sum": 0.9999999999991678,
+        "sizes": [
+          150
+        ],
+        "min_probability": 1.1458843403033825e-06,
+        "max_fip_error": 2.6473268022186858e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 4.156438626691204e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 0.9999999980321834,
+          "sizes": [
+            75
+          ],
+          "min_probability": 5.729388590225426e-07,
+          "max_fip_error": 0.4297063453109953,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 2.0000000130321833
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 0.9999999999995088,
+          "sizes": [
+            150
+          ],
+          "min_probability": 1.1458842550382542e-06,
+          "max_fip_error": 3.443134666269998e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 4.156585868909622e-07
+        }
+      },
+      "cached_MI": -0.15937861249844,
+      "cached_VI": 0.1669128990952552,
+      "fresh_current_MI": 0.0027987170437994958,
+      "fresh_current_VI": 0.1669128990952552,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 162,
+          "MI": -0.15937861249844,
+          "VI": 0.1669128990952552
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 29,
+          "MI": -0.15937861249844,
+          "VI": 0.1669128990952552
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/initial_design_df_swiss_50_pik_ep.pkl",
+      "sha256": "f609e031de975c510c9b704a36678d7a110ce75cbd719737e4573cc8585c1053",
+      "population": "Swiss",
+      "method": "NMS",
+      "N": 959,
+      "n": 50,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 1008,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "1": 910,
+        "2": 49
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000127,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.001042753,
+        "max_fip_error": 6.621480745649944e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999997847480699,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.0010427526431158185,
+        "max_fip_error": 1.122272834386262e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 3.42251930054039e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 50,
+        "mass_min": 0.9999999999999528,
+        "mass_max": 1.0000000000000284,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.102189794,
+        "hard_argmax_count_not_one_mass": 0.051094897,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          50
+        ],
+        "min_probability": 0.0010427528668941477,
+        "max_fip_error": 6.508543703986902e-13,
+        "valid_ids": true
+      },
+      "replay_l1": 1.2699999999603653e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.0010427528668941477,
+          "max_fip_error": 6.508543703986902e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            50
+          ],
+          "min_probability": 0.0010427528668941477,
+          "max_fip_error": 6.508543703986902e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        }
+      },
+      "cached_MI": -0.33433655253692074,
+      "cached_VI": 0.09363702425014597,
+      "fresh_current_MI": -0.3343365525369239,
+      "fresh_current_VI": 0.09363702425014597,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 142,
+          "MI": -0.3343365525369207,
+          "VI": 0.0936370242501459
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 30,
+          "MI": -0.33433655253692074,
+          "VI": 0.09363702425014597
+        }
+      ]
+    },
+    {
+      "path": "simulations/best_designs/swiss/initial_design_df_swiss_50_pik_up.pkl",
+      "sha256": "93db856cb697fa4f4816de1bc26c8776199d44c601c0a3838f5d009553b88187",
+      "population": "Swiss",
+      "method": "NMS",
+      "N": 959,
+      "n": 50,
+      "IP": "UP",
+      "num_splits": 4,
+      "order_rows": 3738,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "4": 910,
+        "2": 49
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 0.999999967,
+        "sizes": [
+          50
+        ],
+        "min_probability": 2.292e-06,
+        "max_fip_error": 2.327576414939969e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999999682619887,
+        "sizes": [
+          50
+        ],
+        "min_probability": 2.2920000901649473e-06,
+        "max_fip_error": 2.3104396118522885e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.2227027518168977e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 50,
+        "mass_min": 0.9999999999999408,
+        "mass_max": 1.0000000000000244,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.535128767,
+        "hard_argmax_count_not_one_mass": 0.270247471,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 959,
+        "probability_sum": 0.9999999999997327,
+        "sizes": [
+          50
+        ],
+        "min_probability": 2.291766200812617e-06,
+        "max_fip_error": 2.066305460068918e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 3.9946393696724237e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 0.9999999987786556,
+          "sizes": [
+            25
+          ],
+          "min_probability": 1.145882426278888e-06,
+          "max_fip_error": 0.14323544834849744,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.9999999657786556
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 0.999999999998546,
+          "sizes": [
+            50
+          ],
+          "min_probability": 2.291766179496335e-06,
+          "max_fip_error": 2.144465161002529e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 3.994664860393069e-07
+        }
+      },
+      "cached_MI": -0.16849419568691626,
+      "cached_VI": 0.1208316406030501,
+      "fresh_current_MI": -0.1301175741527006,
+      "fresh_current_VI": 0.12083164060305009,
+      "retained_summary_rows": [
+        {
+          "path": "simulations/results/modified_summary_new_pivotal.csv",
+          "line": 160,
+          "MI": -0.1685155591170685,
+          "VI": 0.12272397517117
+        },
+        {
+          "path": "simulations/results/variance_outputs/variance_estimator_results_partial.csv",
+          "line": 24,
+          "MI": -0.16849419568691626,
+          "VI": 0.1208316406030501
+        }
+      ]
+    },
+    {
+      "path": "simulations/Store/best_design/best_design_df_meuse_30_pik_ep.pkl",
+      "sha256": "4671422ba915b8cd455d25d6789a24c8ad899fe20ff2110fc2ace2947ebdbd67",
+      "population": "Meuse",
+      "method": "GMS",
+      "N": 155,
+      "n": 30,
+      "IP": "EP",
+      "num_splits": 4,
+      "order_rows": 562,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "4": 126,
+        "2": 29
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 729,
+        "probability_sum": 0.9999999514039283,
+        "sizes": [
+          30
+        ],
+        "min_probability": 1.0266141321044414e-09,
+        "max_fip_error": 1.629594653662636e-08,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 729,
+        "probability_sum": 1.0000000611471667,
+        "sizes": [
+          30
+        ],
+        "min_probability": 1.0266142380643828e-09,
+        "max_fip_error": 1.798945808983987e-08,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 1.0974323836886606e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 30,
+        "mass_min": 0.9999999999999938,
+        "mass_max": 1.0000000000000047,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.6922692817135866,
+        "hard_argmax_count_not_one_mass": 0.6339588315022001,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.5615900308918766
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 31,
+        "probability_sum": 0.9999999999851674,
+        "sizes": [
+          30
+        ],
+        "min_probability": 0.03225806451556856,
+        "max_fip_error": 3.227806910643949e-12,
+        "valid_ids": true
+      },
+      "replay_l1": 1.7287604061260418,
+      "current_rebuild": {
+        "before": {
+          "support": 31,
+          "probability_sum": 0.9999999999788614,
+          "sizes": [
+            15
+          ],
+          "min_probability": 0.03225806451539803,
+          "max_fip_error": 0.09677419355050548,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.9999999513827897
+        },
+        "after": {
+          "support": 31,
+          "probability_sum": 0.9999999999788614,
+          "sizes": [
+            30
+          ],
+          "min_probability": 0.03225806451538382,
+          "max_fip_error": 4.293621014284099e-12,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.7287604061197357
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.6398319799752484,
+      "fresh_current_VI": 0.11037968334910724,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/Store/best_design/best_design_df_meuse_3_pik_up.pkl",
+      "sha256": "9da4c574962efef0fd4f6a5132b5bda002f1e3b3b067656f144660d5562c8452",
+      "population": "Meuse",
+      "method": "GMS",
+      "N": 155,
+      "n": 3,
+      "IP": "UP",
+      "num_splits": 4,
+      "order_rows": 616,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "4": 153,
+        "2": 2
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 151,
+        "probability_sum": 0.99999997,
+        "sizes": [
+          3
+        ],
+        "min_probability": 0.000480077,
+        "max_fip_error": 3.614498318704751e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 151,
+        "probability_sum": 0.9999999703723006,
+        "sizes": [
+          3
+        ],
+        "min_probability": 0.0004800769966095686,
+        "max_fip_error": 3.3568746497791846e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 2.5286400771006023e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 3,
+        "mass_min": 0.999999999999999,
+        "mass_max": 1.0000000000000007,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.040326452,
+        "hard_argmax_count_not_one_mass": 0.020163226,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": {
+        "path": "simulations/Store/best_design/initial_design_df_meuse_3_pik_up.pkl",
+        "exact_ancestor_unproven": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "replay": {
+        "support": 151,
+        "probability_sum": 0.9999999999999682,
+        "sizes": [
+          3
+        ],
+        "min_probability": 0.0004800768122876775,
+        "max_fip_error": 6.2901073238919025e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 7.232932225723077e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 151,
+          "probability_sum": 0.9999999999999754,
+          "sizes": [
+            3
+          ],
+          "min_probability": 0.0004800768122873809,
+          "max_fip_error": 7.457576223224294e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 7.232932229192524e-08
+        },
+        "after": {
+          "support": 151,
+          "probability_sum": 0.999999999999977,
+          "sizes": [
+            3
+          ],
+          "min_probability": 0.00048007681228784405,
+          "max_fip_error": 5.84601811404184e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 7.232932547687754e-08
+        }
+      },
+      "cached_MI": null,
+      "cached_VI": null,
+      "fresh_current_MI": -0.21549040298107855,
+      "fresh_current_VI": 0.06700502764260963,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/Store/best_design/initial_design_df_meuse_3_pik_up.pkl",
+      "sha256": "2915ebe0fa37e01bcfa2469bf2dbc9e6d6b9613390a4402090ccbbd1b0f9d897",
+      "population": "Meuse",
+      "method": "NMS",
+      "N": 155,
+      "n": 3,
+      "IP": "UP",
+      "num_splits": 4,
+      "order_rows": 616,
+      "unique_unit_ids": 155,
+      "count_frequencies": {
+        "4": 153,
+        "2": 2
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 150,
+        "probability_sum": 0.999999981,
+        "sizes": [
+          3
+        ],
+        "min_probability": 0.000480077,
+        "max_fip_error": 3.0480076865235795e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 150,
+        "probability_sum": 1.0000000807340257,
+        "sizes": [
+          3
+        ],
+        "min_probability": 0.0004800770548172295,
+        "max_fip_error": 6.460547367914682e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 9.973402568239954e-08,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 3,
+        "mass_min": 0.999999999999999,
+        "mass_max": 1.0000000000000007,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.040326452,
+        "hard_argmax_count_not_one_mass": 0.020163226,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 150,
+        "probability_sum": 0.9999999999999711,
+        "sizes": [
+          3
+        ],
+        "min_probability": 0.0004800768122880661,
+        "max_fip_error": 4.735795089416683e-15,
+        "valid_ids": true
+      },
+      "replay_l1": 7.411378885363758e-08,
+      "current_rebuild": {
+        "before": {
+          "support": 150,
+          "probability_sum": 0.9999999999999664,
+          "sizes": [
+            3
+          ],
+          "min_probability": 0.00048007681228914856,
+          "max_fip_error": 1.542516114838577e-14,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 7.411375772575952e-08
+        },
+        "after": {
+          "support": 150,
+          "probability_sum": 0.9999999999999758,
+          "sizes": [
+            3
+          ],
+          "min_probability": 0.00048007681228784405,
+          "max_fip_error": 4.0696612746415894e-15,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 7.41137855229685e-08
+        }
+      },
+      "cached_MI": -0.2922536381597234,
+      "cached_VI": 0.06677018907833063,
+      "fresh_current_MI": -0.22299544859406342,
+      "fresh_current_VI": 0.06677018907833064,
+      "retained_summary_rows": []
+    },
+    {
+      "path": "simulations/Store/best_design/initial_design_df_swiss_20_pik_ep.pkl",
+      "sha256": "276609e5edda0c7a6ea20cd9c60122be0a31b1f71ae0fceaced1308b71019e62",
+      "population": "Swiss",
+      "method": "NMS",
+      "N": 959,
+      "n": 20,
+      "IP": "EP",
+      "num_splits": 1,
+      "order_rows": 978,
+      "unique_unit_ids": 959,
+      "count_frequencies": {
+        "1": 940,
+        "2": 19
+      },
+      "contiguous_complete_unit_bars": true,
+      "max_unit_share_error": 0.0,
+      "raw": {
+        "support": 959,
+        "probability_sum": 1.000000127,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.001042753,
+        "max_fip_error": 2.648592282994411e-09,
+        "valid_ids": true
+      },
+      "api": {
+        "support": 959,
+        "probability_sum": 0.9999997847480699,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.0010427526431158185,
+        "max_fip_error": 4.489091352116725e-09,
+        "valid_ids": true
+      },
+      "cache_present": true,
+      "raw_api_l1": 3.42251930054039e-07,
+      "retained_hierarchy": {
+        "available": true,
+        "clusters": 20,
+        "mass_min": 0.9999999999999942,
+        "mass_max": 1.000000000000017,
+        "max_unit_share_error": 0.0,
+        "fraction_weighted_count_not_one_mass": 0.039624614,
+        "hard_argmax_count_not_one_mass": 0.019812307,
+        "source_cluster_blocks_coalesce_to_retained_unit_order": true,
+        "source_cluster_masses_one": true,
+        "no_possible_one_unit_per_soft_cluster_assignment_mass": 0.0
+      },
+      "comparison_to_saved_initial_clusters": null,
+      "replay": {
+        "support": 959,
+        "probability_sum": 1.0,
+        "sizes": [
+          20
+        ],
+        "min_probability": 0.001042752867254415,
+        "max_fip_error": 3.157786532259621e-13,
+        "valid_ids": true
+      },
+      "replay_l1": 1.2699999999603653e-07,
+      "current_rebuild": {
+        "before": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.001042752867254415,
+          "max_fip_error": 3.157786532259621e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        },
+        "after": {
+          "support": 959,
+          "probability_sum": 1.0,
+          "sizes": [
+            20
+          ],
+          "min_probability": 0.001042752867254415,
+          "max_fip_error": 3.157786532259621e-13,
+          "valid_ids": true,
+          "l1_from_retained_heaps": 1.2699999999603653e-07
+        }
+      },
+      "cached_MI": -0.22419975372277676,
+      "cached_VI": 0.08343728791116675,
+      "fresh_current_MI": -0.22419975372278553,
+      "fresh_current_VI": 0.08343728791116672,
+      "retained_summary_rows": []
+    }
+  ],
+  "empty_archives": [
+    "simulations/Store/best_design/initial_design_df_meuse_5_pik_ep.pkl",
+    ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_meuse_5_pik_ep.pkl",
+    ".worktrees/ogis/simulations/Store/best_design/initial_design_df_meuse_5_pik_ep.pkl"
+  ],
+  "pickle_files_verified_unchanged": 208,
+  "changed_historical_files": []
+}

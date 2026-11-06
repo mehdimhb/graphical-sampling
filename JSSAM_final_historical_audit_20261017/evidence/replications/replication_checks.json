@@ -1,0 +1,96 @@
+{
+  "rows": 162,
+  "MC_rows": 138,
+  "MC_printed_rows": 106,
+  "MC_printed_exact_matches": 104,
+  "exact_support_rows": 24,
+  "counts_by_group": [
+    {
+      "Population": "Clustered",
+      "Probability": "EP",
+      "rows": 16,
+      "printed_MC": 16,
+      "exact_support_rows": 0
+    },
+    {
+      "Population": "Clustered",
+      "Probability": "UP",
+      "rows": 16,
+      "printed_MC": 0,
+      "exact_support_rows": 0
+    },
+    {
+      "Population": "Gridded",
+      "Probability": "EP",
+      "rows": 16,
+      "printed_MC": 16,
+      "exact_support_rows": 0
+    },
+    {
+      "Population": "Gridded",
+      "Probability": "UP",
+      "rows": 16,
+      "printed_MC": 16,
+      "exact_support_rows": 0
+    },
+    {
+      "Population": "Random",
+      "Probability": "EP",
+      "rows": 16,
+      "printed_MC": 16,
+      "exact_support_rows": 0
+    },
+    {
+      "Population": "Random",
+      "Probability": "UP",
+      "rows": 16,
+      "printed_MC": 0,
+      "exact_support_rows": 0
+    },
+    {
+      "Population": "meuse",
+      "Probability": "EP",
+      "rows": 18,
+      "printed_MC": 12,
+      "exact_support_rows": 6
+    },
+    {
+      "Population": "meuse",
+      "Probability": "UP",
+      "rows": 18,
+      "printed_MC": 12,
+      "exact_support_rows": 6
+    },
+    {
+      "Population": "swiss",
+      "Probability": "EP",
+      "rows": 15,
+      "printed_MC": 9,
+      "exact_support_rows": 6
+    },
+    {
+      "Population": "swiss",
+      "Probability": "UP",
+      "rows": 15,
+      "printed_MC": 9,
+      "exact_support_rows": 6
+    }
+  ],
+  "aux_VI_LB_matches": 156,
+  "aux_VI_LB_matches_after_clipping": 160,
+  "aux_MI_matches": 160,
+  "new_DI_equals_old": 0,
+  "new_samples": 0,
+  "notebook_code_executed": false,
+  "exact_linked_2000_DI_pairs": 104,
+  "discrepancy_final_DI_pairs_count_unknown": 2,
+  "no_setting_output_MC_rows_count_unknown": 32,
+  "effective_MC_counts_independently_logged": 0,
+  "finite_weighted_designs": 24,
+  "finite_enumeration_rows": 21368,
+  "all_finite_enumeration_rows_valid_positive": true,
+  "MC_old_metadata5000_rows": 138,
+  "auxiliary_MC_rows_inherited_5000_summaries": 138,
+  "auxiliary_NMS_GMS_rows_inherited_old_summaries": 22,
+  "auxiliary_NMS_GMS_rows_missing": 2
+}

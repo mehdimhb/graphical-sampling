@@ -1,0 +1,246 @@
+{
+  "all_checks_passed": true,
+  "DI_runs": 0,
+  "optimization_runs": 0,
+  "tolerance": 1e-12,
+  "population": "{(i/19,j/19):i,j=0,...,19}",
+  "N": 400,
+  "n": 20,
+  "original_sample_integer_grid": [
+    [
+      1,
+      2
+    ],
+    [
+      5,
+      2
+    ],
+    [
+      9,
+      2
+    ],
+    [
+      13,
+      2
+    ],
+    [
+      17,
+      2
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      9,
+      7
+    ],
+    [
+      13,
+      7
+    ],
+    [
+      17,
+      7
+    ],
+    [
+      1,
+      12
+    ],
+    [
+      5,
+      12
+    ],
+    [
+      9,
+      12
+    ],
+    [
+      13,
+      12
+    ],
+    [
+      17,
+      12
+    ],
+    [
+      1,
+      17
+    ],
+    [
+      5,
+      17
+    ],
+    [
+      9,
+      17
+    ],
+    [
+      13,
+      17
+    ],
+    [
+      17,
+      17
+    ]
+  ],
+  "sample_center": [
+    0.47368421052631576,
+    0.5
+  ],
+  "population_center": [
+    0.5,
+    0.5
+  ],
+  "pdf_grid_decoding_residuals": {
+    "a": 2.8668477458637653e-07,
+    "b": 2.1970235064561194e-07,
+    "c": 9.699055236733756e-07,
+    "d": 6.8723968738027e-07
+  },
+  "pdf_decoding_tolerance": 2e-06,
+  "pdf_decoding_note": "PDF float/rendering tolerance is separate from exact coordinate membership tests at 1e-12.",
+  "source_historical_commit": "046dbca43",
+  "source_unchanged_from_commit": {
+    "simulations/temporary_random2D_DI_two_six_panel_figures.py": true,
+    "simulations/jupyters/13_2D_grid_DI_translation_rotation.ipynb": true
+  },
+  "notebook_source_equals_script": true,
+  "matching_manuscript_archives": [
+    {
+      "archive": "/home/bardia/Downloads/JSSAM_Measure_Final_Ready.zip",
+      "member": "JSSAM_Measure_Final_Ready/figures/DI_rotation_4x5.pdf",
+      "sha256": "f2fa36bfd0a9330ce9b118982aaaad7c05d3212d95ca60cb91050b248f9c2b8a"
+    },
+    {
+      "archive": "/home/bardia/Downloads/Spread_Measure_Overleaf_FINAL_REVISED.zip",
+      "member": "Spread_Measure_Overleaf_FINAL_REVISED/figures/DI_rotation_4x5.pdf",
+      "sha256": "f2fa36bfd0a9330ce9b118982aaaad7c05d3212d95ca60cb91050b248f9c2b8a"
+    },
+    {
+      "archive": "/home/bardia/Downloads/Spread_Measure_Overleaf_Source.zip",
+      "member": "figures/DI_rotation_4x5.pdf",
+      "sha256": "f2fa36bfd0a9330ce9b118982aaaad7c05d3212d95ca60cb91050b248f9c2b8a"
+    },
+    {
+      "archive": "/home/bardia/Downloads/Spread_Measure_Submission_DRAFT.zip",
+      "member": "Spread_Measure_Submission_DRAFT/figures/DI_rotation_4x5.pdf",
+      "sha256": "f2fa36bfd0a9330ce9b118982aaaad7c05d3212d95ca60cb91050b248f9c2b8a"
+    },
+    {
+      "archive": "/home/bardia/Downloads/Spread_Measure_Submission_FINAL.zip",
+      "member": "Spread_Measure_Submission_FINAL/figures/DI_rotation_4x5.pdf",
+      "sha256": "f2fa36bfd0a9330ce9b118982aaaad7c05d3212d95ca60cb91050b248f9c2b8a"
+    },
+    {
+      "archive": "/home/bardia/Downloads/Spread_Measure_with_Mehdi.zip",
+      "member": "figures/DI_rotation_4x5.pdf",
+      "sha256": "f2fa36bfd0a9330ce9b118982aaaad7c05d3212d95ca60cb91050b248f9c2b8a"
+    }
+  ],
+  "panel_checks": [
+    {
+      "case": "a",
+      "angle_degrees": 0,
+      "center_x": 0.4736842105263158,
+      "center_y": 0.5000000000000001,
+      "shift_x": 0.0,
+      "shift_y": 0.0,
+      "exact_units": 20,
+      "inside_off_grid": 0,
+      "outside": 0,
+      "inside_total": 20,
+      "displayed_units": 20,
+      "maximum_projection_distance": 0.0,
+      "observed_assignment_is_optimal": true
+    },
+    {
+      "case": "b",
+      "angle_degrees": 0,
+      "center_x": 0.4736842105263158,
+      "center_y": 0.5000000000000001,
+      "shift_x": 0.05263157894736842,
+      "shift_y": -0.05263157894736842,
+      "exact_units": 20,
+      "inside_off_grid": 0,
+      "outside": 0,
+      "inside_total": 20,
+      "displayed_units": 20,
+      "maximum_projection_distance": 1.1102230246251565e-16,
+      "observed_assignment_is_optimal": true
+    },
+    {
+      "case": "c",
+      "angle_degrees": 90,
+      "center_x": 0.4736842105263158,
+      "center_y": 0.5000000000000001,
+      "shift_x": 0.0,
+      "shift_y": 0.0,
+      "exact_units": 0,
+      "inside_off_grid": 20,
+      "outside": 0,
+      "inside_total": 20,
+      "displayed_units": 20,
+      "maximum_projection_distance": 0.03721614637823922,
+      "observed_assignment_is_optimal": true
+    },
+    {
+      "case": "d",
+      "angle_degrees": 45,
+      "center_x": 0.4736842105263158,
+      "center_y": 0.5000000000000001,
+      "shift_x": 0.0,
+      "shift_y": 0.0,
+      "exact_units": 0,
+      "inside_off_grid": 16,
+      "outside": 4,
+      "inside_total": 16,
+      "displayed_units": 20,
+      "maximum_projection_distance": 0.1034535861291989,
+      "observed_assignment_is_optimal": true
+    },
+    {
+      "case": "population_center_90",
+      "angle_degrees": 90,
+      "center_x": 0.5,
+      "center_y": 0.5,
+      "shift_x": 0.0,
+      "shift_y": 0.0,
+      "exact_units": 20,
+      "inside_off_grid": 0,
+      "outside": 0,
+      "inside_total": 20,
+      "displayed_units": "",
+      "maximum_projection_distance": "",
+      "observed_assignment_is_optimal": ""
+    },
+    {
+      "case": "population_center_45",
+      "angle_degrees": 45,
+      "center_x": 0.5,
+      "center_y": 0.5,
+      "shift_x": 0.0,
+      "shift_y": 0.0,
+      "exact_units": 0,
+      "inside_off_grid": 16,
+      "outside": 4,
+      "inside_total": 16,
+      "displayed_units": "",
+      "maximum_projection_distance": "",
+      "observed_assignment_is_optimal": ""
+    }
+  ],
+  "maximum_d_pairwise_distance_change": 0.15430064207691085,
+  "original_protected_sha256": {
+    "/home/bardia/projects/graphical-sampling/simulations/temporary_random2D_DI_two_six_panel_figures.py": "e1442a87896cdf94e9d4aee81f82b834b7a761ddb415212c96394ea0c5de2d3c",
+    "/home/bardia/projects/graphical-sampling/simulations/jupyters/13_2D_grid_DI_translation_rotation.ipynb": "948a4f6b0d05a4d8a39142eebdba2cd332776034ebba3654cf7b72cdab4dde3e",
+    "/home/bardia/projects/graphical-sampling/simulations/results/temporary_2D_relative_rotation/grid_20x20_N400_DI_original_shift_rotation90_rotation45_large_2x2_n20.pdf": "f2fa36bfd0a9330ce9b118982aaaad7c05d3212d95ca60cb91050b248f9c2b8a",
+    "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex": "d91765e63c588fa646be268ca62d8fed8b69fd5bec99995f8bfb6a1c2c8a5baa",
+    "/home/bardia/projects/graphical-sampling/DI_historical_implementation_audit_20261016/evidence/submission_measure.tex": "2e0f58073846fac20b7f16cbf20f5a7ae2c3aa94ebd209e87c35da0b9af0cba4"
+  },
+  "scope": "September final archives/current manuscript snapshot referencing DI_rotation_4x5.pdf; no claim about a different Figure 9 in an earlier proof."
+}

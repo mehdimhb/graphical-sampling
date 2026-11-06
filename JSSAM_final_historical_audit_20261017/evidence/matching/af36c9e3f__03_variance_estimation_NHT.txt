@@ -1,0 +1,1615 @@
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 0 type=markdown execution_count=None outputs=0 =====
+C0:L0001 # 03 — Exact NHT variance and variance-estimator comparison
+C0:L0002 
+C0:L0003 This notebook computes the exact design variance of the Narain--Horvitz--Thompson estimator and compares the selected variance estimators reported in the paper.
+C0:L0004 
+C0:L0005 **Main outputs.** A table containing the true NHT variance, estimator averages, and relative bias for selected saved designs and response functions.
+C0:L0006 
+C0:L0007 **How to use.** Run the setup cells, load the saved designs, then run the analysis cells. Optional cells at the end produce rounded displays and LaTeX tables.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 1 type=markdown execution_count=None outputs=0 =====
+C1:L0001 ## Reproducibility note
+C1:L0002 
+C1:L0003 Outputs and execution counts were cleared intentionally, so the notebook opens without stale errors. Run the cells section by section after confirming that the local package and data paths are available.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 2 type=code execution_count=21 outputs=1 =====
+C2:L0001 # Purpose: locate the simulation working directory without using a user-specific absolute path.
+C2:L0002 from pathlib import Path
+C2:L0003 import os
+C2:L0004 
+C2:L0005 def set_working_directory(prefer="simulations"):
+C2:L0006     """Move to the repository's simulation folder if it can be found.
+C2:L0007 
+C2:L0008     The notebooks were prepared from the graphical-sampling repository. This
+C2:L0009     helper keeps them portable and ensures that, if the notebook is launched
+C2:L0010     from simulations/jupyters, the working directory is set to simulations.
+C2:L0011     """
+C2:L0012     cwd = Path.cwd().resolve()
+C2:L0013     markers = ["results", "best_designs", "populations", "data", "maps"]
+C2:L0014 
+C2:L0015     candidates = []
+C2:L0016 
+C2:L0017     # Most important case: notebook opened from simulations/jupyters
+C2:L0018     if cwd.name == "jupyters" and cwd.parent.name == prefer:
+C2:L0019         candidates.append(cwd.parent)
+C2:L0020 
+C2:L0021     # If already somewhere inside simulations, return the simulations folder
+C2:L0022     for path in [cwd, *cwd.parents]:
+C2:L0023         if path.name == prefer:
+C2:L0024             candidates.append(path)
+C2:L0025             break
+C2:L0026 
+C2:L0027     # Other common portable locations
+C2:L0028     candidates.extend([
+C2:L0029         cwd / prefer,
+C2:L0030         cwd.parent / prefer,
+C2:L0031         Path.home() / "projects" / "graphical-sampling" / prefer,
+C2:L0032         Path.home() / "graphical-sampling" / prefer,
+C2:L0033     ])
+C2:L0034 
+C2:L0035     for path in candidates:
+C2:L0036         if path.exists() and path.is_dir() and any((path / marker).exists() for marker in markers):
+C2:L0037             os.chdir(path)
+C2:L0038             print(f"Working directory: {Path.cwd()}")
+C2:L0039             return Path.cwd()
+C2:L0040 
+C2:L0041     print(f"Working directory unchanged: {Path.cwd()}")
+C2:L0042     return Path.cwd()
+C2:L0043 
+C2:L0044 WORKDIR = set_working_directory()
+OUTPUT 0 stream
+Working directory: /home/bardia/projects/graphical-sampling/simulations
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 3 type=code execution_count=22 outputs=2 =====
+C3:L0001 # Purpose: import packages and configure helper functions.
+C3:L0002 import os
+C3:L0003 # Path is handled by set_working_directory().
+C3:L0004 set_working_directory()
+OUTPUT 0 stream
+Working directory: /home/bardia/projects/graphical-sampling/simulations
+OUTPUT 1 execute_result
+PosixPath('/home/bardia/projects/graphical-sampling/simulations')
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 4 type=code execution_count=23 outputs=1 =====
+C4:L0001 # Purpose: import packages and configure helper functions.
+C4:L0002 # =========================================================
+C4:L0003 # CELL 1
+C4:L0004 # SETTINGS AND IMPORTS
+C4:L0005 # =========================================================
+C4:L0006 
+C4:L0007 import os
+C4:L0008 import pickle
+C4:L0009 from pathlib import Path
+C4:L0010 
+C4:L0011 import numpy as np
+C4:L0012 import pandas as pd
+C4:L0013 
+C4:L0014 # ---------------------------------------------------------
+C4:L0015 # Project root
+C4:L0016 # ---------------------------------------------------------
+C4:L0017 #
+C4:L0018 # If needed, uncomment and edit:
+C4:L0019 
+C4:L0020 print("Current working directory:")
+C4:L0021 print(os.getcwd())
+C4:L0022 
+C4:L0023 # ---------------------------------------------------------
+C4:L0024 # Main switches
+C4:L0025 # ---------------------------------------------------------
+C4:L0026 
+C4:L0027 INCLUDE_SWISS = False       # Swiss was slow; keep False for the main paper table
+C4:L0028 SAVE_PARTIAL = True
+C4:L0029 OUTPUT_DIR = Path("variance_outputs")
+C4:L0030 OUTPUT_DIR.mkdir(exist_ok=True)
+C4:L0031 
+C4:L0032 # ---------------------------------------------------------
+C4:L0033 # Estimator choices
+C4:L0034 # ---------------------------------------------------------
+C4:L0035 
+C4:L0036 LM_SIMPLE_Q = 8
+C4:L0037 LM_SIMPLE_INCLUDE_SELF = False
+C4:L0038 LM_SIMPLE_WEIGHT_METHOD = "equal"
+C4:L0039 
+C4:L0040 TILLE_J = 3
+C4:L0041 TILLE_DISTANCE_POWER = 1.0
+C4:L0042 TILLE_PI_POWER = 1.0
+C4:L0043 TILLE_INCLUDE_SELF = True
+C4:L0044 TILLE_SINKHORN_ITER = 200
+C4:L0045 
+C4:L0046 HYBRID_ALPHA = 0.35
+C4:L0047 
+C4:L0048 print("Settings loaded.")
+OUTPUT 0 stream
+Current working directory:
+/home/bardia/projects/graphical-sampling/simulations
+Settings loaded.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 5 type=code execution_count=24 outputs=1 =====
+C5:L0001 # Purpose: define the Robertson benchmark response surfaces.
+C5:L0002 # =========================================================
+C5:L0003 # CELL 2
+C5:L0004 # ROBERTSON VARIABLES
+C5:L0005 # =========================================================
+C5:L0006 
+C5:L0007 def robertson_variables(x1, x2, positive_shift=True):
+C5:L0008     """Robertson artificial response functions.
+C5:L0009 
+C5:L0010     Note:
+C5:L0011     peak and bird are shifted by +7 and +6, respectively.
+C5:L0012     """
+C5:L0013 
+C5:L0014     corrugated = (
+C5:L0015         3 * (x1 + x2)
+C5:L0016         +
+C5:L0017         np.sin(6 * (x1 + x2))
+C5:L0018     )
+C5:L0019 
+C5:L0020     peak = (
+C5:L0021         3 * (4 - 6*x1)**2
+C5:L0022         *
+C5:L0023         np.exp(
+C5:L0024             -(6*x1 - 3)**2
+C5:L0025             -
+C5:L0026             (6*x2 - 2)**2
+C5:L0027         )
+C5:L0028         -
+C5:L0029         10
+C5:L0030         *
+C5:L0031         (
+C5:L0032             0.2*(6*x1 - 3)
+C5:L0033             -
+C5:L0034             (6*x1 - 3)**3
+C5:L0035             -
+C5:L0036             (6*x2 - 3)**5
+C5:L0037         )
+C5:L0038         *
+C5:L0039         np.exp(
+C5:L0040             -(6*x1 - 3)**2
+C5:L0041             -
+C5:L0042             (6*x2 - 3)**2
+C5:L0043         )
+C5:L0044         -
+C5:L0045         (1/3)
+C5:L0046         *
+C5:L0047         np.exp(
+C5:L0048             -(6*x1 - 2)**2
+C5:L0049             -
+C5:L0050             (6*x2 - 3)**2
+C5:L0051         )
+C5:L0052     )
+C5:L0053 
+C5:L0054     bird = (
+C5:L0055         1/20
+C5:L0056         *
+C5:L0057         (
+C5:L0058             (12*x1 - 12*x2)**2
+C5:L0059             +
+C5:L0060             np.exp(
+C5:L0061                 (1 - np.sin(12*x1 - 6))**2
+C5:L0062             )
+C5:L0063             *
+C5:L0064             np.cos(12*x2 - 6)
+C5:L0065             +
+C5:L0066             np.exp(
+C5:L0067                 (1 - np.cos(12*x2 - 6))**2
+C5:L0068             )
+C5:L0069             *
+C5:L0070             np.sin(12*x1 - 6)
+C5:L0071         )
+C5:L0072     )
+C5:L0073 
+C5:L0074     if positive_shift:
+C5:L0075         peak = peak + 7
+C5:L0076         bird = bird + 6
+C5:L0077 
+C5:L0078     return {
+C5:L0079         "corrugated": corrugated,
+C5:L0080         "plane": corrugated,
+C5:L0081         "peak": peak,
+C5:L0082         "bird": bird,
+C5:L0083     }
+C5:L0084 
+C5:L0085 print("Robertson variables defined.")
+OUTPUT 0 stream
+Robertson variables defined.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 6 type=code execution_count=25 outputs=1 =====
+C6:L0001 # Purpose: load and prepare the finite populations used in the experiments.
+C6:L0002 # =========================================================
+C6:L0003 # CELL 3
+C6:L0004 # LOAD POPULATIONS
+C6:L0005 # =========================================================
+C6:L0006 
+C6:L0007 from package_sampling.utils import inclusion_probabilities
+C6:L0008 
+C6:L0009 POP_FILES = [
+C6:L0010     "meuse.csv",
+C6:L0011     "swiss.csv",
+C6:L0012     "AggregatedPop1000.csv",
+C6:L0013     "RegularPop1000.csv",
+C6:L0014 ]
+C6:L0015 
+C6:L0016 def popus(n, path="populations/real"):
+C6:L0017     """Load all populations for a given sample size n.
+C6:L0018 
+C6:L0019     The inclusion probabilities depend on n, so this function is
+C6:L0020     intentionally called again for each design.
+C6:L0021     """
+C6:L0022 
+C6:L0023     dfs = {}
+C6:L0024 
+C6:L0025     for f in POP_FILES:
+C6:L0026 
+C6:L0027         full_path = os.path.join(path, f)
+C6:L0028 
+C6:L0029         if not os.path.exists(full_path):
+C6:L0030             print(f"Warning: {full_path} not found.")
+C6:L0031             continue
+C6:L0032 
+C6:L0033         raw = pd.read_csv(full_path)
+C6:L0034         N_pop = len(raw)
+C6:L0035         name = f.replace(".csv", "")
+C6:L0036 
+C6:L0037         pik_ep = np.repeat(n / N_pop, N_pop)
+C6:L0038 
+C6:L0039         # -------------------------------------------------
+C6:L0040         # Robertson populations
+C6:L0041         # -------------------------------------------------
+C6:L0042         if f in ["AggregatedPop1000.csv", "RegularPop1000.csv"]:
+C6:L0043 
+C6:L0044             coords = raw.to_numpy(float)
+C6:L0045 
+C6:L0046             x1 = coords[:, 0]
+C6:L0047             x2 = coords[:, 1]
+C6:L0048 
+C6:L0049             vars_rob = robertson_variables(x1, x2)
+C6:L0050 
+C6:L0051             dfs[f"df_{name}"] = pd.DataFrame({
+C6:L0052                 "coord_x": x1,
+C6:L0053                 "coord_y": x2,
+C6:L0054                 "pik_ep": pik_ep,
+C6:L0055                 "z": vars_rob["corrugated"],
+C6:L0056                 "plane": vars_rob["plane"],
+C6:L0057                 "peak": vars_rob["peak"],
+C6:L0058                 "bird": vars_rob["bird"],
+C6:L0059             })
+C6:L0060 
+C6:L0061         # -------------------------------------------------
+C6:L0062         # Meuse
+C6:L0063         # -------------------------------------------------
+C6:L0064         elif f == "meuse.csv":
+C6:L0065 
+C6:L0066             coords = raw[["x", "y"]].to_numpy(float)
+C6:L0067 
+C6:L0068             pik_up = inclusion_probabilities(
+C6:L0069                 raw["copper"].to_numpy(float).copy(),
+C6:L0070                 n
+C6:L0071             )
+C6:L0072 
+C6:L0073             dfs[f"df_{name}"] = pd.DataFrame({
+C6:L0074                 "coord_x": coords[:, 0],
+C6:L0075                 "coord_y": coords[:, 1],
+C6:L0076                 "pik_ep": pik_ep,
+C6:L0077                 "pik_up": pik_up,
+C6:L0078                 "z": raw["cadmium"].to_numpy(float),
+C6:L0079             })
+C6:L0080 
+C6:L0081         # -------------------------------------------------
+C6:L0082         # Swiss
+C6:L0083         # -------------------------------------------------
+C6:L0084         elif f == "swiss.csv":
+C6:L0085 
+C6:L0086             coords = raw[["x", "y"]].to_numpy(float)
+C6:L0087 
+C6:L0088             area = raw["AREA"].to_numpy(float).clip(5, 100)
+C6:L0089 
+C6:L0090             pik_up = inclusion_probabilities(
+C6:L0091                 area.copy(),
+C6:L0092                 n
+C6:L0093             )
+C6:L0094 
+C6:L0095             dfs[f"df_{name}"] = pd.DataFrame({
+C6:L0096                 "coord_x": coords[:, 0],
+C6:L0097                 "coord_y": coords[:, 1],
+C6:L0098                 "pik_ep": pik_ep,
+C6:L0099                 "pik_up": pik_up,
+C6:L0100                 "z": raw["AREA_A"].to_numpy(float),
+C6:L0101             })
+C6:L0102 
+C6:L0103     return dfs
+C6:L0104 
+C6:L0105 
+C6:L0106 # quick check
+C6:L0107 p50 = popus(50)
+C6:L0108 
+C6:L0109 print("Loaded populations for n=50:")
+C6:L0110 for key, df in p50.items():
+C6:L0111     print(key, df.shape)
+OUTPUT 0 stream
+Loaded populations for n=50:
+df_meuse (155, 5)
+df_swiss (959, 5)
+df_AggregatedPop1000 (1000, 7)
+df_RegularPop1000 (1000, 7)
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 7 type=code execution_count=26 outputs=1 =====
+C7:L0001 # Purpose: run the next step in the notebook workflow.
+C7:L0002 # =========================================================
+C7:L0003 # CELL 4
+C7:L0004 # LOAD ALL DESIGNS
+C7:L0005 # =========================================================
+C7:L0006 
+C7:L0007 root = Path("best_designs")
+C7:L0008 
+C7:L0009 designs = {}
+C7:L0010 failed_files = []
+C7:L0011 
+C7:L0012 def simplify_name(population, stem):
+C7:L0013 
+C7:L0014     if stem.startswith("best_design"):
+C7:L0015         method = "best"
+C7:L0016     elif stem.startswith("initial_design"):
+C7:L0017         method = "initial"
+C7:L0018     else:
+C7:L0019         method = "unknown"
+C7:L0020 
+C7:L0021     # -----------------------------------------------------
+C7:L0022     # Meuse / Swiss
+C7:L0023     # -----------------------------------------------------
+C7:L0024     if population in ["meuse", "swiss"]:
+C7:L0025 
+C7:L0026         parts = stem.split("_")
+C7:L0027 
+C7:L0028         n = parts[-3]
+C7:L0029         mode = parts[-1]
+C7:L0030 
+C7:L0031         return f"{population}_{method}_{n}_{mode}"
+C7:L0032 
+C7:L0033     # -----------------------------------------------------
+C7:L0034     # Robertson populations
+C7:L0035     # -----------------------------------------------------
+C7:L0036     if population == "robertson":
+C7:L0037 
+C7:L0038         if "Aggregated" in stem:
+C7:L0039             pop = "aggregated"
+C7:L0040         elif "Regular" in stem:
+C7:L0041             pop = "regular"
+C7:L0042         else:
+C7:L0043             pop = "unknown"
+C7:L0044 
+C7:L0045         if "C20" in stem:
+C7:L0046             n = "20"
+C7:L0047         elif "C50" in stem:
+C7:L0048             n = "50"
+C7:L0049         else:
+C7:L0050             n = "?"
+C7:L0051 
+C7:L0052         mode = "ep"
+C7:L0053 
+C7:L0054         return f"{pop}_{method}_{n}_{mode}"
+C7:L0055 
+C7:L0056     return f"{population}_{stem}"
+C7:L0057 
+C7:L0058 
+C7:L0059 for pop_folder in root.iterdir():
+C7:L0060 
+C7:L0061     if not pop_folder.is_dir():
+C7:L0062         continue
+C7:L0063 
+C7:L0064     population = pop_folder.name
+C7:L0065 
+C7:L0066     for file in pop_folder.glob("*.pkl"):
+C7:L0067 
+C7:L0068         try:
+C7:L0069 
+C7:L0070             with open(file, "rb") as f:
+C7:L0071                 obj = pickle.load(f)
+C7:L0072 
+C7:L0073             # supports either direct Design or GBFS object
+C7:L0074             design = obj.best_design if hasattr(obj, "best_design") else obj
+C7:L0075 
+C7:L0076             short_name = simplify_name(
+C7:L0077                 population,
+C7:L0078                 file.stem
+C7:L0079             )
+C7:L0080 
+C7:L0081             designs[short_name] = design
+C7:L0082 
+C7:L0083         except Exception as e:
+C7:L0084 
+C7:L0085             failed_files.append((str(file), str(e)))
+C7:L0086 
+C7:L0087 
+C7:L0088 print("\nLoaded designs:")
+C7:L0089 for k in sorted(designs):
+C7:L0090     print(k)
+C7:L0091 
+C7:L0092 print("\nTotal loaded:", len(designs))
+C7:L0093 
+C7:L0094 if failed_files:
+C7:L0095     print("\nFailed files:")
+C7:L0096     for f, err in failed_files:
+C7:L0097         print(f)
+C7:L0098         print(err)
+C7:L0099         print("-" * 60)
+OUTPUT 0 stream
+
+Loaded designs:
+aggregated_best_20_ep
+aggregated_best_50_ep
+aggregated_best_?_ep
+aggregated_initial_20_ep
+aggregated_initial_50_ep
+aggregated_initial_?_ep
+meuse_best_10_ep
+meuse_best_10_up
+meuse_best_20_ep
+meuse_best_20_up
+meuse_best_5_ep
+meuse_best_5_up
+meuse_initial_10_ep
+meuse_initial_10_up
+meuse_initial_20_ep
+meuse_initial_20_up
+meuse_initial_5_ep
+meuse_initial_5_up
+regular_best_20_ep
+regular_best_50_ep
+regular_best_?_ep
+regular_initial_20_ep
+regular_initial_50_ep
+regular_unknown_?_ep
+swiss_best_100_ep
+swiss_best_100_up
+swiss_best_150_ep
+swiss_best_150_up
+swiss_best_50_ep
+swiss_best_50_up
+swiss_initial_100_ep
+swiss_initial_100_up
+swiss_initial_150_ep
+swiss_initial_150_up
+swiss_initial_50_ep
+swiss_initial_50_up
+
+Total loaded: 36
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 8 type=code execution_count=27 outputs=1 =====
+C8:L0001 # Purpose: run the next step in the notebook workflow.
+C8:L0002 des_name = [''
+C8:L0003 'aggregated_best_20_ep',
+C8:L0004 'aggregated_best_50_ep',
+C8:L0005 'aggregated_initial_20_ep',
+C8:L0006 'aggregated_initial_50_ep',
+C8:L0007 'regular_best_20_ep',
+C8:L0008 'regular_best_50_ep',
+C8:L0009 'regular_initial_20_ep',
+C8:L0010 'regular_initial_50_ep',]
+C8:L0011 
+C8:L0012 for name in des_name:
+C8:L0013     print(f'{name}: moran mean and sd: {designs[name].moran}, voronoi mean and sd {designs[name].voronoi}')
+OUTPUT 0 stream
+aggregated_best_20_ep: moran mean and sd: (-0.4307355540534017, 0.07710957212741683), voronoi mean and sd (0.08617360609941198, 0.025368568043779)
+aggregated_best_50_ep: moran mean and sd: (-0.6100110574530695, 0.058948479992153614), voronoi mean and sd (0.10735000159963978, 0.01453586953534228)
+aggregated_initial_20_ep: moran mean and sd: (-0.22128345642324335, 0.05173158507463266), voronoi mean and sd (0.1046824074094744, 0.04148483698958852)
+aggregated_initial_50_ep: moran mean and sd: (-0.3752271602788289, 0.06102138798996939), voronoi mean and sd (0.0984800014674665, 0.020175693446958628)
+regular_best_20_ep: moran mean and sd: (-0.3608223938870024, 0.034194354488779374), voronoi mean and sd (0.048519203434214064, 0.023977577693617105)
+regular_best_50_ep: moran mean and sd: (-0.4652251017407493, 0.022072577835233715), voronoi mean and sd (0.04067000060603028, 0.009415046538434406)
+regular_initial_20_ep: moran mean and sd: (-0.40689883869568744, 0.02710358614800922), voronoi mean and sd (0.09568000142574308, 0.008739427964009824)
+regular_initial_50_ep: moran mean and sd: (-0.3197561471474754, 0.021005668184777157), voronoi mean and sd (0.06697500099800535, 0.019017778008731525)
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 9 type=code execution_count=28 outputs=1 =====
+C9:L0001 # Purpose: define helper functions for parsing design names and selecting designs.
+C9:L0002 # =========================================================
+C9:L0003 # CELL 5
+C9:L0004 # NAME HELPERS
+C9:L0005 # =========================================================
+C9:L0006 
+C9:L0007 import re
+C9:L0008 
+C9:L0009 def get_n_from_name(name):
+C9:L0010     """Extract sample size n from names such as aggregated_best_50_ep."""
+C9:L0011     name = str(name)
+C9:L0012 
+C9:L0013     match = re.search(r"_(\d+)_(ep|up)$", name, flags=re.IGNORECASE)
+C9:L0014     if match:
+C9:L0015         return int(match.group(1))
+C9:L0016 
+C9:L0017     raise ValueError(
+C9:L0018         f"Could not extract n from design name: {name!r}. "
+C9:L0019         "The design name should contain a sample size, e.g. aggregated_best_50_ep."
+C9:L0020     )
+C9:L0021 
+C9:L0022 
+C9:L0023 def get_mode_from_name(name):
+C9:L0024     mode = str(name).split("_")[-1]
+C9:L0025 
+C9:L0026     if mode not in {"ep", "up"}:
+C9:L0027         raise ValueError(f"Unknown mode in design name: {name!r}")
+C9:L0028 
+C9:L0029     return mode
+C9:L0030 
+C9:L0031 
+C9:L0032 def get_pi_column(name):
+C9:L0033     mode = get_mode_from_name(name)
+C9:L0034 
+C9:L0035     if mode == "ep":
+C9:L0036         return "pik_ep"
+C9:L0037 
+C9:L0038     if mode == "up":
+C9:L0039         return "pik_up"
+C9:L0040 
+C9:L0041 
+C9:L0042 def get_population_from_name(name, n):
+C9:L0043     dfs = popus(n)
+C9:L0044 
+C9:L0045     if name.startswith("regular"):
+C9:L0046         return dfs["df_RegularPop1000"]
+C9:L0047 
+C9:L0048     if name.startswith("aggregated"):
+C9:L0049         return dfs["df_AggregatedPop1000"]
+C9:L0050 
+C9:L0051     if name.startswith("meuse"):
+C9:L0052         return dfs["df_meuse"]
+C9:L0053 
+C9:L0054     if name.startswith("swiss"):
+C9:L0055         return dfs["df_swiss"]
+C9:L0056 
+C9:L0057     raise ValueError(f"Unknown population in design name: {name!r}")
+C9:L0058 
+C9:L0059 
+C9:L0060 def get_y_columns(df):
+C9:L0061     cols = []
+C9:L0062 
+C9:L0063     for c in ["z", "plane", "peak", "bird"]:
+C9:L0064         if c in df.columns:
+C9:L0065             cols.append(c)
+C9:L0066 
+C9:L0067     return cols
+C9:L0068 
+C9:L0069 
+C9:L0070 def selected_design_names():
+C9:L0071     names = sorted(designs.keys())
+C9:L0072 
+C9:L0073     # Skip unfinished placeholder names such as aggregated_best_?_ep.
+C9:L0074     names = [x for x in names if "?" not in x]
+C9:L0075 
+C9:L0076     if not INCLUDE_SWISS:
+C9:L0077         names = [
+C9:L0078             x for x in names
+C9:L0079             if not x.startswith("swiss")
+C9:L0080         ]
+C9:L0081 
+C9:L0082     return names
+C9:L0083 
+C9:L0084 
+C9:L0085 print("Helpers defined.")
+C9:L0086 print("Selected designs:", len(selected_design_names()))
+C9:L0087 print("Selected design names:")
+C9:L0088 for name in selected_design_names():
+C9:L0089     print(" -", name)
+OUTPUT 0 stream
+Helpers defined.
+Selected designs: 20
+Selected design names:
+ - aggregated_best_20_ep
+ - aggregated_best_50_ep
+ - aggregated_initial_20_ep
+ - aggregated_initial_50_ep
+ - meuse_best_10_ep
+ - meuse_best_10_up
+ - meuse_best_20_ep
+ - meuse_best_20_up
+ - meuse_best_5_ep
+ - meuse_best_5_up
+ - meuse_initial_10_ep
+ - meuse_initial_10_up
+ - meuse_initial_20_ep
+ - meuse_initial_20_up
+ - meuse_initial_5_ep
+ - meuse_initial_5_up
+ - regular_best_20_ep
+ - regular_best_50_ep
+ - regular_initial_20_ep
+ - regular_initial_50_ep
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 10 type=code execution_count=29 outputs=1 =====
+C10:L0001 # Purpose: run the next step in the notebook workflow.
+C10:L0002 # =========================================================
+C10:L0003 # CELL 6
+C10:L0004 # DESIGN DISTRIBUTION AND TRUE VARIANCE
+C10:L0005 # =========================================================
+C10:L0006 
+C10:L0007 def get_samples_probs(design):
+C10:L0008     """Return all possible samples and their probabilities."""
+C10:L0009 
+C10:L0010     obj = design.all_samples_and_probs
+C10:L0011 
+C10:L0012     if callable(obj):
+C10:L0013         obj = obj()
+C10:L0014 
+C10:L0015     samples, probs = obj
+C10:L0016 
+C10:L0017     samples = np.asarray(samples, dtype=int)
+C10:L0018     probs = np.asarray(probs, dtype=float)
+C10:L0019 
+C10:L0020     probs = probs / probs.sum()
+C10:L0021 
+C10:L0022     return samples, probs
+C10:L0023 
+C10:L0024 
+C10:L0025 def nht_total(sample, y, pi):
+C10:L0026     sample = np.asarray(sample, dtype=int)
+C10:L0027     return float(np.sum(y[sample] / pi[sample]))
+C10:L0028 
+C10:L0029 
+C10:L0030 def true_design_variance(samples, probs, y, pi):
+C10:L0031     """Exact variance of the NHT estimator under the full design distribution."""
+C10:L0032 
+C10:L0033     true_total = float(np.sum(y))
+C10:L0034 
+C10:L0035     estimates = np.array([
+C10:L0036         nht_total(s, y, pi)
+C10:L0037         for s in samples
+C10:L0038     ])
+C10:L0039 
+C10:L0040     mean_est = float(np.sum(probs * estimates))
+C10:L0041 
+C10:L0042     var_true = float(
+C10:L0043         np.sum(
+C10:L0044             probs * (estimates - true_total)**2
+C10:L0045         )
+C10:L0046     )
+C10:L0047 
+C10:L0048     return var_true, mean_est, true_total
+C10:L0049 
+C10:L0050 print("True variance functions defined.")
+OUTPUT 0 stream
+True variance functions defined.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 11 type=code execution_count=30 outputs=1 =====
+C11:L0001 # Purpose: run the next step in the notebook workflow.
+C11:L0002 # =========================================================
+C11:L0003 # CELL 7
+C11:L0004 # SIMPLE LOCAL-MEAN ESTIMATOR
+C11:L0005 # =========================================================
+C11:L0006 
+C11:L0007 def get_Dk_simple(i, coords_s, q=8, include_self=False):
+C11:L0008 
+C11:L0009     d = np.sqrt(
+C11:L0010         np.sum(
+C11:L0011             (coords_s - coords_s[i])**2,
+C11:L0012             axis=1
+C11:L0013         )
+C11:L0014     )
+C11:L0015 
+C11:L0016     if not include_self:
+C11:L0017         d[i] = np.inf
+C11:L0018 
+C11:L0019     order = np.argsort(d)
+C11:L0020 
+C11:L0021     if include_self:
+C11:L0022         neigh = order[:q + 1]
+C11:L0023     else:
+C11:L0024         neigh = order[:q]
+C11:L0025 
+C11:L0026     return neigh, d[neigh]
+C11:L0027 
+C11:L0028 
+C11:L0029 def get_weights_simple(distances, method="equal"):
+C11:L0030 
+C11:L0031     distances = np.asarray(distances, dtype=float)
+C11:L0032 
+C11:L0033     if method == "equal":
+C11:L0034         w = np.ones_like(distances, dtype=float)
+C11:L0035 
+C11:L0036     elif method == "inverse_distance":
+C11:L0037         d = distances.copy()
+C11:L0038         positive = d[d > 0]
+C11:L0039         eps = positive.min() if len(positive) > 0 else 1.0
+C11:L0040         d[d == 0] = eps
+C11:L0041         w = 1.0 / d
+C11:L0042 
+C11:L0043     else:
+C11:L0044         raise ValueError("Unknown weight method.")
+C11:L0045 
+C11:L0046     w = w / w.sum()
+C11:L0047 
+C11:L0048     return w
+C11:L0049 
+C11:L0050 
+C11:L0051 def var_lm_simple(
+C11:L0052     sample,
+C11:L0053     y,
+C11:L0054     pi,
+C11:L0055     coords,
+C11:L0056     q=LM_SIMPLE_Q,
+C11:L0057     weight_method=LM_SIMPLE_WEIGHT_METHOD,
+C11:L0058     include_self=LM_SIMPLE_INCLUDE_SELF
+C11:L0059 ):
+C11:L0060     """Simplified local-mean estimator used as an empirical benchmark.
+C11:L0061 
+C11:L0062     It uses q nearest sampled neighbours and excludes the unit itself
+C11:L0063     by default. This was the version that gave good Meuse-UP results.
+C11:L0064     """
+C11:L0065 
+C11:L0066     sample = np.asarray(sample, dtype=int)
+C11:L0067 
+C11:L0068     coords_s = coords[sample]
+C11:L0069     z_s = y[sample] / pi[sample]
+C11:L0070 
+C11:L0071     n = len(sample)
+C11:L0072     total = 0.0
+C11:L0073 
+C11:L0074     for i in range(n):
+C11:L0075 
+C11:L0076         D_i, distances = get_Dk_simple(
+C11:L0077             i,
+C11:L0078             coords_s,
+C11:L0079             q=q,
+C11:L0080             include_self=include_self
+C11:L0081         )
+C11:L0082 
+C11:L0083         w = get_weights_simple(
+C11:L0084             distances,
+C11:L0085             method=weight_method
+C11:L0086         )
+C11:L0087 
+C11:L0088         local_mean = np.sum(w * z_s[D_i])
+C11:L0089 
+C11:L0090         total += (z_s[i] - local_mean)**2
+C11:L0091 
+C11:L0092     return float(total)
+C11:L0093 
+C11:L0094 print("Simple LM defined.")
+OUTPUT 0 stream
+Simple LM defined.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 12 type=code execution_count=31 outputs=1 =====
+C12:L0001 # Purpose: run the next step in the notebook workflow.
+C12:L0002 # =========================================================
+C12:L0003 # CELL 8
+C12:L0004 # TILLE-STYLE LOCAL-MEAN BENCHMARK
+C12:L0005 # =========================================================
+C12:L0006 
+C12:L0007 def sinkhorn_normalize(A, max_iter=200, tol=1e-10):
+C12:L0008 
+C12:L0009     W = A.astype(float).copy()
+C12:L0010     W[W < 0] = 0.0
+C12:L0011 
+C12:L0012     for _ in range(max_iter):
+C12:L0013 
+C12:L0014         W_old = W.copy()
+C12:L0015 
+C12:L0016         row_sums = W.sum(axis=1)
+C12:L0017         row_sums[row_sums == 0] = 1.0
+C12:L0018         W = W / row_sums[:, None]
+C12:L0019 
+C12:L0020         col_sums = W.sum(axis=0)
+C12:L0021         col_sums[col_sums == 0] = 1.0
+C12:L0022         W = W / col_sums[None, :]
+C12:L0023 
+C12:L0024         if np.max(np.abs(W - W_old)) < tol:
+C12:L0025             break
+C12:L0026 
+C12:L0027     return W
+C12:L0028 
+C12:L0029 
+C12:L0030 def get_Dk_tille(i, dist_s, j=3):
+C12:L0031 
+C12:L0032     d_i = dist_s[i].copy()
+C12:L0033     d_i[i] = np.inf
+C12:L0034 
+C12:L0035     nearest_i = np.argsort(d_i)[:j]
+C12:L0036 
+C12:L0037     D = set([i])
+C12:L0038 
+C12:L0039     for h in nearest_i:
+C12:L0040 
+C12:L0041         D.add(int(h))
+C12:L0042 
+C12:L0043         d_h = dist_s[h].copy()
+C12:L0044         d_h[h] = np.inf
+C12:L0045 
+C12:L0046         nearest_h = np.argsort(d_h)[:j]
+C12:L0047 
+C12:L0048         for m in nearest_h:
+C12:L0049             D.add(int(m))
+C12:L0050 
+C12:L0051     return np.array(sorted(D), dtype=int)
+C12:L0052 
+C12:L0053 
+C12:L0054 def build_W_tille(
+C12:L0055     sample,
+C12:L0056     pi,
+C12:L0057     coords,
+C12:L0058     j=TILLE_J,
+C12:L0059     distance_power=TILLE_DISTANCE_POWER,
+C12:L0060     pi_power=TILLE_PI_POWER,
+C12:L0061     include_self=TILLE_INCLUDE_SELF,
+C12:L0062     sinkhorn_iter=TILLE_SINKHORN_ITER
+C12:L0063 ):
+C12:L0064 
+C12:L0065     sample = np.asarray(sample, dtype=int)
+C12:L0066 
+C12:L0067     coords_s = coords[sample]
+C12:L0068     pi_s = pi[sample]
+C12:L0069 
+C12:L0070     n = len(sample)
+C12:L0071 
+C12:L0072     diff = coords_s[:, None, :] - coords_s[None, :, :]
+C12:L0073     dist_s = np.sqrt(np.sum(diff**2, axis=2))
+C12:L0074 
+C12:L0075     positive = dist_s[dist_s > 0]
+C12:L0076 
+C12:L0077     min_pos_dist = positive.min() if len(positive) > 0 else 1.0
+C12:L0078 
+C12:L0079     A = np.zeros((n, n), dtype=float)
+C12:L0080 
+C12:L0081     for i in range(n):
+C12:L0082 
+C12:L0083         D_i = get_Dk_tille(
+C12:L0084             i,
+C12:L0085             dist_s,
+C12:L0086             j=j
+C12:L0087         )
+C12:L0088 
+C12:L0089         for ell in D_i:
+C12:L0090 
+C12:L0091             if (not include_self) and (ell == i):
+C12:L0092                 continue
+C12:L0093 
+C12:L0094             d = dist_s[i, ell]
+C12:L0095 
+C12:L0096             if d == 0:
+C12:L0097                 d = min_pos_dist
+C12:L0098 
+C12:L0099             A[i, ell] = (
+C12:L0100                 1.0 / (d**distance_power)
+C12:L0101             ) * (
+C12:L0102                 1.0 / (pi_s[ell]**pi_power)
+C12:L0103             )
+C12:L0104 
+C12:L0105     W = sinkhorn_normalize(
+C12:L0106         A,
+C12:L0107         max_iter=sinkhorn_iter
+C12:L0108     )
+C12:L0109 
+C12:L0110     return W
+C12:L0111 
+C12:L0112 
+C12:L0113 def var_lm_tille(
+C12:L0114     sample,
+C12:L0115     y,
+C12:L0116     pi,
+C12:L0117     coords,
+C12:L0118     j=TILLE_J,
+C12:L0119     distance_power=TILLE_DISTANCE_POWER,
+C12:L0120     pi_power=TILLE_PI_POWER,
+C12:L0121     include_self=TILLE_INCLUDE_SELF,
+C12:L0122     sinkhorn_iter=TILLE_SINKHORN_ITER
+C12:L0123 ):
+C12:L0124     """Tille-style local-mean benchmark."""
+C12:L0125 
+C12:L0126     sample = np.asarray(sample, dtype=int)
+C12:L0127 
+C12:L0128     z_s = y[sample] / pi[sample]
+C12:L0129 
+C12:L0130     W = build_W_tille(
+C12:L0131         sample,
+C12:L0132         pi,
+C12:L0133         coords,
+C12:L0134         j=j,
+C12:L0135         distance_power=distance_power,
+C12:L0136         pi_power=pi_power,
+C12:L0137         include_self=include_self,
+C12:L0138         sinkhorn_iter=sinkhorn_iter
+C12:L0139     )
+C12:L0140 
+C12:L0141     local_mean = W @ z_s
+C12:L0142 
+C12:L0143     diff = z_s - local_mean
+C12:L0144 
+C12:L0145     v = np.sum(
+C12:L0146         W * diff[:, None]**2
+C12:L0147     )
+C12:L0148 
+C12:L0149     return float(v)
+C12:L0150 
+C12:L0151 print("Tille-style LM defined.")
+OUTPUT 0 stream
+Tille-style LM defined.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 13 type=code execution_count=32 outputs=1 =====
+C13:L0001 # Purpose: run the next step in the notebook workflow.
+C13:L0002 # =========================================================
+C13:L0003 # CELL 9
+C13:L0004 # ROBERTSON VarB AND HYBRID VarB
+C13:L0005 # =========================================================
+C13:L0006 
+C13:L0007 def var_b_resampling(
+C13:L0008     sample,
+C13:L0009     all_samples,
+C13:L0010     all_probs,
+C13:L0011     y,
+C13:L0012     pi,
+C13:L0013     coords,
+C13:L0014     alpha=1.0
+C13:L0015 ):
+C13:L0016     """Exact expectation version of Robertson-type resampling estimator.
+C13:L0017 
+C13:L0018     alpha = 1:
+C13:L0019         original Robertson estimator:
+C13:L0020         nearest-neighbour y-imputation, then divide by pi of resampled unit.
+C13:L0021 
+C13:L0022     alpha = 0:
+C13:L0023         UPB estimator:
+C13:L0024         nearest-neighbour z=y/pi imputation.
+C13:L0025 
+C13:L0026     alpha = 0.35:
+C13:L0027         proposed hybrid:
+C13:L0028         alpha * original contribution + (1-alpha) * z contribution.
+C13:L0029     """
+C13:L0030 
+C13:L0031     sample = np.asarray(sample, dtype=int)
+C13:L0032 
+C13:L0033     coords_s = coords[sample]
+C13:L0034 
+C13:L0035     y_s = y[sample]
+C13:L0036     z_s = y[sample] / pi[sample]
+C13:L0037 
+C13:L0038     boot_estimates = []
+C13:L0039 
+C13:L0040     for sb in all_samples:
+C13:L0041 
+C13:L0042         sb = np.asarray(sb, dtype=int)
+C13:L0043 
+C13:L0044         coords_b = coords[sb]
+C13:L0045 
+C13:L0046         tau_star = 0.0
+C13:L0047 
+C13:L0048         for pos, xb in enumerate(coords_b):
+C13:L0049 
+C13:L0050             j = sb[pos]
+C13:L0051 
+C13:L0052             d = np.sum(
+C13:L0053                 (coords_s - xb)**2,
+C13:L0054                 axis=1
+C13:L0055             )
+C13:L0056 
+C13:L0057             nearest_position = np.argmin(d)
+C13:L0058 
+C13:L0059             raw_part = y_s[nearest_position] / pi[j]
+C13:L0060 
+C13:L0061             z_part = z_s[nearest_position]
+C13:L0062 
+C13:L0063             tau_star += (
+C13:L0064                 alpha * raw_part
+C13:L0065                 +
+C13:L0066                 (1.0 - alpha) * z_part
+C13:L0067             )
+C13:L0068 
+C13:L0069         boot_estimates.append(tau_star)
+C13:L0070 
+C13:L0071     boot_estimates = np.asarray(boot_estimates, dtype=float)
+C13:L0072 
+C13:L0073     mean_boot = np.sum(
+C13:L0074         all_probs * boot_estimates
+C13:L0075     )
+C13:L0076 
+C13:L0077     var_boot = np.sum(
+C13:L0078         all_probs * (boot_estimates - mean_boot)**2
+C13:L0079     )
+C13:L0080 
+C13:L0081     return float(var_boot)
+C13:L0082 
+C13:L0083 
+C13:L0084 def var_B_original(sample, all_samples, all_probs, y, pi, coords):
+C13:L0085     return var_b_resampling(
+C13:L0086         sample,
+C13:L0087         all_samples,
+C13:L0088         all_probs,
+C13:L0089         y,
+C13:L0090         pi,
+C13:L0091         coords,
+C13:L0092         alpha=1.0
+C13:L0093     )
+C13:L0094 
+C13:L0095 
+C13:L0096 def var_UPB(sample, all_samples, all_probs, y, pi, coords):
+C13:L0097     return var_b_resampling(
+C13:L0098         sample,
+C13:L0099         all_samples,
+C13:L0100         all_probs,
+C13:L0101         y,
+C13:L0102         pi,
+C13:L0103         coords,
+C13:L0104         alpha=0.0
+C13:L0105     )
+C13:L0106 
+C13:L0107 
+C13:L0108 def var_B_hybrid_a035(sample, all_samples, all_probs, y, pi, coords):
+C13:L0109     return var_b_resampling(
+C13:L0110         sample,
+C13:L0111         all_samples,
+C13:L0112         all_probs,
+C13:L0113         y,
+C13:L0114         pi,
+C13:L0115         coords,
+C13:L0116         alpha=HYBRID_ALPHA
+C13:L0117     )
+C13:L0118 
+C13:L0119 print("Robertson VarB and hybrid VarB defined.")
+OUTPUT 0 stream
+Robertson VarB and hybrid VarB defined.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 14 type=code execution_count=33 outputs=1 =====
+C14:L0001 # Purpose: run the next step in the notebook workflow.
+C14:L0002 # =========================================================
+C14:L0003 # CELL 10
+C14:L0004 # ANALYSE ONE DESIGN AND ONE VARIABLE
+C14:L0005 # =========================================================
+C14:L0006 
+C14:L0007 def relbias_from_values(vals, probs, true_var):
+C14:L0008     vals = np.asarray(vals, dtype=float)
+C14:L0009 
+C14:L0010     mean_val = float(
+C14:L0011         np.sum(probs * vals)
+C14:L0012     )
+C14:L0013 
+C14:L0014     relbias = mean_val / true_var - 1.0
+C14:L0015 
+C14:L0016     return mean_val, relbias
+C14:L0017 
+C14:L0018 
+C14:L0019 def analyse_one_y(design_name, y_col):
+C14:L0020 
+C14:L0021     design = designs[design_name]
+C14:L0022 
+C14:L0023     n = get_n_from_name(design_name)
+C14:L0024 
+C14:L0025     df = get_population_from_name(design_name, n)
+C14:L0026 
+C14:L0027     pi_col = get_pi_column(design_name)
+C14:L0028 
+C14:L0029     coords = df[["coord_x", "coord_y"]].to_numpy(float)
+C14:L0030 
+C14:L0031     y = df[y_col].to_numpy(float)
+C14:L0032 
+C14:L0033     pi = df[pi_col].to_numpy(float)
+C14:L0034 
+C14:L0035     samples, probs = get_samples_probs(design)
+C14:L0036 
+C14:L0037     var_true, mean_nht, true_total = true_design_variance(
+C14:L0038         samples,
+C14:L0039         probs,
+C14:L0040         y,
+C14:L0041         pi
+C14:L0042     )
+C14:L0043 
+C14:L0044     vals_B = []
+C14:L0045     vals_UPB = []
+C14:L0046     vals_HB = []
+C14:L0047     vals_LM = []
+C14:L0048     vals_Tille = []
+C14:L0049 
+C14:L0050     for s in samples:
+C14:L0051 
+C14:L0052         vals_B.append(
+C14:L0053             var_B_original(
+C14:L0054                 s,
+C14:L0055                 samples,
+C14:L0056                 probs,
+C14:L0057                 y,
+C14:L0058                 pi,
+C14:L0059                 coords
+C14:L0060             )
+C14:L0061         )
+C14:L0062 
+C14:L0063         vals_UPB.append(
+C14:L0064             var_UPB(
+C14:L0065                 s,
+C14:L0066                 samples,
+C14:L0067                 probs,
+C14:L0068                 y,
+C14:L0069                 pi,
+C14:L0070                 coords
+C14:L0071             )
+C14:L0072         )
+C14:L0073 
+C14:L0074         vals_HB.append(
+C14:L0075             var_B_hybrid_a035(
+C14:L0076                 s,
+C14:L0077                 samples,
+C14:L0078                 probs,
+C14:L0079                 y,
+C14:L0080                 pi,
+C14:L0081                 coords
+C14:L0082             )
+C14:L0083         )
+C14:L0084 
+C14:L0085         vals_LM.append(
+C14:L0086             var_lm_simple(
+C14:L0087                 s,
+C14:L0088                 y,
+C14:L0089                 pi,
+C14:L0090                 coords
+C14:L0091             )
+C14:L0092         )
+C14:L0093 
+C14:L0094         vals_Tille.append(
+C14:L0095             var_lm_tille(
+C14:L0096                 s,
+C14:L0097                 y,
+C14:L0098                 pi,
+C14:L0099                 coords
+C14:L0100             )
+C14:L0101         )
+C14:L0102 
+C14:L0103     E_B, rb_B = relbias_from_values(vals_B, probs, var_true)
+C14:L0104     E_UPB, rb_UPB = relbias_from_values(vals_UPB, probs, var_true)
+C14:L0105     E_HB, rb_HB = relbias_from_values(vals_HB, probs, var_true)
+C14:L0106     E_LM, rb_LM = relbias_from_values(vals_LM, probs, var_true)
+C14:L0107     E_Tille, rb_Tille = relbias_from_values(vals_Tille, probs, var_true)
+C14:L0108 
+C14:L0109     return {
+C14:L0110         "design": design_name,
+C14:L0111         "population": design_name.split("_")[0],
+C14:L0112         "design_type": design_name.split("_")[1],
+C14:L0113         "n": n,
+C14:L0114         "mode": get_mode_from_name(design_name),
+C14:L0115         "y": y_col,
+C14:L0116 
+C14:L0117         "true_total": true_total,
+C14:L0118         "mean_nht": mean_nht,
+C14:L0119         "true_var": var_true,
+C14:L0120 
+C14:L0121         "E_VarB": E_B,
+C14:L0122         "RB_VarB": rb_B,
+C14:L0123 
+C14:L0124         "E_UPB": E_UPB,
+C14:L0125         "RB_UPB": rb_UPB,
+C14:L0126 
+C14:L0127         "E_HybridB_a035": E_HB,
+C14:L0128         "RB_HybridB_a035": rb_HB,
+C14:L0129 
+C14:L0130         "E_LM_simple_q8": E_LM,
+C14:L0131         "RB_LM_simple_q8": rb_LM,
+C14:L0132 
+C14:L0133         "E_LM_Tille_j3": E_Tille,
+C14:L0134         "RB_LM_Tille_j3": rb_Tille,
+C14:L0135     }
+C14:L0136 
+C14:L0137 print("Analysis function defined.")
+OUTPUT 0 stream
+Analysis function defined.
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 15 type=code execution_count=34 outputs=2 =====
+C15:L0001 # Purpose: save or display the final summary table.
+C15:L0002 # =========================================================
+C15:L0003 # CELL 11
+C15:L0004 # RUN ALL SELECTED DESIGNS
+C15:L0005 # =========================================================
+C15:L0006 
+C15:L0007 rows = []
+C15:L0008 
+C15:L0009 for design_name in selected_design_names():
+C15:L0010 
+C15:L0011     print("\n================================================")
+C15:L0012     print("Working on:", design_name)
+C15:L0013     print("================================================")
+C15:L0014 
+C15:L0015     n = get_n_from_name(design_name)
+C15:L0016 
+C15:L0017     df = get_population_from_name(design_name, n)
+C15:L0018 
+C15:L0019     y_cols = get_y_columns(df)
+C15:L0020 
+C15:L0021     for y_col in y_cols:
+C15:L0022 
+C15:L0023         print("   y =", y_col)
+C15:L0024 
+C15:L0025         row = analyse_one_y(
+C15:L0026             design_name,
+C15:L0027             y_col
+C15:L0028         )
+C15:L0029 
+C15:L0030         rows.append(row)
+C15:L0031 
+C15:L0032         print(
+C15:L0033             "      true_var =",
+C15:L0034             round(row["true_var"], 3),
+C15:L0035             "| RB VarB =",
+C15:L0036             round(100 * row["RB_VarB"], 2),
+C15:L0037             "%",
+C15:L0038             "| RB UPB =",
+C15:L0039             round(100 * row["RB_UPB"], 2),
+C15:L0040             "%",
+C15:L0041             "| RB Hybrid =",
+C15:L0042             round(100 * row["RB_HybridB_a035"], 2),
+C15:L0043             "%",
+C15:L0044             "| RB LM =",
+C15:L0045             round(100 * row["RB_LM_simple_q8"], 2),
+C15:L0046             "%",
+C15:L0047             "| RB Tille =",
+C15:L0048             round(100 * row["RB_LM_Tille_j3"], 2),
+C15:L0049             "%"
+C15:L0050         )
+C15:L0051 
+C15:L0052     if SAVE_PARTIAL:
+C15:L0053 
+C15:L0054         partial = pd.DataFrame(rows)
+C15:L0055 
+C15:L0056         partial.to_csv(
+C15:L0057             OUTPUT_DIR / "variance_results_partial.csv",
+C15:L0058             index=False
+C15:L0059         )
+C15:L0060 
+C15:L0061         print("Saved partial results.")
+C15:L0062 
+C15:L0063 
+C15:L0064 results = pd.DataFrame(rows)
+C15:L0065 
+C15:L0066 results.to_csv(
+C15:L0067     OUTPUT_DIR / "variance_results_full.csv",
+C15:L0068     index=False
+C15:L0069 )
+C15:L0070 
+C15:L0071 results
+OUTPUT 0 stream
+
+================================================
+Working on: aggregated_best_20_ep
+================================================
+   y = z
+      true_var = 11592.044 | RB VarB = 18.92 % | RB UPB = 18.92 % | RB Hybrid = 18.92 % | RB LM = 170.81 % | RB Tille = 11.2 %
+   y = plane
+      true_var = 11592.044 | RB VarB = 18.92 % | RB UPB = 18.92 % | RB Hybrid = 18.92 % | RB LM = 170.81 % | RB Tille = 11.2 %
+   y = peak
+      true_var = 26938.659 | RB VarB = 64.52 % | RB UPB = 64.52 % | RB Hybrid = 64.52 % | RB LM = 581.2 % | RB Tille = 242.39 %
+   y = bird
+      true_var = 45115.212 | RB VarB = -10.07 % | RB UPB = -10.07 % | RB Hybrid = -10.07 % | RB LM = 372.53 % | RB Tille = 137.64 %
+Saved partial results.
+
+================================================
+Working on: aggregated_best_50_ep
+================================================
+   y = z
+      true_var = 3582.873 | RB VarB = 32.06 % | RB UPB = 32.06 % | RB Hybrid = 32.06 % | RB LM = 6.1 % | RB Tille = -63.69 %
+   y = plane
+      true_var = 3582.873 | RB VarB = 32.06 % | RB UPB = 32.06 % | RB Hybrid = 32.06 % | RB LM = 6.1 % | RB Tille = -63.69 %
+   y = peak
+      true_var = 5026.759 | RB VarB = 48.64 % | RB UPB = 48.64 % | RB Hybrid = 48.64 % | RB LM = 813.15 % | RB Tille = 189.98 %
+   y = bird
+      true_var = 7713.421 | RB VarB = 31.29 % | RB UPB = 31.29 % | RB Hybrid = 31.29 % | RB LM = 800.71 % | RB Tille = 188.84 %
+Saved partial results.
+
+================================================
+Working on: aggregated_initial_20_ep
+================================================
+   y = z
+      true_var = 26278.907 | RB VarB = -23.49 % | RB UPB = -23.49 % | RB Hybrid = -23.49 % | RB LM = 21.89 % | RB Tille = -62.4 %
+   y = plane
+      true_var = 26278.907 | RB VarB = -23.49 % | RB UPB = -23.49 % | RB Hybrid = -23.49 % | RB LM = 21.89 % | RB Tille = -62.4 %
+   y = peak
+      true_var = 57586.789 | RB VarB = -38.13 % | RB UPB = -38.13 % | RB Hybrid = -38.13 % | RB LM = 209.92 % | RB Tille = 18.1 %
+   y = bird
+      true_var = 95779.191 | RB VarB = -52.7 % | RB UPB = -52.7 % | RB Hybrid = -52.7 % | RB LM = 117.44 % | RB Tille = -9.39 %
+Saved partial results.
+
+================================================
+Working on: aggregated_initial_50_ep
+================================================
+   y = z
+      true_var = 9172.225 | RB VarB = -27.99 % | RB UPB = -27.99 % | RB Hybrid = -27.99 % | RB LM = -58.93 % | RB Tille = -90.56 %
+   y = plane
+      true_var = 9172.225 | RB VarB = -27.99 % | RB UPB = -27.99 % | RB Hybrid = -27.99 % | RB LM = -58.93 % | RB Tille = -90.56 %
+   y = peak
+      true_var = 3582.466 | RB VarB = 46.0 % | RB UPB = 46.0 % | RB Hybrid = 46.0 % | RB LM = 1097.09 % | RB Tille = 153.58 %
+   y = bird
+      true_var = 5680.318 | RB VarB = 104.32 % | RB UPB = 104.32 % | RB Hybrid = 104.32 % | RB LM = 1112.41 % | RB Tille = 171.37 %
+Saved partial results.
+
+================================================
+Working on: meuse_best_10_ep
+================================================
+   y = z
+      true_var = 23756.04 | RB VarB = -69.0 % | RB UPB = -69.0 % | RB Hybrid = -69.0 % | RB LM = 44.13 % | RB Tille = -24.35 %
+Saved partial results.
+
+================================================
+Working on: meuse_best_10_up
+================================================
+   y = z
+      true_var = 6561.174 | RB VarB = 502.59 % | RB UPB = -74.13 % | RB Hybrid = 8.07 % | RB LM = 6.91 % | RB Tille = -50.14 %
+Saved partial results.
+
+================================================
+Working on: meuse_best_20_ep
+================================================
+   y = z
+OUTPUT 1 error
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 16 type=code execution_count=None outputs=0 =====
+C16:L0001 # Purpose: save or display the final summary table.
+C16:L0002 # =========================================================
+C16:L0003 # CELL 12
+C16:L0004 # FINAL PAPER TABLE
+C16:L0005 # =========================================================
+C16:L0006 
+C16:L0007 paper_results = results[
+C16:L0008     [
+C16:L0009         "population",
+C16:L0010         "design",
+C16:L0011         "design_type",
+C16:L0012         "n",
+C16:L0013         "mode",
+C16:L0014         "y",
+C16:L0015         "true_var",
+C16:L0016         "RB_VarB",
+C16:L0017         "RB_UPB",
+C16:L0018         "RB_HybridB_a035",
+C16:L0019         "RB_LM_simple_q8",
+C16:L0020         "RB_LM_Tille_j3",
+C16:L0021     ]
+C16:L0022 ].copy()
+C16:L0023 
+C16:L0024 # Convert relative biases to percentages
+C16:L0025 for c in [
+C16:L0026     "RB_VarB",
+C16:L0027     "RB_UPB",
+C16:L0028     "RB_HybridB_a035",
+C16:L0029     "RB_LM_simple_q8",
+C16:L0030     "RB_LM_Tille_j3",
+C16:L0031 ]:
+C16:L0032     paper_results[c + "_pct"] =  paper_results[c]
+C16:L0033 
+C16:L0034 # Keep clean percentage table
+C16:L0035 paper_results_pct = paper_results[
+C16:L0036     [
+C16:L0037         "population",
+C16:L0038         "design",
+C16:L0039         "n",
+C16:L0040         "mode",
+C16:L0041         "y",
+C16:L0042         "true_var",
+C16:L0043         "RB_VarB_pct",
+C16:L0044         "RB_UPB_pct",
+C16:L0045         "RB_HybridB_a035_pct",
+C16:L0046         "RB_LM_simple_q8_pct",
+C16:L0047         "RB_LM_Tille_j3_pct",
+C16:L0048     ]
+C16:L0049 ].copy()
+C16:L0050 
+C16:L0051 paper_results_pct = paper_results_pct.sort_values(
+C16:L0052     ["population", "n", "mode", "design", "y"]
+C16:L0053 )
+C16:L0054 
+C16:L0055 paper_results_pct.to_csv(
+C16:L0056     OUTPUT_DIR / "paper_variance_table.csv",
+C16:L0057     index=False
+C16:L0058 )
+C16:L0059 
+C16:L0060 paper_results_pct
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 17 type=code execution_count=None outputs=0 =====
+C17:L0001 # Purpose: save or display the final summary table.
+C17:L0002 # =========================================================
+C17:L0003 # CELL 13
+C17:L0004 # OPTIONAL: ROUNDED DISPLAY AND LATEX EXPORT
+C17:L0005 # DECIMAL RELATIVE BIAS SCALE
+C17:L0006 # =========================================================
+C17:L0007 
+C17:L0008 # Use decimal-scale results, not percent-scale results
+C17:L0009 display_table = paper_results.copy()
+C17:L0010 
+C17:L0011 # ---------------------------------------------------------
+C17:L0012 # Round true variance
+C17:L0013 # ---------------------------------------------------------
+C17:L0014 
+C17:L0015 display_table["true_var"] = display_table["true_var"].round(3)
+C17:L0016 
+C17:L0017 # ---------------------------------------------------------
+C17:L0018 # Round relative biases in decimal scale
+C17:L0019 # Example:
+C17:L0020 #   0.0807  means  8.07%
+C17:L0021 #   -0.1558 means -15.58%
+C17:L0022 # ---------------------------------------------------------
+C17:L0023 
+C17:L0024 for c in display_table.columns:
+C17:L0025 
+C17:L0026     if c.startswith("RB_"):
+C17:L0027 
+C17:L0028         display_table[c] = display_table[c].round(4)
+C17:L0029 
+C17:L0030 # ---------------------------------------------------------
+C17:L0031 # Save CSV
+C17:L0032 # ---------------------------------------------------------
+C17:L0033 
+C17:L0034 display_table.to_csv(
+C17:L0035     OUTPUT_DIR / "paper_variance_table_decimal.csv",
+C17:L0036     index=False
+C17:L0037 )
+C17:L0038 
+C17:L0039 # ---------------------------------------------------------
+C17:L0040 # Save LaTeX
+C17:L0041 # ---------------------------------------------------------
+C17:L0042 
+C17:L0043 latex_table = display_table.to_latex(
+C17:L0044     index=False,
+C17:L0045     escape=False,
+C17:L0046     float_format="%.2f"
+C17:L0047 )
+C17:L0048 
+C17:L0049 with open(OUTPUT_DIR / "paper_variance_table_decimal.tex", "w") as f:
+C17:L0050 
+C17:L0051     f.write(latex_table)
+C17:L0052 
+C17:L0053 display_table
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 18 type=code execution_count=None outputs=0 =====
+C18:L0001 # Purpose: save or display the final summary table.
+C18:L0002 # =========================================================
+C18:L0003 # EXTRA CELL: RUN SWISS RESULTS ONLY
+C18:L0004 # =========================================================
+C18:L0005 
+C18:L0006 swiss_rows = []
+C18:L0007 
+C18:L0008 swiss_designs = [
+C18:L0009     name for name in sorted(designs.keys())
+C18:L0010     if name.startswith("swiss")
+C18:L0011 ]
+C18:L0012 
+C18:L0013 print("Swiss designs:")
+C18:L0014 for name in swiss_designs:
+C18:L0015     print("  ", name)
+C18:L0016 
+C18:L0017 for design_name in swiss_designs:
+C18:L0018 
+C18:L0019     print("\n================================================")
+C18:L0020     print("Working on:", design_name)
+C18:L0021     print("================================================")
+C18:L0022 
+C18:L0023     n = get_n_from_name(design_name)
+C18:L0024 
+C18:L0025     df = get_population_from_name(design_name, n)
+C18:L0026 
+C18:L0027     y_cols = get_y_columns(df)
+C18:L0028 
+C18:L0029     for y_col in y_cols:
+C18:L0030 
+C18:L0031         print("   y =", y_col)
+C18:L0032 
+C18:L0033         row = analyse_one_y(
+C18:L0034             design_name,
+C18:L0035             y_col
+C18:L0036         )
+C18:L0037 
+C18:L0038         swiss_rows.append(row)
+C18:L0039 
+C18:L0040         print(
+C18:L0041             "      true_var =",
+C18:L0042             round(row["true_var"], 3),
+C18:L0043             "| HybridB RB =",
+C18:L0044             round(row["RB_HybridB_a035"], 4),
+C18:L0045             "| simple LM RB =",
+C18:L0046             round(row["RB_LM_simple_q8"], 4),
+C18:L0047             "| Tille LM RB =",
+C18:L0048             round(row["RB_LM_Tille_j3"], 4)
+C18:L0049         )
+C18:L0050 
+C18:L0051 # =========================================================
+C18:L0052 # SWISS RESULTS DATAFRAME
+C18:L0053 # =========================================================
+C18:L0054 
+C18:L0055 swiss_results = pd.DataFrame(swiss_rows)
+C18:L0056 
+C18:L0057 swiss_results = swiss_results[
+C18:L0058     [
+C18:L0059         "population",
+C18:L0060         "design",
+C18:L0061         "design_type",
+C18:L0062         "n",
+C18:L0063         "mode",
+C18:L0064         "y",
+C18:L0065         "true_var",
+C18:L0066         "RB_VarB",
+C18:L0067         "RB_UPB",
+C18:L0068         "RB_HybridB_a035",
+C18:L0069         "RB_LM_simple_q8",
+C18:L0070         "RB_LM_Tille_j3",
+C18:L0071     ]
+C18:L0072 ].copy()
+C18:L0073 
+C18:L0074 swiss_results.to_csv(
+C18:L0075     OUTPUT_DIR / "swiss_variance_results.csv",
+C18:L0076     index=False
+C18:L0077 )
+C18:L0078 
+C18:L0079 swiss_results
+===== Git af36c9e3ff36f957243188ade01a1e01400f3709:simulations/jupyters/03_variance_estimation_NHT.ipynb CELL 19 type=code execution_count=None outputs=0 =====
+C19:L0001 # Purpose: save or display the final summary table.
+C19:L0002 # =========================================================
+C19:L0003 # LATEX TABLE FROM SAVED CSV -- EXACT COLUMN NAMES
+C19:L0004 # =========================================================
+C19:L0005 
+C19:L0006 import pandas as pd
+C19:L0007 from pathlib import Path
+C19:L0008 
+C19:L0009 OUTPUT_DIR = Path("variance_outputs")
+C19:L0010 OUTPUT_DIR.mkdir(exist_ok=True)
+C19:L0011 
+C19:L0012 # ---------------------------------------------------------
+C19:L0013 # Read saved file
+C19:L0014 # ---------------------------------------------------------
+C19:L0015 
+C19:L0016 paper_results = pd.read_csv("paper_variance_table.csv")
+C19:L0017 
+C19:L0018 # ---------------------------------------------------------
+C19:L0019 # Keep exactly the columns in your file
+C19:L0020 # ---------------------------------------------------------
+C19:L0021 
+C19:L0022 compact_table = paper_results[
+C19:L0023     [
+C19:L0024         "population",
+C19:L0025         "design",
+C19:L0026         "n",
+C19:L0027         "mode",
+C19:L0028         "y",
+C19:L0029         "true_var",
+C19:L0030         "RB_HybridB_a035_pct",
+C19:L0031         "RB_LM_simple_q8_pct",
+C19:L0032     ]
+C19:L0033 ].copy()
+C19:L0034 
+C19:L0035 # ---------------------------------------------------------
+C19:L0036 # Remove duplicated plane variable
+C19:L0037 # ---------------------------------------------------------
+C19:L0038 
+C19:L0039 compact_table = compact_table[
+C19:L0040     compact_table["y"] != "plane"
+C19:L0041 ].copy()
+C19:L0042 
+C19:L0043 # ---------------------------------------------------------
+C19:L0044 # Simplify design name
+C19:L0045 # ---------------------------------------------------------
+C19:L0046 
+C19:L0047 compact_table["design"] = compact_table["design"].apply(
+C19:L0048     lambda x: "best" if "_best_" in str(x) else "initial"
+C19:L0049 )
+C19:L0050 
+C19:L0051 # ---------------------------------------------------------
+C19:L0052 # Format true variance in scientific notation
+C19:L0053 # ---------------------------------------------------------
+C19:L0054 
+C19:L0055 compact_table["true_var"] = compact_table["true_var"].map(
+C19:L0056     lambda x: f"{x:.2e}"
+C19:L0057 )
+C19:L0058 
+C19:L0059 # ---------------------------------------------------------
+C19:L0060 # Relative bias: decimal scale, rounded to two decimals
+C19:L0061 # ---------------------------------------------------------
+C19:L0062 
+C19:L0063 compact_table["RB_HybridB_a035_pct"] = compact_table["RB_HybridB_a035_pct"].map(
+C19:L0064     lambda x: f"{x:.2f}"
+C19:L0065 )
+C19:L0066 
+C19:L0067 compact_table["RB_LM_simple_q8_pct"] = compact_table["RB_LM_simple_q8_pct"].map(
+C19:L0068     lambda x: f"{x:.2f}"
+C19:L0069 )
+C19:L0070 
+C19:L0071 # ---------------------------------------------------------
+C19:L0072 # Rename for LaTeX
+C19:L0073 # ---------------------------------------------------------
+C19:L0074 
+C19:L0075 compact_table = compact_table.rename(
+C19:L0076     columns={
+C19:L0077         "population": "Population",
+C19:L0078         "design": "Design",
+C19:L0079         "n": "$n$",
+C19:L0080         "mode": "Mode",
+C19:L0081         "y": "Variable",
+C19:L0082         "true_var": "$V_p(\\widehat Y_{\\mathrm{NHT}})$",
+C19:L0083         "RB_HybridB_a035_pct": "$\\mathrm{RB}(\\widehat V_{B,0.35})$",
+C19:L0084         "RB_LM_simple_q8_pct": "$\\mathrm{RB}(\\widehat V_{\\mathrm{LM},8})$",
+C19:L0085     }
+C19:L0086 )
+C19:L0087 
+C19:L0088 # ---------------------------------------------------------
+C19:L0089 # Export LaTeX
+C19:L0090 # ---------------------------------------------------------
+C19:L0091 
+C19:L0092 latex_table = compact_table.to_latex(
+C19:L0093     index=False,
+C19:L0094     escape=False,
+C19:L0095     column_format="llcclcc"
+C19:L0096 )
+C19:L0097 
+C19:L0098 print(latex_table)
+C19:L0099 
+C19:L0100 with open(OUTPUT_DIR / "compact_variance_table.tex", "w") as f:
+C19:L0101     f.write(latex_table)
+C19:L0102 
+C19:L0103 compact_table

@@ -1,0 +1,24 @@
+{
+  "completed_full_fits": 16,
+  "completed_ids": [
+    "display_joint",
+    "display_original_replay",
+    "display_original_tight",
+    "display_translated_tight",
+    "sample1_original",
+    "sample1_shift23",
+    "sample1_shift32",
+    "sample1_shift41",
+    "sample2_original",
+    "sample2_shift23",
+    "sample2_shift32",
+    "sample2_shift41",
+    "sample3_original",
+    "sample3_shift23",
+    "sample3_shift32",
+    "sample3_shift41"
+  ],
+  "complete": true,
+  "original_study_reruns": 0,
+  "threads": 1
+}

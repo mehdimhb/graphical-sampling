@@ -1,0 +1,48 @@
+% PROPOSED response to Reviewer1, Comment1 ONLY. Original manuscript untouched.
+\noindent\textbf{Reviewer1, Comment1.}
+The sample-adaptive construction does not establish whether equally or nearly
+suitable references can materially change DI for the same observed sample.
+
+\medskip
+\noindent\textbf{Proposed response.}
+We agree that sample-adaptive initialization is not a proof of invariance to
+alternative references. Consistent permutations of cluster labels leave all
+translations and DI unchanged, but different partitions or medoid geometries
+need not do so. Similar objective values alone do not establish a DI bound.
+
+We performed a focused check on the existing clustered population with $N=144$,
+$n=8$, unequal IPs, and two fixed observed samples chosen before inspecting
+sensitivity. For each sample we used ten runs of the official sample-initialized
+procedure and ten separately labeled alternative-initialization stress tests.
+Population, samples, IPs, uniform box kernel, covariance-based Scott bandwidth,
+and angular scaling were fixed. The full OT, refinement, hardening, squared
+medoid and matching pipeline was recomputed; no DI values or densities were
+fabricated. A separate audited adapter executes the package routines while
+respecting the manuscript-specific choices where the public implementation
+differs. The original DI formula was retained.
+
+The manuscript states a preliminary entropic OT objective but no numerical
+equivalence tolerance or final-reference minimization criterion. We therefore
+report both its native normalized loss and refined soft compactness, actual
+hard-cluster IP totals, and comparisons at 0.1\%,1\%, and 5\% loss tolerances.
+The official runs produced two distinct references per sample with identical
+preliminary losses; the DI ranges were 0.0279 and 0.0043. In the stress test, an
+alternative with lower native OT loss and lower refined compactness loss had
+gaps 4.45\% and 2.65\%, respectively, but changed the second sample's DI from
+$-0.58223930146083458$ to$-0.42201965129016566$. Both compared TSP paths were
+optimal for their preliminary centers, and $D_{\mathrm{net}}$ remained negative
+and away from zero. This substantial contrast therefore does not arise from a
+near-zero sign reversal or merely a poor TSP path.
+
+The tolerance matters: the stricter joint 0.1\% and 1\% rules admitted no distinct
+pairs in this set. Moreover, because the manuscript recomputes the cost median,
+using a common median for objective comparison makes the alternative's OT loss
+20.86\% lower, rather than nearly equal. We do not interpret the example as a
+universal statement about arbitrary near-optimal references. It shows why fixing
+the construction provides a reproducible convention, not a general robustness
+guarantee. The proposed manuscript clarification therefore qualifies DI as
+reference-conditional, explicitly distinguishes official randomness from the
+initialization stress test, and restricts the numerical conclusion to the
+examined population and samples. The compact table and one figure provide the
+computed references and density evidence; full settings, seeds, coordinates,
+and verification are supplied separately.

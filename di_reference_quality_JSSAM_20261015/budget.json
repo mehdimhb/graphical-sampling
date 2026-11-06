@@ -1,0 +1,77 @@
+{
+  "goals": [
+    {
+      "scenario": "C16",
+      "experiment": "A",
+      "planned": 40
+    },
+    {
+      "scenario": "C16",
+      "experiment": "B",
+      "planned": 40
+    },
+    {
+      "scenario": "C16",
+      "experiment": "C",
+      "planned": 40
+    },
+    {
+      "scenario": "C32",
+      "experiment": "A",
+      "planned": 40
+    },
+    {
+      "scenario": "C32",
+      "experiment": "B",
+      "planned": 40
+    },
+    {
+      "scenario": "C32",
+      "experiment": "C",
+      "planned": 40
+    },
+    {
+      "scenario": "M10",
+      "experiment": "A",
+      "planned": 40
+    },
+    {
+      "scenario": "M10",
+      "experiment": "B",
+      "planned": 40
+    },
+    {
+      "scenario": "M10",
+      "experiment": "C",
+      "planned": 40
+    },
+    {
+      "scenario": "S100",
+      "experiment": "A",
+      "planned": 40
+    },
+    {
+      "scenario": "S100",
+      "experiment": "B",
+      "planned": 40
+    },
+    {
+      "scenario": "S100",
+      "experiment": "C",
+      "planned": 40
+    }
+  ],
+  "excluded": [
+    [
+      "S100",
+      "C",
+      1
+    ],
+    [
+      "S100",
+      "C",
+      2
+    ]
+  ],
+  "revisions": []
+}

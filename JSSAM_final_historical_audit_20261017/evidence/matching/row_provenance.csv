@@ -1,0 +1,163 @@
+Population,Probability,Method,n,N,legacy_Dm,legacy_Ds,retained_Dm,retained_Ds,Iterations,source_cell,source_output,status,matching_provenance,June1_master_exact,current_All_DI_exact
+Clustered,UP,MAX,4,144,-0.222011,0.323966,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,SCP,4,144,-0.097165,0.250533,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,LPV,4,144,-0.099182,0.247578,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,WAV,4,144,-0.093114,0.234748,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,MAX,8,144,-0.118952,0.279499,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,SCP,8,144,0.017536,0.146823,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,LPV,8,144,0.013083,0.142689,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,WAV,8,144,0.014995,0.132388,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,MAX,16,144,-0.037762,0.22742,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,SCP,16,144,-0.022541,0.115969,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,LPV,16,144,-0.023584,0.11203,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,WAV,16,144,-0.013183,0.119704,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,MAX,32,144,-0.013262,0.152941,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,SCP,32,144,-0.011374,0.056775,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,LPV,32,144,-0.011784,0.056696,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,UP,WAV,32,144,-0.001921,0.064531,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Clustered,EP,MAX,4,144,-0.191394,0.315444,-0.191394,0.315444,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,SCP,4,144,-0.062978,0.247355,-0.062978,0.247355,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,LPV,4,144,-0.076606,0.242736,-0.076606,0.242736,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,WAV,4,144,-0.070246,0.230597,-0.070246,0.230597,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,MAX,8,144,-0.136025,0.271449,-0.136025,0.271449,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,SCP,8,144,-0.018024,0.145556,-0.018024,0.145556,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,LPV,8,144,0.001261,0.140450,0.001261,0.140450,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,WAV,8,144,-0.007625,0.127284,-0.007625,0.127284,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,MAX,16,144,-0.047061,0.233404,-0.047061,0.233404,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,SCP,16,144,-0.018079,0.102118,-0.018079,0.102118,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,LPV,16,144,-0.019340,0.099662,-0.019340,0.099662,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,WAV,16,144,-0.011363,0.107884,-0.011363,0.107884,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,MAX,32,144,-0.027048,0.156155,-0.027048,0.156155,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,SCP,32,144,-0.007255,0.058659,-0.007255,0.058659,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,LPV,32,144,-0.005514,0.060230,-0.005514,0.060230,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Clustered,EP,WAV,32,144,-0.004346,0.062710,-0.004346,0.062710,2000,20,33,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,MAX,4,144,-0.286755,0.349355,-0.286755,0.349355,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,SCP,4,144,0.014906,0.283303,0.014906,0.283303,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,LPV,4,144,-0.022439,0.277411,-0.022439,0.277411,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,WAV,4,144,0.062111,0.253735,0.062111,0.253735,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,MAX,8,144,-0.182553,0.324026,-0.182553,0.324026,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,SCP,8,144,0.104193,0.218598,0.104193,0.218598,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,LPV,8,144,0.099851,0.214362,0.099851,0.214362,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,WAV,8,144,0.130048,0.184643,0.130048,0.184643,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,MAX,16,144,-0.080216,0.26443,-0.080216,0.264430,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,SCP,16,144,0.084004,0.139994,0.084004,0.139994,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,LPV,16,144,0.085459,0.139243,0.085459,0.139243,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,WAV,16,144,0.081918,0.123067,0.081918,0.123067,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,MAX,32,144,-0.026369,0.181336,-0.026369,0.181336,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,SCP,32,144,0.036067,0.090743,0.036067,0.090743,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,LPV,32,144,0.034785,0.093634,0.034785,0.093634,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,UP,WAV,32,144,0.026493,0.087885,0.026493,0.087885,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,MAX,4,144,-0.129560,0.331043,-0.129560,0.331043,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,SCP,4,144,0.047280,0.276089,0.047280,0.276089,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,LPV,4,144,0.021984,0.276729,0.021984,0.276729,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,WAV,4,144,0.068874,0.234479,0.068874,0.234479,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,MAX,8,144,-0.187970,0.315996,-0.187970,0.315996,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,SCP,8,144,0.066019,0.248695,0.066019,0.248695,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,LPV,8,144,0.055558,0.251637,0.055558,0.251637,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,WAV,8,144,0.082599,0.225090,0.082599,0.225090,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,MAX,16,144,-0.052029,0.269027,-0.052029,0.269027,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,SCP,16,144,0.129314,0.142794,0.129314,0.142794,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,LPV,16,144,0.118190,0.151975,0.118190,0.151975,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,WAV,16,144,0.114060,0.125016,0.114060,0.125016,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,MAX,32,144,-0.047888,0.186118,-0.047888,0.186118,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,SCP,32,144,0.033871,0.092745,0.033871,0.092745,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,LPV,32,144,0.037019,0.095209,0.037019,0.095209,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Gridded,EP,WAV,32,144,0.032029,0.084742,0.032029,0.084742,2000,20,67,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,UP,MAX,4,144,-0.204033,0.360904,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,SCP,4,144,0.095159,0.285864,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,LPV,4,144,0.084231,0.274213,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,WAV,4,144,0.14915,0.239198,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,MAX,8,144,-0.156314,0.327006,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,SCP,8,144,0.082069,0.214639,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,LPV,8,144,0.065784,0.222811,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,WAV,8,144,0.09438,0.19423,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,MAX,16,144,-0.087381,0.267625,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,SCP,16,144,0.053494,0.140235,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,LPV,16,144,0.045104,0.13685,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,WAV,16,144,0.038818,0.129654,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,MAX,32,144,-0.034624,0.185219,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,SCP,32,144,0.027844,0.083246,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,LPV,32,144,0.026909,0.084512,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,UP,WAV,32,144,0.0228,0.086545,,,,,,MC_retained_output_missing,unresolved historical execution,True,True
+Random,EP,MAX,4,144,-0.089940,0.347306,-0.089949,0.347306,2000,20,101,saved_MC_DI_mean_discrepancy,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,SCP,4,144,0.057190,0.285669,0.057190,0.285669,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,LPV,4,144,0.029585,0.286687,0.029585,0.286687,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,WAV,4,144,0.082487,0.247964,0.082487,0.247964,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,MAX,8,144,-0.150940,0.331422,-0.150940,0.331422,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,SCP,8,144,0.036977,0.262419,0.036977,0.262419,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,LPV,8,144,0.016990,0.264295,0.016990,0.264295,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,WAV,8,144,0.043616,0.242062,0.043616,0.242062,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,MAX,16,144,-0.057601,0.262159,-0.057601,0.262159,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,SCP,16,144,0.073172,0.144691,0.073172,0.144691,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,LPV,16,144,0.069639,0.149717,0.069639,0.149717,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,WAV,16,144,0.064783,0.136408,0.064783,0.136408,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,MAX,32,144,-0.007628,0.184851,-0.007628,0.184851,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,SCP,32,144,0.052518,0.082566,0.052518,0.082566,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,LPV,32,144,0.049315,0.083954,0.049315,0.083954,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+Random,EP,WAV,32,144,0.039699,0.083856,0.039699,0.083856,2000,20,101,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,MAX,5,155,-0.058874,0.336565,-0.058874,0.336565,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,SCP,5,155,0.090215,0.179999,0.090215,0.179999,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,LPV,5,155,0.080693,0.171775,0.080693,0.171775,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,WAV,5,155,0.082883,0.161991,0.082883,0.161991,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,NMS,5,155,0.095055,0.114263,0.095055,0.114263,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,UP,GMS,5,155,0.104801,0.106416,0.104801,0.106416,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,UP,MAX,10,155,-0.014869,0.248743,-0.014869,0.248743,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,SCP,10,155,0.061981,0.108314,0.061981,0.108314,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,LPV,10,155,0.061245,0.10648,0.061245,0.106480,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,WAV,10,155,0.054867,0.110637,0.054867,0.110637,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,NMS,10,155,0.066073,0.075129,0.066073,0.075129,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,UP,GMS,10,155,0.063525,0.096921,0.063525,0.096921,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,UP,MAX,20,155,-0.014916,0.167979,-0.014916,0.167979,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,SCP,20,155,0.01718,0.060827,0.017180,0.060827,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,LPV,20,155,0.016335,0.059118,0.016335,0.059118,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,WAV,20,155,0.016017,0.066859,0.016017,0.066859,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,UP,NMS,20,155,0.013017,0.033734,0.013017,0.033734,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,UP,GMS,20,155,0.008092,0.044668,0.008092,0.044668,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,EP,MAX,5,155,-0.082092,0.329766,-0.082092,0.329766,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,SCP,5,155,0.064123,0.176124,0.064123,0.176124,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,LPV,5,155,0.045360,0.170015,0.045360,0.170015,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,WAV,5,155,0.052171,0.155331,0.052171,0.155331,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,NMS,5,155,0.067530,0.150956,0.067530,0.150956,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,EP,GMS,5,155,0.057136,0.099188,0.057136,0.099188,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,EP,MAX,10,155,-0.026892,0.244412,-0.026892,0.244412,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,SCP,10,155,0.057497,0.099425,0.057497,0.099425,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,LPV,10,155,0.055207,0.094911,0.055207,0.094911,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,WAV,10,155,0.046209,0.094916,0.046209,0.094916,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,NMS,10,155,0.053978,0.079629,0.053978,0.079629,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,EP,GMS,10,155,0.052448,0.077031,0.052448,0.077031,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,EP,MAX,20,155,0.000655,0.164342,0.000655,0.164342,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,SCP,20,155,0.040030,0.059422,0.040030,0.059422,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,LPV,20,155,0.034992,0.053606,0.034492,0.053606,2000,20,127,saved_MC_DI_mean_discrepancy,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,WAV,20,155,0.034613,0.058823,0.034613,0.058823,2000,20,127,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+meuse,EP,NMS,20,155,0.035348,0.039194,0.035348,0.039194,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+meuse,EP,GMS,20,155,0.040915,0.040589,0.040915,0.040589,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,UP,MAX,50,959,-0.003869,0.185455,-0.003869,0.185455,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,SCP,50,959,0.013482,0.078996,0.013482,0.078996,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,LPV,50,959,0.01348,0.074831,0.013480,0.074831,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,NMS,50,959,0.007914,0.068938,0.007914,0.068938,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,UP,GMS,50,959,0.012511,0.064818,0.012511,0.064818,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,UP,MAX,100,959,0.010611,0.132632,0.010611,0.132632,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,SCP,100,959,0.01425,0.045373,0.014250,0.045373,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,LPV,100,959,0.014676,0.042989,0.014676,0.042989,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,NMS,100,959,0.011676,0.043508,0.011676,0.043508,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,UP,GMS,100,959,0.012420,0.040366,0.012420,0.040366,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,UP,MAX,150,959,-0.008305,0.10076,-0.008305,0.100760,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,SCP,150,959,-0.007156,0.032441,-0.007156,0.032441,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,LPV,150,959,-0.00747,0.03174,-0.007470,0.031740,2000,19,81,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,UP,NMS,150,959,-0.004213,0.029281,-0.004213,0.029281,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,UP,GMS,150,959,-0.002670,0.032864,-0.002670,0.032864,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,EP,MAX,50,959,-0.001638,0.174266,-0.001638,0.174266,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,SCP,50,959,0.017252,0.060455,0.017252,0.060455,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,LPV,50,959,0.015962,0.058732,0.015962,0.058732,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,NMS,50,959,0.000058,0.045126,0.000058,0.045126,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,EP,GMS,50,959,-0.000132,0.054908,-0.000132,0.054908,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,EP,MAX,100,959,-0.007269,0.122818,-0.007269,0.122818,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,SCP,100,959,0.007632,0.033193,0.007632,0.033193,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,LPV,100,959,0.007844,0.031798,0.007844,0.031798,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,NMS,100,959,0.014198,0.022780,0.014198,0.022780,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,EP,GMS,100,959,0.013996,0.024267,0.013996,0.024267,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,EP,MAX,150,959,-0.002715,0.100037,-0.002715,0.100037,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,SCP,150,959,0.001086,0.024129,0.001086,0.024129,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,LPV,150,959,0.001518,0.023635,0.001518,0.023635,2000,20,147,saved_MC_exact,Euclidean unsquared in associated scorer source; historical kernel not immutable,True,True
+swiss,EP,NMS,150,959,0.001633,0.019985,0.001633,0.019985,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True
+swiss,EP,GMS,150,959,0.001654,0.022853,0.001654,0.022853,,22,5,saved_design_exact_import_unresolved,unresolved imported scorer,True,True

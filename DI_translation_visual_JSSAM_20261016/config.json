@@ -1,0 +1,211 @@
+{
+  "N": 144,
+  "size": 12,
+  "n": 8,
+  "pi": "1/18",
+  "sample_selection_seed": 20261016,
+  "solver_seed": 17,
+  "candidates": [
+    [
+      [
+        1,
+        1
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        9,
+        2
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        7,
+        5
+      ],
+      [
+        0,
+        8
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        10,
+        9
+      ]
+    ],
+    [
+      [
+        6,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        10,
+        5
+      ],
+      [
+        8,
+        6
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        0,
+        10
+      ]
+    ],
+    [
+      [
+        5,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        7,
+        5
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        9,
+        8
+      ],
+      [
+        0,
+        9
+      ]
+    ],
+    [
+      [
+        8,
+        2
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        6,
+        4
+      ],
+      [
+        6,
+        5
+      ],
+      [
+        9,
+        9
+      ],
+      [
+        5,
+        10
+      ]
+    ],
+    [
+      [
+        8,
+        0
+      ],
+      [
+        8,
+        3
+      ],
+      [
+        9,
+        3
+      ],
+      [
+        8,
+        5
+      ],
+      [
+        10,
+        5
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        2,
+        10
+      ]
+    ]
+  ],
+  "shifts": [
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "max_candidates": 5,
+  "epsilon": 0.01,
+  "outer_tol": 1e-10,
+  "marginal_tol": 1e-12,
+  "final_fixed_point_limit": 2e-10,
+  "max_outer": 2000,
+  "max_seconds_per_fit": 45,
+  "TSP_restarts": 15,
+  "threads": 1,
+  "KDE": "historical spherical tophat, scalar Scott",
+  "coordinates": "raw/11; no renormalization after internal translation",
+  "density_locations": "f(original unit), g(translated unit)",
+  "medoid_metric": "squared Euclidean",
+  "matching_metric": "squared Euclidean",
+  "quota": "exact EP overlap;18 whole units per cluster",
+  "method_SHA256": "42e95c98b367946fb591cf8cd87369f3523a4bc418b492744b0a9255e84d52b6",
+  "manuscript": "DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex"
+}

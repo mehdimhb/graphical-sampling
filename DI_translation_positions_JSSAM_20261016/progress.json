@@ -1,0 +1,16 @@
+{
+  "completed_full_fits": 8,
+  "completed_ids": [
+    "middle",
+    "middle_tight",
+    "original",
+    "original_tight",
+    "top_left",
+    "top_left_tight",
+    "top_right",
+    "top_right_tight"
+  ],
+  "complete": true,
+  "original_study_reruns": 0,
+  "threads": 1
+}

@@ -1,0 +1,19 @@
+{
+  "all_passed": true,
+  "primary_evaluations_verified": 360,
+  "baseline_controls_verified": 3,
+  "group_statistics_verified": 234,
+  "pairwise_comparisons_verified": 7380,
+  "protected_files_verified": 5387,
+  "changed_original_files": [],
+  "maximum_direct_density_error": 3.907985046680551e-14,
+  "maximum_longdouble_score_error": 1.1796119636642288e-15,
+  "maximum_old_box_score_error": 1.0547118733938987e-15,
+  "minimum_radius_boundary_margin": 2.7738585317571562e-08,
+  "rtol0_crosscheck": "density arrays bitwise identical for all363 states",
+  "zero_densities": 0,
+  "nonfinite_scores": 0,
+  "normalization_matches_historical_pure_function": true,
+  "OT_clustering_TSP_reruns": 0,
+  "excluded_scenario_evaluations": 0
+}

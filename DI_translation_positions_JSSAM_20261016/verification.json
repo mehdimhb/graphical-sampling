@@ -1,0 +1,16 @@
+{
+  "verified_saved_states": 8,
+  "new_full_fits": 6,
+  "reused_original_states": 2,
+  "new_target_positions": 3,
+  "changed_partition_pairs": 0,
+  "maximum_DI_difference": 0,
+  "minimum_preliminary_assignment_gap": 0.02489024729136085,
+  "max_component_error": 7.771561172376096e-16,
+  "max_row_error": 2.5673907444456745e-16,
+  "max_column_error": 1.5543122344752192e-15,
+  "max_fixed_point_residual": 1.6194207221771326e-11,
+  "max_stationarity_residual": 1.3183898417423734e-15,
+  "tight_controls_passed": true,
+  "protected_files_unchanged": 5520
+}

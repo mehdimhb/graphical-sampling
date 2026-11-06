@@ -1,0 +1,113 @@
+{
+  "status": "no verified distinct clustering found",
+  "selected": {
+    "candidate": 1,
+    "description": "compact asymmetric L",
+    "original_id": "sample1_original",
+    "translated_id": "sample1_shift32",
+    "delta": [
+      3,
+      2
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 4.048744400293541e-12,
+    "minimum_preliminary_gap": 0.02489024730995404,
+    "minimum_TSP_distinct_route_gap": 0.0008751601002394693,
+    "classification": "unchanged partition"
+  }
+}

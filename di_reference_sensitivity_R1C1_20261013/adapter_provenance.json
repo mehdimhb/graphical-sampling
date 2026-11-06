@@ -1,0 +1,18 @@
+{
+  "ConvergedOT": {
+    "exact_source_segment_reused": true,
+    "sha256": "721301df33341c8e0234c75127d2c8eeaca52f3572cab13756864be93645adf1"
+  },
+  "ManuscriptPartition": {
+    "exact_source_segment_reused": true,
+    "sha256": "42d1533f8357edd04a0ec46c543d29663149724429172b2a02e99e5bb042ac10"
+  },
+  "BoxKDE": {
+    "exact_source_segment_reused": true,
+    "sha256": "8c161d7cb38d9a2fc8bb8f2bfa07c3c9154198aab232cdec6498d1d50d29a990"
+  },
+  "seed_numba": {
+    "exact_source_segment_reused": true,
+    "sha256": "d98d73346a88757bf74fecbf2ae4be7269b621c53815cc01c41b441d49c1aafc"
+  }
+}

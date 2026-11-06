@@ -181,3 +181,43 @@ temp_*
 
 # simulations/best_designs/
 # *.pkl
+
+# Local editor settings
+/.vscode/
+
+# Dated experiment delivery archives and bulky raw-output bundles
+/DI_IPNM_NUMERICAL_CORRECTION_OUTPUTS_20261014.zip
+/DI_N32_CAUSES_OUTPUTS_20261014_PARTIAL.zip
+/DI_TSP_RESTARTS_OUTPUTS_20261014.zip
+/DI_TSP_STABILITY_All_Outputs.zip
+/HARD_CLUSTER_IP_BALANCE_20261014.zip
+/DI_kernel_comparison_JSSAM_20261017/
+/DI_reference_sensitivity_JSSAM/
+/di_approx_tsp_EP_R1C1_20261013/
+/di_cancellation_extended_20261012/
+/di_cancellation_focused_20261012/
+/di_ipnm_numerical_correction_20261014/
+/di_n32_causes_20261014/
+/di_tsp_restarts_20261014/
+
+# Reproducible per-run states retained locally; aggregate reports stay tracked
+/DI_historical_KDE_sensitivity_JSSAM_20261016/evaluations/
+/DI_translation_concentrated_JSSAM_20261016/runs/
+/DI_translation_equal_unequal_JSSAM_20261016/runs/
+/DI_translation_positions_JSSAM_20261016/runs/
+/DI_translation_visual_JSSAM_20261016/runs/
+/di_exact_tsp_R1C1_20261013/approximate_baseline/
+/di_exact_tsp_R1C1_20261013/exact_runs/
+/di_exact_tsp_R1C1_20261013/enumeration/
+/di_exact_tsp_R1C1_20261013/optimal_path_checks/
+/di_reference_quality_JSSAM_20261015/cached_baselines/
+/di_reference_quality_JSSAM_20261015/ot/
+/di_reference_quality_JSSAM_20261015/runs/
+/di_reference_quality_JSSAM_20261015/sources/
+/di_reference_quality_JSSAM_20261015/task_results/
+/di_reference_sensitivity_R1C1_20261013/runs/
+/hard_cluster_ip_balance_20261014/cached_OT/
+/hard_cluster_ip_balance_20261014/populations/
+/hard_cluster_ip_balance_20261014/repeatability_runs/
+/hard_cluster_ip_balance_20261014/runs/
+/hard_cluster_ip_balance_20261014/sources/

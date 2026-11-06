@@ -1,0 +1,175 @@
+0001: from ..clustering import FIPBalancedNMeans
+0002: 
+0003: import numpy as np
+0004: from scipy.optimize import linear_sum_assignment
+0005: from scipy.spatial.distance import cdist
+0006: from sklearn.neighbors import KernelDensity
+0007: from joblib import Parallel, delayed
+0008: 
+0009: 
+0010: class DensityDisparity:
+0011:     def __init__(
+0012:             self,
+0013:             population,
+0014:             n_jobs: int = -1,
+0015:             clustering_tol: float = 1e-9,
+0016:             clustering_max_iter: int = 100,
+0017:             kde_rtol: float = 1e-4,
+0018:             representative: str = "nmeans",   # "nmeans" or "nmedoids"
+0019:     ):
+0020:         self.pop = population
+0021:         self.coords = self.pop.coords
+0022:         self.probs = self.pop.inclusions
+0023: 
+0024:         self.n_jobs = n_jobs
+0025:         self.clustering_tol = clustering_tol
+0026:         self.clustering_max_iter = clustering_max_iter
+0027:         self.kde_rtol = kde_rtol
+0028: 
+0029:         if representative not in {"nmeans", "nmedoids"}:
+0030:             raise ValueError("representative must be either 'nmeans' or 'nmedoids'.")
+0031:         self.representative = representative
+0032: 
+0033:         # 1. First KDE: Calculate the original density once, as self.coords never changes
+0034:         self.original_density = self._density(self.coords)
+0035: 
+0036:         # --- Precompute and cache constants for scoring ---
+0037:         self._orig_density_sq = self.original_density ** 2
+0038:         self._sqrt_2 = np.sqrt(2)
+0039:         self._sin_pi_8 = np.sin(np.pi / 8)
+0040:         self._one_minus_cos_pi_8 = 1.0 - np.cos(np.pi / 8)
+0041: 
+0042:     def _density(self, coords: np.ndarray) -> np.ndarray:
+0043:         kde = KernelDensity(
+0044:             kernel="tophat",
+0045:             bandwidth="scott",
+0046:             rtol=self.kde_rtol
+0047:         ).fit(coords)
+0048:         return np.exp(kde.score_samples(coords))
+0049: 
+0050:     @staticmethod
+0051:     def _scale(arr, max_val):
+0052:         return np.clip(arr / max_val, -1.0, 1.0)
+0053: 
+0054:     def _score_single_density(self, translated_density: np.ndarray) -> float:
+0055:         # Adapted to process a 1D array instead of a 2D batch array
+0056:         norm = self._sqrt_2 * np.sqrt(self._orig_density_sq + translated_density ** 2)
+0057:         inv_norm = 1.0 / norm
+0058: 
+0059:         spread_arr = (self.original_density - translated_density) * inv_norm
+0060:         spread = np.mean(self._scale(spread_arr, self._sin_pi_8)).item()
+0061: 
+0062:         var_arr = 1.0 - (self.original_density + translated_density) * inv_norm
+0063:         var = np.mean(self._scale(var_arr, self._one_minus_cos_pi_8)).item()
+0064: 
+0065:         return spread + (np.sign(spread) - spread) * var
+0066: 
+0067:     def _process_one_sample(self, sample_indices: np.ndarray):
+0068:         """The complete, independent pipeline for a single sample."""
+0069:         raw_sample = self.coords[sample_indices]
+0070: 
+0071:         # 1. Clustering per sample
+0072:         fbn = FIPBalancedNMeans(
+0073:             n=self.pop.n,
+0074:             tol=self.clustering_tol,
+0075:             max_iter=self.clustering_max_iter,
+0076:             init_clust_method="weighted"
+0077:         )
+0078:         fbn.fit(self.pop, init_centroids=raw_sample)
+0079: 
+0080:         labels = fbn.labels
+0081:         centroids = fbn.centroids
+0082: 
+0083:         # 2. Choose cluster representative: n-means or n-medoids
+0084:         if self.representative == "nmeans":
+0085:             reference_points = centroids
+0086: 
+0087:         elif self.representative == "nmedoids":
+0088:             reference_points, medoid_indices = self._cluster_medoids(labels, centroids)
+0089: 
+0090:         else:
+0091:             raise ValueError("representative must be either 'nmeans' or 'nmedoids'.")
+0092: 
+0093:         # 3. Assign sample points to the selected reference points
+0094:         cost = cdist(reference_points, raw_sample)
+0095:         row_ind, col_ind = linear_sum_assignment(cost)
+0096: 
+0097:         assigned_sample = np.empty_like(reference_points)
+0098:         assigned_sample[row_ind] = raw_sample[col_ind]
+0099: 
+0100:         # 4. Translation based on either centroids or medoids
+0101:         translations = assigned_sample - reference_points
+0102:         translated_coords = self.coords + translations[labels]
+0103: 
+0104:         # 5. Second KDE
+0105:         translated_density = self._density(translated_coords)
+0106: 
+0107:         # 6. Score calculation
+0108:         score = self._score_single_density(translated_density)
+0109: 
+0110:         return score, translated_density
+0111: 
+0112:     def score(self, samples: np.ndarray, return_densities: bool = False):
+0113:         """
+0114:         samples: array of shape (n_samples, total_points)
+0115:                  where each row is an index array into self.coords.
+0116:         """
+0117:         # Distribute the full pipeline for each sample across available CPU cores
+0118:         results = Parallel(n_jobs=self.n_jobs)(
+0119:             delayed(self._process_one_sample)(s) for s in samples
+0120:         )
+0121: 
+0122:         # Unpack the results
+0123:         scores, densities = zip(*results)
+0124:         scores = np.array(scores)
+0125: 
+0126:         if return_densities:
+0127:             return scores, [(self.original_density, td) for td in densities]
+0128:         return scores
+0129:     
+0130:     def _cluster_medoids(self, labels: np.ndarray, centroids: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+0131:         """
+0132:         Return one medoid for each cluster.
+0133: 
+0134:         The medoid is the population unit inside the cluster that minimizes
+0135:         the weighted sum of distances to all other units in that cluster.
+0136:         """
+0137:         K = centroids.shape[0]
+0138:         medoids = np.empty_like(centroids)
+0139:         medoid_indices = np.empty(K, dtype=int)
+0140: 
+0141:         for k in range(K):
+0142:             idx = np.flatnonzero(labels == k)
+0143: 
+0144:             if idx.size == 0:
+0145:                 # Very rare fallback: keep the centroid if a cluster is empty
+0146:                 medoids[k] = centroids[k]
+0147:                 medoid_indices[k] = -1
+0148:                 continue
+0149: 
+0150:             if idx.size == 1:
+0151:                 medoid_indices[k] = idx[0]
+0152:                 medoids[k] = self.coords[idx[0]]
+0153:                 continue
+0154: 
+0155:             X = self.coords[idx]
+0156:             w = self.probs[idx]
+0157: 
+0158:             # Weighted medoid objective
+0159:             D = cdist(X, X, metric="euclidean")
+0160:             objective = D @ w
+0161: 
+0162:             min_obj = objective.min()
+0163:             candidate_locals = np.flatnonzero(np.isclose(objective, min_obj))
+0164: 
+0165:             # Tie-breaking 1: choose the candidate with the largest IP
+0166:             candidate_probs = self.probs[idx[candidate_locals]]
+0167:             max_prob = candidate_probs.max()
+0168:             candidate_locals = candidate_locals[np.isclose(candidate_probs, max_prob)]
+0169: 
+0170:             # Tie-breaking 2: if still tied, choose the smallest population index
+0171:             best_local = candidate_locals[np.argmin(idx[candidate_locals])]
+0172: 
+0173:             medoid_indices[k] = idx[best_local]
+0174:             medoids[k] = self.coords[medoid_indices[k]]
+0175:         return medoids, medoid_indices

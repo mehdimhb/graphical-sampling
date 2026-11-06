@@ -1,0 +1,21 @@
+{
+  "commit": "e71d6935bfe824e72a7b722067a24775ed160610",
+  "notebook": "simulations/jupyters/measure_calculation_nmedoids_clean.ipynb",
+  "scorer_cell": 7,
+  "scorer_execution_count": 29,
+  "override_methods": [
+    "__init__",
+    "_cluster_medoids",
+    "_process_one_sample"
+  ],
+  "KDE_override_present": false,
+  "DI_formula_override_present": false,
+  "imported_base": "graphical_sampling.index.DensityDisparity",
+  "build_scorers_cell": 12,
+  "retained_output_cells": [
+    19,
+    20
+  ],
+  "runtime_import_version_frozen": false,
+  "conclusion": "Spherical top-hat is confirmed in the recovered selected source and best-supported for the traced medoid Monte Carlo outputs; historical runtime provenance remains qualified."
+}

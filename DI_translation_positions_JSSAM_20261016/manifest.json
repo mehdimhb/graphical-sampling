@@ -1,0 +1,27 @@
+{
+  "saved_result_SHA256": {
+    "runs/top_left/summary.json": "0458cd296006401e79b5661e9793ed276610f6a813e7652afa1593edc344847f",
+    "runs/top_left/state.npz": "b119cfcafed929282892bb4eade00c79e469c8d2271aac287a243716ea7a4a75",
+    "runs/top_left_tight/summary.json": "1646c55c871704271319b11d75ece29851acf5d4bd564834a589f2a8ee6a8c89",
+    "runs/top_left_tight/state.npz": "6bcbca343d4cab2d88e041233255d54c9d317b3b9fff86c127879de31e8f1908",
+    "runs/original/summary.json": "8d934b3e9afe44df68f3046d6fd1b84819ed5d191dfaf56d05b7641d3fb31219",
+    "runs/original/state.npz": "756e4035e6cbdb0dc031316ab1940be16cd71de53a1bcc42474a9db20797ea31",
+    "runs/middle_tight/summary.json": "68be737a05c86c3381b02f9f1fd444dd244d61714859a3599bc03615839b052e",
+    "runs/middle_tight/state.npz": "49371f0108a2991355b0fbe6bff53da11956bf60bad1cc8e2df831245463f43f",
+    "runs/top_right/summary.json": "c1c6c3f0298bf7b86a7f97849caf6b85be12f47e8ae7ed12149a6ddb6a01735e",
+    "runs/top_right/state.npz": "9a9fdef7d2fe25866b7910da3684626bfa0c9ba95c6f0bf791d3285759841707",
+    "runs/top_right_tight/summary.json": "353d5d8f1afdb0f3cfa3cd23d347fa699f9866a1dcfd794bb25f4234797e329f",
+    "runs/top_right_tight/state.npz": "b73f8f851ddbe13f5f02370321b61738b08b00a381d8822f12b80fef97b499f9",
+    "runs/original_tight/summary.json": "313b4c4ba2e0be814a4985641bec4a409ce0de35d8297e254df79f3f4159d1a3",
+    "runs/original_tight/state.npz": "c1185cd2831c77cab4f68add2816c80993d5fc64b530b8ef19b53f40f04ee0d6",
+    "runs/middle/summary.json": "ee89552e0fa64e7b7e722f6b6b179ca2a119b32e52968a294bde6a7b3cd40247",
+    "runs/middle/state.npz": "1c6ed668a1771d79efb9727574f6b8e20046b5e7c5a74d8c7706d30840340947"
+  },
+  "source_SHA256": {
+    "method.py": "69c648d93bb5ab305599f8915bcadafb5fb609a897d6084e68d355a9936e1463",
+    "helpers.py": "886507529b036e7624b5b5b807f251f74b728f30a8b3696e45c85856b9776ab0",
+    "run_positions.py": "8eb48270f864786432bb9cbab1afca8a03c89552d3d50f815cb7ba9ce4d447ff",
+    "make_figure.py": "ed5a7cb4bd781aef871c1124d52fb85e052d3dced35c4f38a4cb679569a9863c",
+    "verify.py": "0528bebc824466058ab3cadaa3371a9efc448f53a4e070b84820c2015832d534"
+  }
+}

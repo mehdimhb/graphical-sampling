@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "setting_rows": 162,
+  "MC_exact_links": 104,
+  "MC_discrepant": 2,
+  "MC_unlogged": 32,
+  "finite_designs": 24,
+  "finite_enumeration_entries": 21368,
+  "kernel_source_snapshots": 6,
+  "verified_exact_quotation_fragments": 15,
+  "relative_links_checked": 17,
+  "new_Monte_Carlo_samples": 0,
+  "DI_scores_recomputed": 0,
+  "scope": "Evidence consistency plus deterministic two-pair assignment; historical runtime uncertainty remains explicit."
+}

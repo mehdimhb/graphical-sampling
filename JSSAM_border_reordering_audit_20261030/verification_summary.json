@@ -1,0 +1,13 @@
+{
+  "historical_pickle_files_checked": 208,
+  "changed_historical_pickle_files": [],
+  "distinct_audited_designs": 45,
+  "new_regression_checks_passed": 126,
+  "package_tests_passed": 359,
+  "package_preexisting_failures": 3,
+  "production_files_modified": [
+    "graphical_sampling/order.py"
+  ],
+  "diffs_match_current_files": true,
+  "other_relevant_source_files_unchanged": true
+}

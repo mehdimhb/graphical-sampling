@@ -1,0 +1,26 @@
+{
+  "stage": "complete_verified_deliverables",
+  "primary_completed": 360,
+  "primary_planned": 360,
+  "percent": 100,
+  "baselines_completed": 3,
+  "group_counts": {
+    "C16_A": 40,
+    "C16_B": 40,
+    "C16_C": 40,
+    "M10_A": 40,
+    "M10_B": 40,
+    "M10_C": 40,
+    "S100_A": 40,
+    "S100_B": 40,
+    "S100_C": 40
+  },
+  "reference_optimizations_run": 0,
+  "clustering_runs": 0,
+  "TSP_searches": 0,
+  "excluded_scenario": "C32",
+  "all_verifications_passed": true,
+  "independent_review_passed": true,
+  "manuscript_or_response_edited": false,
+  "excluded_scenario_evaluations": 0
+}

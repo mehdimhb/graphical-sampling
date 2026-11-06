@@ -1,0 +1,138 @@
+[
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_20_pik_ep.pkl",
+    "sample": [
+      8,
+      16,
+      28,
+      31,
+      42,
+      48,
+      52,
+      55,
+      68,
+      69,
+      74,
+      83,
+      91,
+      93,
+      103,
+      112,
+      115,
+      125,
+      139,
+      148
+    ],
+    "probability": 0.007920788299255372,
+    "no_eligible_selected_unit_cluster_positions": [
+      7
+    ],
+    "no_eligible_selected_unit_cluster_labels": [
+      0
+    ]
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_20_pik_up.pkl",
+    "sample": [
+      0,
+      15,
+      18,
+      31,
+      38,
+      42,
+      52,
+      59,
+      66,
+      78,
+      80,
+      81,
+      83,
+      103,
+      113,
+      122,
+      131,
+      137,
+      142,
+      152
+    ],
+    "probability": 0.011641863,
+    "no_eligible_selected_unit_cluster_positions": [
+      11
+    ],
+    "no_eligible_selected_unit_cluster_labels": [
+      18
+    ]
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_5_pik_ep.pkl",
+    "sample": [
+      40,
+      92,
+      114,
+      117,
+      129
+    ],
+    "probability": 0.024193548000000002,
+    "no_eligible_selected_unit_cluster_positions": [
+      2
+    ],
+    "no_eligible_selected_unit_cluster_labels": [
+      2
+    ]
+  },
+  {
+    "path": "simulations/best_designs/meuse/initial_design_df_meuse_5_pik_up.pkl",
+    "sample": [
+      12,
+      39,
+      49,
+      62,
+      94
+    ],
+    "probability": 0.00708113325,
+    "no_eligible_selected_unit_cluster_positions": [
+      1
+    ],
+    "no_eligible_selected_unit_cluster_labels": [
+      4
+    ]
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_30_pik_ep.pkl",
+    "sample": [
+      6,
+      11,
+      13,
+      17,
+      19,
+      26,
+      29,
+      34,
+      40,
+      50,
+      55,
+      58,
+      60,
+      63,
+      66,
+      70,
+      78,
+      91,
+      97,
+      107,
+      117,
+      125,
+      127,
+      131,
+      134,
+      138,
+      144,
+      147,
+      151,
+      153
+    ],
+    "probability": 0.008804500180819496,
+    "no_eligible_selected_unit_cluster_positions": [],
+    "no_eligible_selected_unit_cluster_labels": []
+  }
+]

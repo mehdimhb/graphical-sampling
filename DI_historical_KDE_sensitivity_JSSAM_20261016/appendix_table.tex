@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+\centering\small
+\caption{\textcolor{red}{Fixed-sample reference sensitivity after historical-KDE rescoring: Clustered $(N,n)=(144,16)$, Meuse $(155,10)$, and Swiss $(959,100)$. Each row contains 40 saved evaluations; 360 in total, with three separate baseline controls. $DI_0$ uses spherical top-hat KDE with scalar Scott bandwidth. SD uses denominator 39. Max denotes $\max|DI-DI_0|$; flips compare signs with the corresponding baseline. Box SD refers to the previous covariance-scaled box KDE on exactly the same references. These are descriptive search summaries, not sampling uncertainty.}}
+\label{tab:reference_sensitivity_historical_kde}
+{\color{red}\resizebox{\linewidth}{!}{\begin{tabular}{llrllrrr}
+\hline
+Population & Proc. & $DI_0$ & DI range & SD(box) & SD(radial) & Max & Flips\\
+\hline
+Clustered & A & 0.276619 & [0.276619,0.293681] & 0.008879 & 0.003794 & 0.017062 & 0\\
+Clustered & B & 0.276619 & [0.274079,0.276619] & 0.001324 & 0.001227 & 0.002540 & 0\\
+Clustered & C & 0.276619 & [0.274026,0.283761] & 0.004220 & 0.002879 & 0.007141 & 0\\
+Meuse & A & -0.275822 & [-0.275822,-0.269310] & 0.004421 & 0.001030 & 0.006512 & 0\\
+Meuse & B & -0.275822 & [-0.275822,-0.275822] & 0.000000 & 0.000000 & 0.000000 & 0\\
+Meuse & C & -0.275822 & [-0.275822,-0.269310] & 0.004421 & 0.001030 & 0.006512 & 0\\
+Swiss & A & -0.085989 & [-0.106772,-0.070290] & 0.022235 & 0.008029 & 0.020783 & 0\\
+Swiss & B & -0.085989 & [-0.087118,-0.075647] & 0.011025 & 0.002309 & 0.010342 & 0\\
+Swiss & C & -0.085989 & [-0.094809,-0.064337] & 0.019282 & 0.006475 & 0.021651 & 0\\
+\hline
+\end{tabular}}}
+\end{table}

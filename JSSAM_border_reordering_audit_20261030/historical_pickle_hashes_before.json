@@ -1,0 +1,1042 @@
+[
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_meuse_10_pik_ep.pkl",
+    "size": 31567,
+    "sha256": "16ea7c599d38c53e72b6ed9107dd5fb40405bb6f8fcb54dca17e974cd04e4169"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_meuse_10_pik_up.pkl",
+    "size": 50742,
+    "sha256": "b15dece03fc3f9f7d6db1bbfa8eb1b48ef4e470793f00820a798eeaaeb50df2d"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_meuse_20_pik_ep.pkl",
+    "size": 116634,
+    "sha256": "b6bbd928f9d20d48314ace5cc486e67a8b1af087940273be943f30b1701b6b95"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_meuse_20_pik_up.pkl",
+    "size": 75778,
+    "sha256": "d9d4779941dac25275f06c68ab95668f55902b3426095c886313d502846db307"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_meuse_30_pik_ep.pkl",
+    "size": 302635,
+    "sha256": "4671422ba915b8cd455d25d6789a24c8ad899fe20ff2110fc2ace2947ebdbd67"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_meuse_3_pik_up.pkl",
+    "size": 71272,
+    "sha256": "9da4c574962efef0fd4f6a5132b5bda002f1e3b3b067656f144660d5562c8452"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_meuse_5_pik_ep.pkl",
+    "size": 27668,
+    "sha256": "02bfddfd28bebcdcc3137cc89797e53f23711d479df5d7d786f0ed7ec4ba9d19"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_meuse_5_pik_up.pkl",
+    "size": 39230,
+    "sha256": "97fd9416a4e658c9e9bcf6c06b586c04b31c40da3f7baa1a2391603e956b55ef"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245068,
+    "sha256": "54383fa7451565c9a57e74325af1324d2df8a1c61629ea133e64715213fceaa1"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_swiss_100_pik_up.pkl",
+    "size": 1465234,
+    "sha256": "9eb9a8a893cd6010993cbdd05f85f1997891ce238d0cfb6418816aca1d1ede68"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769737,
+    "sha256": "fde27a9075b2bba57d1b2e2a94f6597d07702b412bb688136ad9bb14ff852d20"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_swiss_150_pik_up.pkl",
+    "size": 1979002,
+    "sha256": "f94ca6b939fb82e278d9783c1265b86ba8d58b1b8593ca4a9da951982e3834c9"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_swiss_50_pik_ep.pkl",
+    "size": 720395,
+    "sha256": "c32be184c2b0df5be640feecbdba484f7c45f5aefb47ae48ea60cd4e92f18f6e"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/best_design_df_swiss_50_pik_up.pkl",
+    "size": 951535,
+    "sha256": "0fcd3ff78a88b0bfd89abed9b17d46bbc01cb72c805abc6b3b24f014e6bb746d"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_meuse_10_pik_ep.pkl",
+    "size": 31576,
+    "sha256": "479766cb9634ddab2ddf25ecff634f0b4b920f48c3533735aa5f82977d57c735"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_meuse_10_pik_up.pkl",
+    "size": 50751,
+    "sha256": "3a64cb81f2931528356702dbf3d1d236b653de6039a50013f076199c6af0c2ac"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_meuse_20_pik_ep.pkl",
+    "size": 36656,
+    "sha256": "5993ceb426d20120abe3c445c14100aa7ba3f1e0b42d9d34baa342e9b9290da7"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_meuse_20_pik_up.pkl",
+    "size": 68237,
+    "sha256": "e8526333734c64bbb74700018dd84192dda615bf1641b6fb6520f05b6a6e0a23"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_meuse_3_pik_up.pkl",
+    "size": 101941,
+    "sha256": "2915ebe0fa37e01bcfa2469bf2dbc9e6d6b9613390a4402090ccbbd1b0f9d897"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_meuse_5_pik_ep.pkl",
+    "size": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_meuse_5_pik_up.pkl",
+    "size": 94680,
+    "sha256": "4b586eebce52f3c4547cf8b1cf73c3c96a46767e2fc07adc56b5dad3af48cf26"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245077,
+    "sha256": "1401fda7b62cac85af33469fb3bcf21676d2e54ec6c2bd98b30ac5fcadffe108"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_swiss_100_pik_up.pkl",
+    "size": 4374844,
+    "sha256": "4a6e7888425aeab1bf0e6c8cca5c57658c0896a3cd53711e473c0bf7823e675e"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769745,
+    "sha256": "530f4b054272a590a7364e1e56e7898e2a038f9f368f15c2b2548f005aab0dd8"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_swiss_150_pik_up.pkl",
+    "size": 6027885,
+    "sha256": "94edf229933e0f312f47ceb3acf7a36d4d5e1ad1c80b994462d08fc335a68144"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_swiss_20_pik_ep.pkl",
+    "size": 405707,
+    "sha256": "276609e5edda0c7a6ea20cd9c60122be0a31b1f71ae0fceaced1308b71019e62"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_swiss_50_pik_ep.pkl",
+    "size": 720402,
+    "sha256": "f609e031de975c510c9b704a36678d7a110ce75cbd719737e4573cc8585c1053"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/Store/best_design/initial_design_df_swiss_50_pik_up.pkl",
+    "size": 2562952,
+    "sha256": "93db856cb697fa4f4816de1bc26c8776199d44c601c0a3838f5d009553b88187"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/best_design_df_meuse_10_pik_ep.pkl",
+    "size": 31567,
+    "sha256": "16ea7c599d38c53e72b6ed9107dd5fb40405bb6f8fcb54dca17e974cd04e4169"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/best_design_df_meuse_10_pik_up.pkl",
+    "size": 50742,
+    "sha256": "b15dece03fc3f9f7d6db1bbfa8eb1b48ef4e470793f00820a798eeaaeb50df2d"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/best_design_df_meuse_20_pik_ep.pkl",
+    "size": 116634,
+    "sha256": "b6bbd928f9d20d48314ace5cc486e67a8b1af087940273be943f30b1701b6b95"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/best_design_df_meuse_20_pik_up.pkl",
+    "size": 75778,
+    "sha256": "d9d4779941dac25275f06c68ab95668f55902b3426095c886313d502846db307"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/best_design_df_meuse_5_pik_ep.pkl",
+    "size": 27668,
+    "sha256": "02bfddfd28bebcdcc3137cc89797e53f23711d479df5d7d786f0ed7ec4ba9d19"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/best_design_df_meuse_5_pik_up.pkl",
+    "size": 39230,
+    "sha256": "97fd9416a4e658c9e9bcf6c06b586c04b31c40da3f7baa1a2391603e956b55ef"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/initial_design_df_meuse_10_pik_ep.pkl",
+    "size": 31576,
+    "sha256": "479766cb9634ddab2ddf25ecff634f0b4b920f48c3533735aa5f82977d57c735"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/initial_design_df_meuse_10_pik_up.pkl",
+    "size": 50751,
+    "sha256": "3a64cb81f2931528356702dbf3d1d236b653de6039a50013f076199c6af0c2ac"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/initial_design_df_meuse_20_pik_ep.pkl",
+    "size": 36656,
+    "sha256": "5993ceb426d20120abe3c445c14100aa7ba3f1e0b42d9d34baa342e9b9290da7"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/initial_design_df_meuse_20_pik_up.pkl",
+    "size": 68237,
+    "sha256": "e8526333734c64bbb74700018dd84192dda615bf1641b6fb6520f05b6a6e0a23"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/initial_design_df_meuse_5_pik_ep.pkl",
+    "size": 34808,
+    "sha256": "5f8173f779f6628550daf2f9be9fca1ee26e16b320a99f26c264f7f0732e87c3"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/meuse/initial_design_df_meuse_5_pik_up.pkl",
+    "size": 94680,
+    "sha256": "4b586eebce52f3c4547cf8b1cf73c3c96a46767e2fc07adc56b5dad3af48cf26"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_C100Z1_Aggregated1000.pkl",
+    "size": 198449,
+    "sha256": "dbf741bc871b86f9cf500a3b7d18a407ad166a2c14305d9e104a8323bbdf0512"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_C100Z1_RegularPop1000.pkl",
+    "size": 162001,
+    "sha256": "ec32b247193108aad4d5dbccc7b4ddd3c060a278706107c09a698d02cb0706a5"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_C200Z1_Aggregated1000.pkl",
+    "size": 216288,
+    "sha256": "4f0615a01d8a66e40f0556e89d67e19a4e16aa902a4d53a6d9eab2353ca6df5a"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_C200Z1_pop_df_Regular1000.pkl",
+    "size": 156782,
+    "sha256": "a93c3a860c61e14fed8d1a99ed37479798d5058f8b2c20c2e385832c4b107524"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_C20Z4_Aggregated1000.pkl",
+    "size": 176429,
+    "sha256": "fb7be0fd8674964a26c9d9ce15af582faa76efcb60091792c70363958f6f40ee"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_C20Z4_RegularPop1000.pkl",
+    "size": 176275,
+    "sha256": "546b2aefa910679f7fa4e244f3751fff696af2cbbf3b5cfcf40bd6ea6aabf2a2"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_C50Z4_Regular1000.pkl",
+    "size": 174470,
+    "sha256": "f1ec9cca4f1fc5daaa0539dc5970869d83f644d2aa0e8eff3089f96b2fdddad7"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_C50Z4__Aggregated1000.pkl",
+    "size": 174577,
+    "sha256": "f37d5c53542e9fec7ade9214c7ef9a24c355f8ebfba86d6592476dde8c417018"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/best_design_Var-MI_C50Z4__Aggregated1000.pkl",
+    "size": 166584,
+    "sha256": "9905899627d3ef3f03f77ff7ef667a661d3046788c9c99a80acd39b1bbf2cb26"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/initial_design_C100Z4_Aggregated1000_none-none.pkl",
+    "size": 198394,
+    "sha256": "3a49c95461fd0e5044e5461efe79cd043d3ff9adb084f94dbc49ce8cf9b1e576"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/initial_design_C200Z1_Aggregated1000_none-none.pkl",
+    "size": 216217,
+    "sha256": "9e28cf4c8a68ccbbee3fea373a70c23e3b2a1584e4d0913d7e68c7df3cc94d63"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/initial_design_C200Z1_Regular1000_none-none.pkl",
+    "size": 216216,
+    "sha256": "509d95801bb24a366a38774d1e75efd218e4ca93a8e375d91fab9fbee1ecdb5b"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/initial_design_C20Z4_Aggregated1000_angle_snake_staggered.pkl",
+    "size": 195688,
+    "sha256": "3ac9309b93cdab7bce3c77f92d6e1be17503b8c79b466c06392e0f3a4602a428"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/initial_design_C20Z4_Regular1000_angle_snake_staggered.pkl",
+    "size": 195693,
+    "sha256": "10db0ba9e02be285d505b8d8efc1660bef89406f106d48f65c8f8870bd88fca6"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/initial_design_C50Z4_Aggregated1000_angle_None.pkl",
+    "size": 209863,
+    "sha256": "eb5581219e7f594711cdbf441091d19af6baa72e9fe5e2f1d0aa37e7abf8d3bd"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/initial_design_C50Z4_RegularPop1000_hilbert_None.pkl",
+    "size": 209861,
+    "sha256": "3c94bc2e5bd4c93bf903354319feb9b6aec46a9ce9b502403783f031f3e9b5d2"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/robertson/initial_desing_C100Z4_Regular1000_lexico_angle.pkl",
+    "size": 198376,
+    "sha256": "b3851f235c1f5a2e601c18d5dac1c2e34c4645d83c7b5d01273adc96c6990c70"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/best_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245068,
+    "sha256": "54383fa7451565c9a57e74325af1324d2df8a1c61629ea133e64715213fceaa1"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/best_design_df_swiss_100_pik_up.pkl",
+    "size": 1465234,
+    "sha256": "9eb9a8a893cd6010993cbdd05f85f1997891ce238d0cfb6418816aca1d1ede68"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/best_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769737,
+    "sha256": "fde27a9075b2bba57d1b2e2a94f6597d07702b412bb688136ad9bb14ff852d20"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/best_design_df_swiss_150_pik_up.pkl",
+    "size": 1979002,
+    "sha256": "f94ca6b939fb82e278d9783c1265b86ba8d58b1b8593ca4a9da951982e3834c9"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/best_design_df_swiss_50_pik_ep.pkl",
+    "size": 720395,
+    "sha256": "c32be184c2b0df5be640feecbdba484f7c45f5aefb47ae48ea60cd4e92f18f6e"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/best_design_df_swiss_50_pik_up.pkl",
+    "size": 951535,
+    "sha256": "0fcd3ff78a88b0bfd89abed9b17d46bbc01cb72c805abc6b3b24f014e6bb746d"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/initial_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245077,
+    "sha256": "1401fda7b62cac85af33469fb3bcf21676d2e54ec6c2bd98b30ac5fcadffe108"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/initial_design_df_swiss_100_pik_up.pkl",
+    "size": 4374844,
+    "sha256": "4a6e7888425aeab1bf0e6c8cca5c57658c0896a3cd53711e473c0bf7823e675e"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/initial_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769745,
+    "sha256": "530f4b054272a590a7364e1e56e7898e2a038f9f368f15c2b2548f005aab0dd8"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/initial_design_df_swiss_150_pik_up.pkl",
+    "size": 6027885,
+    "sha256": "94edf229933e0f312f47ceb3acf7a36d4d5e1ad1c80b994462d08fc335a68144"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/initial_design_df_swiss_50_pik_ep.pkl",
+    "size": 720402,
+    "sha256": "f609e031de975c510c9b704a36678d7a110ce75cbd719737e4573cc8585c1053"
+  },
+  {
+    "path": ".worktrees/constrained-gfs-astronomy/simulations/best_designs/swiss/initial_design_df_swiss_50_pik_up.pkl",
+    "size": 2562952,
+    "sha256": "93db856cb697fa4f4816de1bc26c8776199d44c601c0a3838f5d009553b88187"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_meuse_10_pik_ep.pkl",
+    "size": 31567,
+    "sha256": "16ea7c599d38c53e72b6ed9107dd5fb40405bb6f8fcb54dca17e974cd04e4169"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_meuse_10_pik_up.pkl",
+    "size": 50742,
+    "sha256": "b15dece03fc3f9f7d6db1bbfa8eb1b48ef4e470793f00820a798eeaaeb50df2d"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_meuse_20_pik_ep.pkl",
+    "size": 116634,
+    "sha256": "b6bbd928f9d20d48314ace5cc486e67a8b1af087940273be943f30b1701b6b95"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_meuse_20_pik_up.pkl",
+    "size": 75778,
+    "sha256": "d9d4779941dac25275f06c68ab95668f55902b3426095c886313d502846db307"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_meuse_30_pik_ep.pkl",
+    "size": 302635,
+    "sha256": "4671422ba915b8cd455d25d6789a24c8ad899fe20ff2110fc2ace2947ebdbd67"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_meuse_3_pik_up.pkl",
+    "size": 71272,
+    "sha256": "9da4c574962efef0fd4f6a5132b5bda002f1e3b3b067656f144660d5562c8452"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_meuse_5_pik_ep.pkl",
+    "size": 27668,
+    "sha256": "02bfddfd28bebcdcc3137cc89797e53f23711d479df5d7d786f0ed7ec4ba9d19"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_meuse_5_pik_up.pkl",
+    "size": 39230,
+    "sha256": "97fd9416a4e658c9e9bcf6c06b586c04b31c40da3f7baa1a2391603e956b55ef"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245068,
+    "sha256": "54383fa7451565c9a57e74325af1324d2df8a1c61629ea133e64715213fceaa1"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_swiss_100_pik_up.pkl",
+    "size": 1465234,
+    "sha256": "9eb9a8a893cd6010993cbdd05f85f1997891ce238d0cfb6418816aca1d1ede68"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769737,
+    "sha256": "fde27a9075b2bba57d1b2e2a94f6597d07702b412bb688136ad9bb14ff852d20"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_swiss_150_pik_up.pkl",
+    "size": 1979002,
+    "sha256": "f94ca6b939fb82e278d9783c1265b86ba8d58b1b8593ca4a9da951982e3834c9"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_swiss_50_pik_ep.pkl",
+    "size": 720395,
+    "sha256": "c32be184c2b0df5be640feecbdba484f7c45f5aefb47ae48ea60cd4e92f18f6e"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/best_design_df_swiss_50_pik_up.pkl",
+    "size": 951535,
+    "sha256": "0fcd3ff78a88b0bfd89abed9b17d46bbc01cb72c805abc6b3b24f014e6bb746d"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_meuse_10_pik_ep.pkl",
+    "size": 31576,
+    "sha256": "479766cb9634ddab2ddf25ecff634f0b4b920f48c3533735aa5f82977d57c735"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_meuse_10_pik_up.pkl",
+    "size": 50751,
+    "sha256": "3a64cb81f2931528356702dbf3d1d236b653de6039a50013f076199c6af0c2ac"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_meuse_20_pik_ep.pkl",
+    "size": 36656,
+    "sha256": "5993ceb426d20120abe3c445c14100aa7ba3f1e0b42d9d34baa342e9b9290da7"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_meuse_20_pik_up.pkl",
+    "size": 68237,
+    "sha256": "e8526333734c64bbb74700018dd84192dda615bf1641b6fb6520f05b6a6e0a23"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_meuse_3_pik_up.pkl",
+    "size": 101941,
+    "sha256": "2915ebe0fa37e01bcfa2469bf2dbc9e6d6b9613390a4402090ccbbd1b0f9d897"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_meuse_5_pik_ep.pkl",
+    "size": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_meuse_5_pik_up.pkl",
+    "size": 94680,
+    "sha256": "4b586eebce52f3c4547cf8b1cf73c3c96a46767e2fc07adc56b5dad3af48cf26"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245077,
+    "sha256": "1401fda7b62cac85af33469fb3bcf21676d2e54ec6c2bd98b30ac5fcadffe108"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_swiss_100_pik_up.pkl",
+    "size": 4374844,
+    "sha256": "4a6e7888425aeab1bf0e6c8cca5c57658c0896a3cd53711e473c0bf7823e675e"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769745,
+    "sha256": "530f4b054272a590a7364e1e56e7898e2a038f9f368f15c2b2548f005aab0dd8"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_swiss_150_pik_up.pkl",
+    "size": 6027885,
+    "sha256": "94edf229933e0f312f47ceb3acf7a36d4d5e1ad1c80b994462d08fc335a68144"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_swiss_20_pik_ep.pkl",
+    "size": 405707,
+    "sha256": "276609e5edda0c7a6ea20cd9c60122be0a31b1f71ae0fceaced1308b71019e62"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_swiss_50_pik_ep.pkl",
+    "size": 720402,
+    "sha256": "f609e031de975c510c9b704a36678d7a110ce75cbd719737e4573cc8585c1053"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/Store/best_design/initial_design_df_swiss_50_pik_up.pkl",
+    "size": 2562952,
+    "sha256": "93db856cb697fa4f4816de1bc26c8776199d44c601c0a3838f5d009553b88187"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/best_design_df_meuse_10_pik_ep.pkl",
+    "size": 31567,
+    "sha256": "16ea7c599d38c53e72b6ed9107dd5fb40405bb6f8fcb54dca17e974cd04e4169"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/best_design_df_meuse_10_pik_up.pkl",
+    "size": 50742,
+    "sha256": "b15dece03fc3f9f7d6db1bbfa8eb1b48ef4e470793f00820a798eeaaeb50df2d"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/best_design_df_meuse_20_pik_ep.pkl",
+    "size": 116634,
+    "sha256": "b6bbd928f9d20d48314ace5cc486e67a8b1af087940273be943f30b1701b6b95"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/best_design_df_meuse_20_pik_up.pkl",
+    "size": 75778,
+    "sha256": "d9d4779941dac25275f06c68ab95668f55902b3426095c886313d502846db307"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/best_design_df_meuse_5_pik_ep.pkl",
+    "size": 27668,
+    "sha256": "02bfddfd28bebcdcc3137cc89797e53f23711d479df5d7d786f0ed7ec4ba9d19"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/best_design_df_meuse_5_pik_up.pkl",
+    "size": 39230,
+    "sha256": "97fd9416a4e658c9e9bcf6c06b586c04b31c40da3f7baa1a2391603e956b55ef"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/initial_design_df_meuse_10_pik_ep.pkl",
+    "size": 31576,
+    "sha256": "479766cb9634ddab2ddf25ecff634f0b4b920f48c3533735aa5f82977d57c735"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/initial_design_df_meuse_10_pik_up.pkl",
+    "size": 50751,
+    "sha256": "3a64cb81f2931528356702dbf3d1d236b653de6039a50013f076199c6af0c2ac"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/initial_design_df_meuse_20_pik_ep.pkl",
+    "size": 36656,
+    "sha256": "5993ceb426d20120abe3c445c14100aa7ba3f1e0b42d9d34baa342e9b9290da7"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/initial_design_df_meuse_20_pik_up.pkl",
+    "size": 68237,
+    "sha256": "e8526333734c64bbb74700018dd84192dda615bf1641b6fb6520f05b6a6e0a23"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/initial_design_df_meuse_5_pik_ep.pkl",
+    "size": 34808,
+    "sha256": "5f8173f779f6628550daf2f9be9fca1ee26e16b320a99f26c264f7f0732e87c3"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/meuse/initial_design_df_meuse_5_pik_up.pkl",
+    "size": 94680,
+    "sha256": "4b586eebce52f3c4547cf8b1cf73c3c96a46767e2fc07adc56b5dad3af48cf26"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_C100Z1_Aggregated1000.pkl",
+    "size": 198449,
+    "sha256": "dbf741bc871b86f9cf500a3b7d18a407ad166a2c14305d9e104a8323bbdf0512"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_C100Z1_RegularPop1000.pkl",
+    "size": 162001,
+    "sha256": "ec32b247193108aad4d5dbccc7b4ddd3c060a278706107c09a698d02cb0706a5"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_C200Z1_Aggregated1000.pkl",
+    "size": 216288,
+    "sha256": "4f0615a01d8a66e40f0556e89d67e19a4e16aa902a4d53a6d9eab2353ca6df5a"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_C200Z1_pop_df_Regular1000.pkl",
+    "size": 156782,
+    "sha256": "a93c3a860c61e14fed8d1a99ed37479798d5058f8b2c20c2e385832c4b107524"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_C20Z4_Aggregated1000.pkl",
+    "size": 176429,
+    "sha256": "fb7be0fd8674964a26c9d9ce15af582faa76efcb60091792c70363958f6f40ee"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_C20Z4_RegularPop1000.pkl",
+    "size": 176275,
+    "sha256": "546b2aefa910679f7fa4e244f3751fff696af2cbbf3b5cfcf40bd6ea6aabf2a2"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_C50Z4_Regular1000.pkl",
+    "size": 174470,
+    "sha256": "f1ec9cca4f1fc5daaa0539dc5970869d83f644d2aa0e8eff3089f96b2fdddad7"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_C50Z4__Aggregated1000.pkl",
+    "size": 174577,
+    "sha256": "f37d5c53542e9fec7ade9214c7ef9a24c355f8ebfba86d6592476dde8c417018"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/best_design_Var-MI_C50Z4__Aggregated1000.pkl",
+    "size": 166584,
+    "sha256": "9905899627d3ef3f03f77ff7ef667a661d3046788c9c99a80acd39b1bbf2cb26"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/initial_design_C100Z4_Aggregated1000_none-none.pkl",
+    "size": 198394,
+    "sha256": "3a49c95461fd0e5044e5461efe79cd043d3ff9adb084f94dbc49ce8cf9b1e576"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/initial_design_C200Z1_Aggregated1000_none-none.pkl",
+    "size": 216217,
+    "sha256": "9e28cf4c8a68ccbbee3fea373a70c23e3b2a1584e4d0913d7e68c7df3cc94d63"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/initial_design_C200Z1_Regular1000_none-none.pkl",
+    "size": 216216,
+    "sha256": "509d95801bb24a366a38774d1e75efd218e4ca93a8e375d91fab9fbee1ecdb5b"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/initial_design_C20Z4_Aggregated1000_angle_snake_staggered.pkl",
+    "size": 195688,
+    "sha256": "3ac9309b93cdab7bce3c77f92d6e1be17503b8c79b466c06392e0f3a4602a428"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/initial_design_C20Z4_Regular1000_angle_snake_staggered.pkl",
+    "size": 195693,
+    "sha256": "10db0ba9e02be285d505b8d8efc1660bef89406f106d48f65c8f8870bd88fca6"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/initial_design_C50Z4_Aggregated1000_angle_None.pkl",
+    "size": 209863,
+    "sha256": "eb5581219e7f594711cdbf441091d19af6baa72e9fe5e2f1d0aa37e7abf8d3bd"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/initial_design_C50Z4_RegularPop1000_hilbert_None.pkl",
+    "size": 209861,
+    "sha256": "3c94bc2e5bd4c93bf903354319feb9b6aec46a9ce9b502403783f031f3e9b5d2"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/robertson/initial_desing_C100Z4_Regular1000_lexico_angle.pkl",
+    "size": 198376,
+    "sha256": "b3851f235c1f5a2e601c18d5dac1c2e34c4645d83c7b5d01273adc96c6990c70"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/best_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245068,
+    "sha256": "54383fa7451565c9a57e74325af1324d2df8a1c61629ea133e64715213fceaa1"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/best_design_df_swiss_100_pik_up.pkl",
+    "size": 1465234,
+    "sha256": "9eb9a8a893cd6010993cbdd05f85f1997891ce238d0cfb6418816aca1d1ede68"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/best_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769737,
+    "sha256": "fde27a9075b2bba57d1b2e2a94f6597d07702b412bb688136ad9bb14ff852d20"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/best_design_df_swiss_150_pik_up.pkl",
+    "size": 1979002,
+    "sha256": "f94ca6b939fb82e278d9783c1265b86ba8d58b1b8593ca4a9da951982e3834c9"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/best_design_df_swiss_50_pik_ep.pkl",
+    "size": 720395,
+    "sha256": "c32be184c2b0df5be640feecbdba484f7c45f5aefb47ae48ea60cd4e92f18f6e"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/best_design_df_swiss_50_pik_up.pkl",
+    "size": 951535,
+    "sha256": "0fcd3ff78a88b0bfd89abed9b17d46bbc01cb72c805abc6b3b24f014e6bb746d"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/initial_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245077,
+    "sha256": "1401fda7b62cac85af33469fb3bcf21676d2e54ec6c2bd98b30ac5fcadffe108"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/initial_design_df_swiss_100_pik_up.pkl",
+    "size": 4374844,
+    "sha256": "4a6e7888425aeab1bf0e6c8cca5c57658c0896a3cd53711e473c0bf7823e675e"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/initial_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769745,
+    "sha256": "530f4b054272a590a7364e1e56e7898e2a038f9f368f15c2b2548f005aab0dd8"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/initial_design_df_swiss_150_pik_up.pkl",
+    "size": 6027885,
+    "sha256": "94edf229933e0f312f47ceb3acf7a36d4d5e1ad1c80b994462d08fc335a68144"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/initial_design_df_swiss_50_pik_ep.pkl",
+    "size": 720402,
+    "sha256": "f609e031de975c510c9b704a36678d7a110ce75cbd719737e4573cc8585c1053"
+  },
+  {
+    "path": ".worktrees/ogis/simulations/best_designs/swiss/initial_design_df_swiss_50_pik_up.pkl",
+    "size": 2562952,
+    "sha256": "93db856cb697fa4f4816de1bc26c8776199d44c601c0a3838f5d009553b88187"
+  },
+  {
+    "path": "prescribed_sip/results/notebook_interrupted/N281_n15_20260919T142419_252381Z/current_design.pkl",
+    "size": 5883192,
+    "sha256": "ad91b8da2b72cc30eef3ee9835b923e26e9ff474aa71864b52f20f61e84542f1"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_10_pik_ep.pkl",
+    "size": 31567,
+    "sha256": "16ea7c599d38c53e72b6ed9107dd5fb40405bb6f8fcb54dca17e974cd04e4169"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_10_pik_up.pkl",
+    "size": 50742,
+    "sha256": "b15dece03fc3f9f7d6db1bbfa8eb1b48ef4e470793f00820a798eeaaeb50df2d"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_20_pik_ep.pkl",
+    "size": 116634,
+    "sha256": "b6bbd928f9d20d48314ace5cc486e67a8b1af087940273be943f30b1701b6b95"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_20_pik_up.pkl",
+    "size": 75778,
+    "sha256": "d9d4779941dac25275f06c68ab95668f55902b3426095c886313d502846db307"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_30_pik_ep.pkl",
+    "size": 302635,
+    "sha256": "4671422ba915b8cd455d25d6789a24c8ad899fe20ff2110fc2ace2947ebdbd67"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_3_pik_up.pkl",
+    "size": 71272,
+    "sha256": "9da4c574962efef0fd4f6a5132b5bda002f1e3b3b067656f144660d5562c8452"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_5_pik_ep.pkl",
+    "size": 27668,
+    "sha256": "02bfddfd28bebcdcc3137cc89797e53f23711d479df5d7d786f0ed7ec4ba9d19"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_meuse_5_pik_up.pkl",
+    "size": 39230,
+    "sha256": "97fd9416a4e658c9e9bcf6c06b586c04b31c40da3f7baa1a2391603e956b55ef"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245068,
+    "sha256": "54383fa7451565c9a57e74325af1324d2df8a1c61629ea133e64715213fceaa1"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_swiss_100_pik_up.pkl",
+    "size": 1465234,
+    "sha256": "9eb9a8a893cd6010993cbdd05f85f1997891ce238d0cfb6418816aca1d1ede68"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769737,
+    "sha256": "fde27a9075b2bba57d1b2e2a94f6597d07702b412bb688136ad9bb14ff852d20"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_swiss_150_pik_up.pkl",
+    "size": 1979002,
+    "sha256": "f94ca6b939fb82e278d9783c1265b86ba8d58b1b8593ca4a9da951982e3834c9"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_swiss_50_pik_ep.pkl",
+    "size": 720395,
+    "sha256": "c32be184c2b0df5be640feecbdba484f7c45f5aefb47ae48ea60cd4e92f18f6e"
+  },
+  {
+    "path": "simulations/Store/best_design/best_design_df_swiss_50_pik_up.pkl",
+    "size": 951535,
+    "sha256": "0fcd3ff78a88b0bfd89abed9b17d46bbc01cb72c805abc6b3b24f014e6bb746d"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_meuse_10_pik_ep.pkl",
+    "size": 31576,
+    "sha256": "479766cb9634ddab2ddf25ecff634f0b4b920f48c3533735aa5f82977d57c735"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_meuse_10_pik_up.pkl",
+    "size": 50751,
+    "sha256": "3a64cb81f2931528356702dbf3d1d236b653de6039a50013f076199c6af0c2ac"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_meuse_20_pik_ep.pkl",
+    "size": 36656,
+    "sha256": "5993ceb426d20120abe3c445c14100aa7ba3f1e0b42d9d34baa342e9b9290da7"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_meuse_20_pik_up.pkl",
+    "size": 68237,
+    "sha256": "e8526333734c64bbb74700018dd84192dda615bf1641b6fb6520f05b6a6e0a23"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_meuse_3_pik_up.pkl",
+    "size": 101941,
+    "sha256": "2915ebe0fa37e01bcfa2469bf2dbc9e6d6b9613390a4402090ccbbd1b0f9d897"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_meuse_5_pik_ep.pkl",
+    "size": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_meuse_5_pik_up.pkl",
+    "size": 94680,
+    "sha256": "4b586eebce52f3c4547cf8b1cf73c3c96a46767e2fc07adc56b5dad3af48cf26"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245077,
+    "sha256": "1401fda7b62cac85af33469fb3bcf21676d2e54ec6c2bd98b30ac5fcadffe108"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_swiss_100_pik_up.pkl",
+    "size": 4374844,
+    "sha256": "4a6e7888425aeab1bf0e6c8cca5c57658c0896a3cd53711e473c0bf7823e675e"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769745,
+    "sha256": "530f4b054272a590a7364e1e56e7898e2a038f9f368f15c2b2548f005aab0dd8"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_swiss_150_pik_up.pkl",
+    "size": 6027885,
+    "sha256": "94edf229933e0f312f47ceb3acf7a36d4d5e1ad1c80b994462d08fc335a68144"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_swiss_20_pik_ep.pkl",
+    "size": 405707,
+    "sha256": "276609e5edda0c7a6ea20cd9c60122be0a31b1f71ae0fceaced1308b71019e62"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_swiss_50_pik_ep.pkl",
+    "size": 720402,
+    "sha256": "f609e031de975c510c9b704a36678d7a110ce75cbd719737e4573cc8585c1053"
+  },
+  {
+    "path": "simulations/Store/best_design/initial_design_df_swiss_50_pik_up.pkl",
+    "size": 2562952,
+    "sha256": "93db856cb697fa4f4816de1bc26c8776199d44c601c0a3838f5d009553b88187"
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_10_pik_ep.pkl",
+    "size": 31567,
+    "sha256": "16ea7c599d38c53e72b6ed9107dd5fb40405bb6f8fcb54dca17e974cd04e4169"
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_10_pik_up.pkl",
+    "size": 50742,
+    "sha256": "b15dece03fc3f9f7d6db1bbfa8eb1b48ef4e470793f00820a798eeaaeb50df2d"
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_20_pik_ep.pkl",
+    "size": 116634,
+    "sha256": "b6bbd928f9d20d48314ace5cc486e67a8b1af087940273be943f30b1701b6b95"
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_20_pik_up.pkl",
+    "size": 75778,
+    "sha256": "d9d4779941dac25275f06c68ab95668f55902b3426095c886313d502846db307"
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_5_pik_ep.pkl",
+    "size": 27668,
+    "sha256": "02bfddfd28bebcdcc3137cc89797e53f23711d479df5d7d786f0ed7ec4ba9d19"
+  },
+  {
+    "path": "simulations/best_designs/meuse/best_design_df_meuse_5_pik_up.pkl",
+    "size": 39230,
+    "sha256": "97fd9416a4e658c9e9bcf6c06b586c04b31c40da3f7baa1a2391603e956b55ef"
+  },
+  {
+    "path": "simulations/best_designs/meuse/initial_design_df_meuse_10_pik_ep.pkl",
+    "size": 31576,
+    "sha256": "479766cb9634ddab2ddf25ecff634f0b4b920f48c3533735aa5f82977d57c735"
+  },
+  {
+    "path": "simulations/best_designs/meuse/initial_design_df_meuse_10_pik_up.pkl",
+    "size": 50751,
+    "sha256": "3a64cb81f2931528356702dbf3d1d236b653de6039a50013f076199c6af0c2ac"
+  },
+  {
+    "path": "simulations/best_designs/meuse/initial_design_df_meuse_20_pik_ep.pkl",
+    "size": 36656,
+    "sha256": "5993ceb426d20120abe3c445c14100aa7ba3f1e0b42d9d34baa342e9b9290da7"
+  },
+  {
+    "path": "simulations/best_designs/meuse/initial_design_df_meuse_20_pik_up.pkl",
+    "size": 68237,
+    "sha256": "e8526333734c64bbb74700018dd84192dda615bf1641b6fb6520f05b6a6e0a23"
+  },
+  {
+    "path": "simulations/best_designs/meuse/initial_design_df_meuse_5_pik_ep.pkl",
+    "size": 34808,
+    "sha256": "5f8173f779f6628550daf2f9be9fca1ee26e16b320a99f26c264f7f0732e87c3"
+  },
+  {
+    "path": "simulations/best_designs/meuse/initial_design_df_meuse_5_pik_up.pkl",
+    "size": 94680,
+    "sha256": "4b586eebce52f3c4547cf8b1cf73c3c96a46767e2fc07adc56b5dad3af48cf26"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C100Z1_Aggregated1000.pkl",
+    "size": 198449,
+    "sha256": "dbf741bc871b86f9cf500a3b7d18a407ad166a2c14305d9e104a8323bbdf0512"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C100Z1_RegularPop1000.pkl",
+    "size": 162001,
+    "sha256": "ec32b247193108aad4d5dbccc7b4ddd3c060a278706107c09a698d02cb0706a5"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C200Z1_Aggregated1000.pkl",
+    "size": 216288,
+    "sha256": "4f0615a01d8a66e40f0556e89d67e19a4e16aa902a4d53a6d9eab2353ca6df5a"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C200Z1_pop_df_Regular1000.pkl",
+    "size": 156782,
+    "sha256": "a93c3a860c61e14fed8d1a99ed37479798d5058f8b2c20c2e385832c4b107524"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C20Z4_Aggregated1000.pkl",
+    "size": 176429,
+    "sha256": "fb7be0fd8674964a26c9d9ce15af582faa76efcb60091792c70363958f6f40ee"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C20Z4_RegularPop1000.pkl",
+    "size": 176275,
+    "sha256": "546b2aefa910679f7fa4e244f3751fff696af2cbbf3b5cfcf40bd6ea6aabf2a2"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C50Z4_Regular1000.pkl",
+    "size": 174470,
+    "sha256": "f1ec9cca4f1fc5daaa0539dc5970869d83f644d2aa0e8eff3089f96b2fdddad7"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_C50Z4__Aggregated1000.pkl",
+    "size": 174577,
+    "sha256": "f37d5c53542e9fec7ade9214c7ef9a24c355f8ebfba86d6592476dde8c417018"
+  },
+  {
+    "path": "simulations/best_designs/robertson/best_design_Var-MI_C50Z4__Aggregated1000.pkl",
+    "size": 166584,
+    "sha256": "9905899627d3ef3f03f77ff7ef667a661d3046788c9c99a80acd39b1bbf2cb26"
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C100Z4_Aggregated1000_none-none.pkl",
+    "size": 198394,
+    "sha256": "3a49c95461fd0e5044e5461efe79cd043d3ff9adb084f94dbc49ce8cf9b1e576"
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C200Z1_Aggregated1000_none-none.pkl",
+    "size": 216217,
+    "sha256": "9e28cf4c8a68ccbbee3fea373a70c23e3b2a1584e4d0913d7e68c7df3cc94d63"
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C200Z1_Regular1000_none-none.pkl",
+    "size": 216216,
+    "sha256": "509d95801bb24a366a38774d1e75efd218e4ca93a8e375d91fab9fbee1ecdb5b"
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C20Z4_Aggregated1000_angle_snake_staggered.pkl",
+    "size": 195688,
+    "sha256": "3ac9309b93cdab7bce3c77f92d6e1be17503b8c79b466c06392e0f3a4602a428"
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C20Z4_Regular1000_angle_snake_staggered.pkl",
+    "size": 195693,
+    "sha256": "10db0ba9e02be285d505b8d8efc1660bef89406f106d48f65c8f8870bd88fca6"
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C50Z4_Aggregated1000_angle_None.pkl",
+    "size": 209863,
+    "sha256": "eb5581219e7f594711cdbf441091d19af6baa72e9fe5e2f1d0aa37e7abf8d3bd"
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_design_C50Z4_RegularPop1000_hilbert_None.pkl",
+    "size": 209861,
+    "sha256": "3c94bc2e5bd4c93bf903354319feb9b6aec46a9ce9b502403783f031f3e9b5d2"
+  },
+  {
+    "path": "simulations/best_designs/robertson/initial_desing_C100Z4_Regular1000_lexico_angle.pkl",
+    "size": 198376,
+    "sha256": "b3851f235c1f5a2e601c18d5dac1c2e34c4645d83c7b5d01273adc96c6990c70"
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245068,
+    "sha256": "54383fa7451565c9a57e74325af1324d2df8a1c61629ea133e64715213fceaa1"
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_100_pik_up.pkl",
+    "size": 1465234,
+    "sha256": "9eb9a8a893cd6010993cbdd05f85f1997891ce238d0cfb6418816aca1d1ede68"
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769737,
+    "sha256": "fde27a9075b2bba57d1b2e2a94f6597d07702b412bb688136ad9bb14ff852d20"
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_150_pik_up.pkl",
+    "size": 1979002,
+    "sha256": "f94ca6b939fb82e278d9783c1265b86ba8d58b1b8593ca4a9da951982e3834c9"
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_50_pik_ep.pkl",
+    "size": 720395,
+    "sha256": "c32be184c2b0df5be640feecbdba484f7c45f5aefb47ae48ea60cd4e92f18f6e"
+  },
+  {
+    "path": "simulations/best_designs/swiss/best_design_df_swiss_50_pik_up.pkl",
+    "size": 951535,
+    "sha256": "0fcd3ff78a88b0bfd89abed9b17d46bbc01cb72c805abc6b3b24f014e6bb746d"
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_100_pik_ep.pkl",
+    "size": 1245077,
+    "sha256": "1401fda7b62cac85af33469fb3bcf21676d2e54ec6c2bd98b30ac5fcadffe108"
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_100_pik_up.pkl",
+    "size": 4374844,
+    "sha256": "4a6e7888425aeab1bf0e6c8cca5c57658c0896a3cd53711e473c0bf7823e675e"
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_150_pik_ep.pkl",
+    "size": 1769745,
+    "sha256": "530f4b054272a590a7364e1e56e7898e2a038f9f368f15c2b2548f005aab0dd8"
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_150_pik_up.pkl",
+    "size": 6027885,
+    "sha256": "94edf229933e0f312f47ceb3acf7a36d4d5e1ad1c80b994462d08fc335a68144"
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_50_pik_ep.pkl",
+    "size": 720402,
+    "sha256": "f609e031de975c510c9b704a36678d7a110ce75cbd719737e4573cc8585c1053"
+  },
+  {
+    "path": "simulations/best_designs/swiss/initial_design_df_swiss_50_pik_up.pkl",
+    "size": 2562952,
+    "sha256": "93db856cb697fa4f4816de1bc26c8776199d44c601c0a3838f5d009553b88187"
+  }
+]

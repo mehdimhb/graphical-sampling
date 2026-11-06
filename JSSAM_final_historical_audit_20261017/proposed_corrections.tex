@@ -1,0 +1,194 @@
+% APPROVAL ONLY — NOT A COMBINED PATCH. Alternatives A and B are mutually exclusive.
+% Actual latest RevThree/RevFive wrappers were not recovered. Keep existing wrappers unchanged.
+% Fragments are deliberately unwrapped. Do not input this whole file into a manuscript.
+
+% Fragment: section3_weighted_medoid — A: describe traced historical implementation
+% Source lines 501–509 in the designated 12 October snapshot.
+\[
+m_i
+\in
+\arg\min_{u\in U_i}
+\sum_{\ell\in U_i}\pi_\ell
+\|\bm c_u-\bm c_\ell\|,
+\qquad
+\bm r_i=\bm c_{m_i}.
+\]
+
+% Fragment: section3_assignment — A: describe traced historical implementation
+% Source lines 545–556 in the designated 12 October snapshot.
+ The sample units are then matched to the medoid reference points by solving the
+assignment problem
+\[
+\tau
+=
+\arg\min_{\tau}
+\sum_{i=1}^n
+\|\bm c_{\tau(i)}-\bm r_i\|,
+\qquad
+\tau(i)\in s,
+\]
+where \(\tau\) is a one-to-one mapping from clusters to sampled units. Each
+
+% Fragment: section3_historical_kernel — A: describe traced historical implementation
+% Source lines 586–597 in the designated 12 October snapshot.
+where, for the traced historical computations,
+\(\mathbf H=h^2\mathbf I_d\) with \(h=N^{-1/(d+4)}\), the isotropic
+Scott bandwidth. The spherical uniform (\texttt{tophat}) kernel is
+\[
+K(\bm u)=\frac{1}{v_d}\mathbf 1\{\|\bm u\|_2<1\},
+\qquad v_d=\frac{\pi^{d/2}}{\Gamma(1+d/2)}.
+\]
+The same numerical bandwidth is used for the original and translated
+coordinates, without covariance scaling or renormalizing the translated
+population. The historical KDE evaluation used relative tolerance
+\(10^{-4}\). Applying the same estimator to the translated coordinates
+
+% Fragment: section4_replications — Both A and B
+% Source lines 977–978 in the designated 12 October snapshot.
+\citep{sampling_pkg}. The reported summaries combine simulation stages.
+The auxiliary-index Monte Carlo summaries were inherited from earlier
+output files recording \(5{,}000\) replications per setting. The subsequent
+medoid-DI update requested \(2{,}000\) samples per setting. Retained outputs
+label \(106\) setting summaries with this count; \(104\) reproduce the
+reported DI mean and standard deviation, whereas two reported means differ.
+For \(32\) other Monte Carlo settings, the count underlying the final DI
+summary cannot be established from retained execution records. The nominal
+counts are supported by source and summary metadata rather than independently
+retained per-replication completion logs. The NMS/GMS DI comparisons use
+probability-weighted finite-design enumeration, with the number of enumerated
+entries reported separately for each design; they are not Monte Carlo
+replications. Accordingly, a common \(5{,}000\)-replication count for every
+reported statistic is not supported by the retained records.
+
+% Fragment: algorithm2_medoid — A: describe traced historical implementation
+% Source lines 1490–1505 in the designated 12 October snapshot.
+\State  For each cluster \(U_i\), define the reference point \(\bm q_i\) by
+\[
+\bm q_i
+=
+\begin{cases}
+\bm c_{m_i}, &
+\rho=\textsc{medoid},\quad
+m_i\in\displaystyle\arg\min_{u\in U_i}
+\sum_{\ell\in U_i}\pi_\ell\|\bm c_u-\bm c_\ell\|, \\[2ex]
+\displaystyle
+\frac{\sum_{\ell\in U_i}\pi_\ell\bm c_\ell}
+{\sum_{\ell\in U_i}\pi_\ell}, &
+\rho=\textsc{centroid}.
+\end{cases}
+\]
+In the traced historical medoid-update implementation, the first minimizing unit in cluster order was selected.
+
+% Fragment: algorithm2_assignment — A: describe traced historical implementation
+% Source lines 1508–1518 in the designated 12 October snapshot.
+\State Match the reference points to the sampled units by solving
+\[
+\tau
+=
+\arg\min_{\tau}
+\sum_{i=1}^n
+\|\bm c_{\tau(i)}-\bm q_i\|,
+\qquad
+\tau(i)\in s,
+\]
+where \(\tau\) is one-to-one.
+
+% Fragment: comment5_translation_qualification — Both A and B
+% Source lines 901–917 in the designated 12 October snapshot.
+    \item[(iii)] Conditional on a fixed hard partition, fixed reference
+points, and a fixed medoid-to-sample pairing, DI is invariant to a common
+translation of the matched sample coordinates. Indeed, replacing every
+matched sample point by \(\bm c_{\tau(i)}+\bm a\) replaces every transformed
+population point by \(\widetilde{\bm c}_\ell+\bm a\). A fixed-bandwidth,
+translation-invariant KDE has the same value at each corresponding
+transformed unit, leaving the DI formula unchanged. This result does not
+guarantee invariance after sample-adaptive reclustering or rematching.
+Ordinary Euclidean optimal matching can change when only the sample is
+translated. Thus, for that historical objective, unchanged matching is an
+additional condition, not a general consequence of unchanged reference points.
+The numerical translation examples establish the behavior of the saved
+configurations only. DI is not generally rotation invariant; the illustrated
+rotated targets are projected to distinct population-grid units.
+
+% Fragment: section3_keep_squared_alternative — B: retain squared definition; explicitly separate historical pipeline
+% Source lines 545–556 in the designated 12 October snapshot.
+The formal definition below retains squared-distance representatives,
+squared Euclidean matching, and the box kernel specified here. The traced
+historical Monte Carlo computations instead used weighted preliminary
+\(k\)-means followed by probability refinement, ordinary-distance medoids,
+ordinary Euclidean matching, and a spherical \texttt{tophat} KDE.
+The retained results must therefore be identified as results of that
+historical variant, rather than numerical validation of the present
+OT/squared-distance/box-kernel specification. Runtime provenance remains
+unresolved for the other blocks identified in the reproducibility audit.
+
+ The sample units are then matched to the medoid reference points by solving the
+assignment problem
+\[
+\tau
+=
+\arg\min_{\tau}
+\sum_{i=1}^n
+\|\bm c_{\tau(i)}-\bm r_i\|^2,
+\qquad
+\tau(i)\in s,
+\]
+where \(\tau\) is a one-to-one mapping from clusters to sampled units. Each
+
+% Fragment: historical_clustering_disclosure — Both A and B; essential historical-method disclosure
+% Source lines 488–489 in the designated 12 October snapshot.
+\(\{\bm c_\ell:\ell\in s\}\) as initial centers, the formal definition applies
+the hard IP\(n\)M procedure to obtain \(n\) spatially compact clusters.
+The traced historical Monte Carlo implementation used weighted preliminary
+\(k\)-means followed by open-TSP ordering and inclusion-probability refinement,
+rather than the entropic OT preliminary stage described in Section~2.
+Its retained results are distinguished from computations of the formal OT
+variant; exact runtime attribution is unresolved for the other audited blocks.
+
+% Fragment: abstract_translation — Both A and B
+% Source lines 143–143 in the designated 12 October snapshot.
+bounded measure with a conditional translation property that distinguishes under-dispersion,
+
+% Fragment: introduction_translation — Both A and B
+% Source lines 233–235 in the designated 12 October snapshot.
+interpreted as approximately well spread. With the reference partition and matching held fixed, a common translation of the matched sample coordinates leaves DI unchanged. This conditional property concerns the relative arrangement of the matched sample and does not guarantee invariance after sample-adaptive reclustering or rematching.
+
+% Fragment: conclusion_translation — Both A and B
+% Source lines 1120–1121 in the designated 12 October snapshot.
+The proposed index is bounded and directly interpretable, and has the conditional translation property described in Section~\ref{Sec:Measure}. Negative values indicate under-dispersion or local clustering,
+
+% Fragment: appendix_translation_example — Both A and B
+% Source lines 1150–1151 in the designated 12 October snapshot.
+In panel~(b), a uniform translation is applied to all sample units and DI
+remains unchanged for this example. This observation alone does not establish invariance after general sample-adaptive reclustering or rematching.
+
+% Fragment: section3_historical_medoid_ties — A: describe the historical notebook tie convention
+% Source lines 510–512 in the designated 12 October snapshot.
+In the traced historical medoid-update implementation, the first minimizing
+unit in cluster order was selected.
+
+% Fragment: algorithm2_historical_preliminary_stage — A only: describe the historical pipeline; do not mix with the formal OT version
+% Source lines 1485–1487 in the designated 12 October snapshot.
+\State For the historical DI variant, initialize weighted \(k\)-means
+at the observed sample units and apply the historical open-TSP ordering and
+inclusion-probability refinement to construct the reference partition.
+\label{line:upbkm}
+
+% Optional Comment5 explanatory paragraph. Preserve the actual RevFive wrapper.
+For a fixed reference and a full, unweighted one-to-one assignment,
+let \(Q_{\bm a}(\tau)=\sum_{i=1}^n
+\|\bm c_{\tau(i)}+\bm a-\bm r_i\|^2\). Then
+\[
+Q_{\bm a}(\tau)=Q_{\bm0}(\tau)
++2\bm a^\top\left(\sum_{\ell\in s}\bm c_\ell-
+\sum_{i=1}^n\bm r_i\right)+n\|\bm a\|^2.
+\]
+The added term is independent of \(\tau\), so the minimizing permutation
+set is unchanged. A consistent tie rule is needed to preserve the selected
+permutation. This expansion applies to squared distances and a full
+bijection; it does not apply in general to ordinary Euclidean matching or
+to rectangular matching that may select a different sample subset.
+With ordinary distances, fixed reference points alone do not guarantee
+unchanged optimal matching. In either case, the conditional DI result also
+requires an unchanged partition and a fixed bandwidth evaluated at the
+corresponding transformed units.

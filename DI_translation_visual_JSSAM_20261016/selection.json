@@ -1,0 +1,111 @@
+{
+  "status": "no_verified_genuine_change_found",
+  "selected": {
+    "candidate": 1,
+    "original_id": "sample1_original",
+    "translated_id": "sample1_shift11",
+    "delta": [
+      1,
+      1
+    ],
+    "changed_units": 0,
+    "changed_indices": [],
+    "new_to_old": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "confusion": [
+      [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        18
+      ]
+    ],
+    "ARI": 1.0,
+    "DI_difference": 0.0,
+    "centroid_max_aligned_difference": 3.997188364167557e-15,
+    "minimum_preliminary_gap": 0.05271492930147788,
+    "minimum_TSP_distinct_route_gap": 4.440892098500626e-16
+  }
+}

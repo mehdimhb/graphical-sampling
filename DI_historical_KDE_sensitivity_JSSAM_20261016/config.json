@@ -1,0 +1,31 @@
+{
+  "scenarios": [
+    "C16",
+    "M10",
+    "S100"
+  ],
+  "primary_evaluations": 360,
+  "baseline_controls": 3,
+  "kernel": "spherical uniform / radial tophat",
+  "bandwidth": "N**(-1/(d+4))",
+  "kernel_metric": "euclidean",
+  "rtol": 0.0001,
+  "atol": 0.0,
+  "default_rtol_cross_check": 0.0,
+  "coordinate_normalization": "(raw - raw.min(axis=0)) / np.ptp(raw,axis=0).max()",
+  "no_renormalization_after_translation": true,
+  "KDE_weights": "equal, not inclusion-probability weights",
+  "theta0": "pi/8",
+  "clipping": "[-1,1] for each q_i and e_i as in existing definitions",
+  "DI": "(1-eta)*Dnet + eta*np.sign(Dnet)",
+  "zero_tolerance": "none",
+  "normalization_source_sha256": "9353fef9ae32f645a67d5507272a92cae9c38ee5c3db993fd244b360d655ebf2",
+  "historical_KDE_source_sha256": "a0c28d8d8968358828ab1ae908d8aaa87e8163eb25113ff5c2a783f832e06e43",
+  "preflight_SHA256": "23e7bb3208bc0d11da5a9cde71fde4ea66a23395aa55d6074a98a9abc1326709",
+  "versions": {
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.8.0",
+    "pandas": "3.0.2"
+  }
+}

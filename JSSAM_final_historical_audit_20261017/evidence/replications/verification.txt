@@ -1,0 +1,1 @@
+PASS: 162 setting rows, 138 MC rows, 106 retained 2000-labelled outputs, 104 exact-linked final DI pairs with inferred count2000, 2 mean discrepancies, 32 unlogged MC settings, 24 weighted finite enumerations, 21368 valid positive cached enumeration rows. All ledger evidence paths and line anchors exist. No sampling, rescoring, package/notebook execution or unpickling.

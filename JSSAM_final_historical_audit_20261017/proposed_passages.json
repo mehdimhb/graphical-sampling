@@ -1,0 +1,159 @@
+{
+  "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+  "source_sha256": "d91765e63c588fa646be268ca62d8fed8b69fd5bec99995f8bfb6a1c2c8a5baa",
+  "source_status": "Last designated current snapshot, NOT verified latest revision-colored source",
+  "passages": [
+    {
+      "id": "section3_weighted_medoid",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 501,
+      "end_line": 509,
+      "exact_existing_latex": "\\[\nm_i\n\\in\n\\arg\\min_{u\\in U_i}\n\\sum_{\\ell\\in U_i}\\pi_\\ell\n\\|\\bm c_u-\\bm c_\\ell\\|^2,\n\\qquad\n\\bm r_i=\\bm c_{m_i}.\n\\]\n",
+      "proposed_replacement_latex": "\\[\nm_i\n\\in\n\\arg\\min_{u\\in U_i}\n\\sum_{\\ell\\in U_i}\\pi_\\ell\n\\|\\bm c_u-\\bm c_\\ell\\|,\n\\qquad\n\\bm r_i=\\bm c_{m_i}.\n\\]\n",
+      "decision": "A: describe traced historical implementation",
+      "notes": "Only remove exponent 2. The clustering objective in Section 2 remains squared Euclidean; do not change it. Preserve the enclosing Comment 3 / RevThree group if a current colored source is recovered."
+    },
+    {
+      "id": "section3_assignment",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 545,
+      "end_line": 556,
+      "exact_existing_latex": " The sample units are then matched to the medoid reference points by solving the\nassignment problem\n\\[\n\\tau\n=\n\\arg\\min_{\\tau}\n\\sum_{i=1}^n\n\\|\\bm c_{\\tau(i)}-\\bm r_i\\|^2,\n\\qquad\n\\tau(i)\\in s,\n\\]\nwhere \\(\\tau\\) is a one-to-one mapping from clusters to sampled units. Each\n",
+      "proposed_replacement_latex": " The sample units are then matched to the medoid reference points by solving the\nassignment problem\n\\[\n\\tau\n=\n\\arg\\min_{\\tau}\n\\sum_{i=1}^n\n\\|\\bm c_{\\tau(i)}-\\bm r_i\\|,\n\\qquad\n\\tau(i)\\in s,\n\\]\nwhere \\(\\tau\\) is a one-to-one mapping from clusters to sampled units. Each\n",
+      "decision": "A: describe traced historical implementation",
+      "notes": "Only exponent removal is substantive; retain any actual current revision-color wrapper."
+    },
+    {
+      "id": "section3_historical_kernel",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 586,
+      "end_line": 597,
+      "exact_existing_latex": "where \\(\\mathbf H\\) is a \\(d\\times d\\) symmetric positive-definite bandwidth\nmatrix, selected here using Scott's rule. We use the multivariate uniform\nkernel\n\\[\nK(\\bm u)\n=\n\\frac{1}{2^d}\n\\mathbf 1\\{\\|\\bm u\\|_\\infty\\leq1\\},\n\\qquad \\bm u\\in\\mathbb R^d,\n\\]\nwhere \\(\\|\\cdot\\|_\\infty\\) denotes the infinity norm. Applying the same\nestimator to the translated coordinates\n",
+      "proposed_replacement_latex": "where, for the traced historical computations,\n\\(\\mathbf H=h^2\\mathbf I_d\\) with \\(h=N^{-1/(d+4)}\\), the isotropic\nScott bandwidth. The spherical uniform (\\texttt{tophat}) kernel is\n\\[\nK(\\bm u)=\\frac{1}{v_d}\\mathbf 1\\{\\|\\bm u\\|_2<1\\},\n\\qquad v_d=\\frac{\\pi^{d/2}}{\\Gamma(1+d/2)}.\n\\]\nThe same numerical bandwidth is used for the original and translated\ncoordinates, without covariance scaling or renormalizing the translated\npopulation. The historical KDE evaluation used relative tolerance\n\\(10^{-4}\\). Applying the same estimator to the translated coordinates\n",
+      "decision": "A: describe traced historical implementation",
+      "notes": "The strict ball boundary follows the recovered backend; exact boundary distances can matter on a grid. The existing matrix KDE definition can remain with H=h^2I specified. Upstream Population normalization is separate from this scalar-bandwidth KDE."
+    },
+    {
+      "id": "section4_replications",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 977,
+      "end_line": 978,
+      "exact_existing_latex": "\\citep{sampling_pkg}. For each reported population, IP setting, sample size,\nand competing design, \\(5{,}000\\) Monte Carlo samples were generated.\n",
+      "proposed_replacement_latex": "\\citep{sampling_pkg}. The reported summaries combine simulation stages.\nThe auxiliary-index Monte Carlo summaries were inherited from earlier\noutput files recording \\(5{,}000\\) replications per setting. The subsequent\nmedoid-DI update requested \\(2{,}000\\) samples per setting. Retained outputs\nlabel \\(106\\) setting summaries with this count; \\(104\\) reproduce the\nreported DI mean and standard deviation, whereas two reported means differ.\nFor \\(32\\) other Monte Carlo settings, the count underlying the final DI\nsummary cannot be established from retained execution records. The nominal\ncounts are supported by source and summary metadata rather than independently\nretained per-replication completion logs. The NMS/GMS DI comparisons use\nprobability-weighted finite-design enumeration, with the number of enumerated\nentries reported separately for each design; they are not Monte Carlo\nreplications. Accordingly, a common \\(5{,}000\\)-replication count for every\nreported statistic is not supported by the retained records.\n",
+      "decision": "Both A and B",
+      "notes": "The counts concern the 162-setting DI plotting input: 138 Monte Carlo settings and 24 finite-design settings. The ledger and final report give the population/design coverage; enumeration entries are not Monte Carlo replications."
+    },
+    {
+      "id": "algorithm2_medoid",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 1490,
+      "end_line": 1505,
+      "exact_existing_latex": "\\State  For each cluster \\(U_i\\), define the reference point \\(\\bm q_i\\) by\n\\[\n\\bm q_i\n=\n\\begin{cases}\n\\bm c_{m_i}, &\n\\rho=\\textsc{medoid},\\quad\nm_i\\in\\displaystyle\\arg\\min_{u\\in U_i}\n\\sum_{\\ell\\in U_i}\\pi_\\ell\\|\\bm c_u-\\bm c_\\ell\\|^2, \\\\[2ex]\n\\displaystyle\n\\frac{\\sum_{\\ell\\in U_i}\\pi_\\ell\\bm c_\\ell}\n{\\sum_{\\ell\\in U_i}\\pi_\\ell}, &\n\\rho=\\textsc{centroid}.\n\\end{cases}\n\\]\nFor the medoid option, ties are broken by largest IP and then smallest label.\n",
+      "proposed_replacement_latex": "\\State  For each cluster \\(U_i\\), define the reference point \\(\\bm q_i\\) by\n\\[\n\\bm q_i\n=\n\\begin{cases}\n\\bm c_{m_i}, &\n\\rho=\\textsc{medoid},\\quad\nm_i\\in\\displaystyle\\arg\\min_{u\\in U_i}\n\\sum_{\\ell\\in U_i}\\pi_\\ell\\|\\bm c_u-\\bm c_\\ell\\|, \\\\[2ex]\n\\displaystyle\n\\frac{\\sum_{\\ell\\in U_i}\\pi_\\ell\\bm c_\\ell}\n{\\sum_{\\ell\\in U_i}\\pi_\\ell}, &\n\\rho=\\textsc{centroid}.\n\\end{cases}\n\\]\nIn the traced historical medoid-update implementation, the first minimizing unit in cluster order was selected.\n",
+      "decision": "A: describe traced historical implementation",
+      "notes": "Changes the medoid exponent and historical tie convention; the centroid formula remains the weighted mean."
+    },
+    {
+      "id": "algorithm2_assignment",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 1508,
+      "end_line": 1518,
+      "exact_existing_latex": "\\State Match the reference points to the sampled units by solving\n\\[\n\\tau\n=\n\\arg\\min_{\\tau}\n\\sum_{i=1}^n\n\\|\\bm c_{\\tau(i)}-\\bm q_i\\|^2,\n\\qquad\n\\tau(i)\\in s,\n\\]\nwhere \\(\\tau\\) is one-to-one.\n",
+      "proposed_replacement_latex": "\\State Match the reference points to the sampled units by solving\n\\[\n\\tau\n=\n\\arg\\min_{\\tau}\n\\sum_{i=1}^n\n\\|\\bm c_{\\tau(i)}-\\bm q_i\\|,\n\\qquad\n\\tau(i)\\in s,\n\\]\nwhere \\(\\tau\\) is one-to-one.\n",
+      "decision": "A: describe traced historical implementation",
+      "notes": ""
+    },
+    {
+      "id": "comment5_translation_qualification",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 901,
+      "end_line": 917,
+      "exact_existing_latex": "    \\item[(iii)]  The index is translation invariant. Thus, DI evaluates\ndispersion through the relative configuration of the sampled units, rather\nthan their absolute geographic location. Different spatial spread indices\nformalize spatial balance from different viewpoints: Moran-based indices focus\non local spatial autocorrelation, whereas Voronoi-based indices focus on\nspatial coverage and local representation. DI adds a complementary\nconfigurational interpretation. Because DI uses a sample-adaptive medoid reference configuration, a\nwell-spread sample is not penalized merely because its spatial arrangement\ndiffers from a single fixed global \\(n\\)-means solution; any departure\nmeasured by DI is evaluated relative to the sample-induced reference\nconfiguration illustrated in\nFigure~\\ref{fig:sample_adaptive_reference}. The IP\\(n\\)M medoids define a reference configuration for an ideally well-spread sample; hence, any matched sample configuration that preserves this medoid reference pattern, up to a uniform\ntranslation, is regarded as equally well spread. In this sense, a sample is\nperfectly balanced when it represents the spatial structure of the population\nby preserving the relative arrangement of the IP\\(n\\)M reference medoids. DI is not generally rotation invariant; this limitation and\nits interaction with sample-adaptive reference configurations are illustrated\nin Appendix~\\ref{Exm:rotation_4x5}.\n",
+      "proposed_replacement_latex": "    \\item[(iii)] Conditional on a fixed hard partition, fixed reference\npoints, and a fixed medoid-to-sample pairing, DI is invariant to a common\ntranslation of the matched sample coordinates. Indeed, replacing every\nmatched sample point by \\(\\bm c_{\\tau(i)}+\\bm a\\) replaces every transformed\npopulation point by \\(\\widetilde{\\bm c}_\\ell+\\bm a\\). A fixed-bandwidth,\ntranslation-invariant KDE has the same value at each corresponding\ntransformed unit, leaving the DI formula unchanged. This result does not\nguarantee invariance after sample-adaptive reclustering or rematching.\nOrdinary Euclidean optimal matching can change when only the sample is\ntranslated. Thus, for that historical objective, unchanged matching is an\nadditional condition, not a general consequence of unchanged reference points.\nThe numerical translation examples establish the behavior of the saved\nconfigurations only. DI is not generally rotation invariant; the illustrated\nrotated targets are projected to distinct population-grid units.\n",
+      "decision": "Both A and B",
+      "notes": "Place inside existing RevFive braces when an authoritative colored source is recovered; do not replace or nest a macro speculatively. Finite-population admissibility of shifted sample coordinates is a separate requirement. Squared matching with a fixed reference has stronger translation behavior of its optimal permutation set, but sample-adaptive reclustering remains outside this theorem."
+    },
+    {
+      "id": "section3_keep_squared_alternative",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 545,
+      "end_line": 556,
+      "exact_existing_latex": " The sample units are then matched to the medoid reference points by solving the\nassignment problem\n\\[\n\\tau\n=\n\\arg\\min_{\\tau}\n\\sum_{i=1}^n\n\\|\\bm c_{\\tau(i)}-\\bm r_i\\|^2,\n\\qquad\n\\tau(i)\\in s,\n\\]\nwhere \\(\\tau\\) is a one-to-one mapping from clusters to sampled units. Each\n",
+      "proposed_replacement_latex": "The formal definition below retains squared-distance representatives,\nsquared Euclidean matching, and the box kernel specified here. The traced\nhistorical Monte Carlo computations instead used weighted preliminary\n\\(k\\)-means followed by probability refinement, ordinary-distance medoids,\nordinary Euclidean matching, and a spherical \\texttt{tophat} KDE.\nThe retained results must therefore be identified as results of that\nhistorical variant, rather than numerical validation of the present\nOT/squared-distance/box-kernel specification. Runtime provenance remains\nunresolved for the other blocks identified in the reproducibility audit.\n\n The sample units are then matched to the medoid reference points by solving the\nassignment problem\n\\[\n\\tau\n=\n\\arg\\min_{\\tau}\n\\sum_{i=1}^n\n\\|\\bm c_{\\tau(i)}-\\bm r_i\\|^2,\n\\qquad\n\\tau(i)\\in s,\n\\]\nwhere \\(\\tau\\) is a one-to-one mapping from clusters to sampled units. Each\n",
+      "decision": "B: retain squared definition; explicitly separate historical pipeline",
+      "notes": "Mutually exclusive with A. Retain squared equations in Section3 and Algorithm2. If retaining cube kernel too, label it as formal definition and retain explicit historical spherical-kernel distinction. This is not a claim to have rerun or validated a future squared pipeline."
+    },
+    {
+      "id": "historical_clustering_disclosure",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 488,
+      "end_line": 489,
+      "exact_existing_latex": "\\(\\{\\bm c_\\ell:\\ell\\in s\\}\\) as initial centers, we apply the hard IP\\(n\\)M\nprocedure to obtain \\(n\\) spatially compact clusters\n",
+      "proposed_replacement_latex": "\\(\\{\\bm c_\\ell:\\ell\\in s\\}\\) as initial centers, the formal definition applies\nthe hard IP\\(n\\)M procedure to obtain \\(n\\) spatially compact clusters.\nThe traced historical Monte Carlo implementation used weighted preliminary\n\\(k\\)-means followed by open-TSP ordering and inclusion-probability refinement,\nrather than the entropic OT preliminary stage described in Section~2.\nIts retained results are distinguished from computations of the formal OT\nvariant; exact runtime attribution is unresolved for the other audited blocks.\n",
+      "decision": "Both A and B; essential historical-method disclosure",
+      "notes": "Do not silently replace Section2/Algorithm1 with historical weighted k-means. Historical representative/matching/kernel corrections alone do not align the historical pipeline with the formal modern OT definition. Original e71d6935b DensityDisparity passes init_clust_method=\"weighted\" at lines72-78; older d047278fc class used expanded and centroids. Scope specific figure/code path before universal attribution."
+    },
+    {
+      "id": "abstract_translation",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 143,
+      "end_line": 143,
+      "exact_existing_latex": "bounded and translation-invariant measure that distinguishes under-dispersion,\n",
+      "proposed_replacement_latex": "bounded measure with a conditional translation property that distinguishes under-dispersion,\n",
+      "decision": "Both A and B",
+      "notes": "Follow-through needed to avoid retaining stronger blanket claims elsewhere; preserve existing revision groups."
+    },
+    {
+      "id": "introduction_translation",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 233,
+      "end_line": 235,
+      "exact_existing_latex": "interpreted as approximately well spread. The index is translation invariant, so shifting a sample without changing its internal geometry does not change its value. Thus, DI focuses on the relative spatial arrangement of the sample and\nseparates under-dispersion, optimal spread, and over-dispersion on a\ncommon interpretable scale.\n",
+      "proposed_replacement_latex": "interpreted as approximately well spread. With the reference partition and matching held fixed, a common translation of the matched sample coordinates leaves DI unchanged. This conditional property concerns the relative arrangement of the matched sample and does not guarantee invariance after sample-adaptive reclustering or rematching.\n",
+      "decision": "Both A and B",
+      "notes": "Follow-through needed to avoid retaining stronger blanket claims elsewhere; preserve existing revision groups."
+    },
+    {
+      "id": "conclusion_translation",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 1120,
+      "end_line": 1121,
+      "exact_existing_latex": "The proposed index is bounded, translation invariant, and directly\ninterpretable. Negative values indicate under-dispersion or local clustering,\n",
+      "proposed_replacement_latex": "The proposed index is bounded and directly interpretable, and has the conditional translation property described in Section~\\ref{Sec:Measure}. Negative values indicate under-dispersion or local clustering,\n",
+      "decision": "Both A and B",
+      "notes": "Follow-through needed to avoid retaining stronger blanket claims elsewhere; preserve existing revision groups."
+    },
+    {
+      "id": "appendix_translation_example",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 1150,
+      "end_line": 1151,
+      "exact_existing_latex": "In panel~(b), a uniform translation is applied to all sample units and DI\nremains unchanged, confirming translation invariance.\n",
+      "proposed_replacement_latex": "In panel~(b), a uniform translation is applied to all sample units and DI\nremains unchanged for this example. This observation alone does not establish invariance after general sample-adaptive reclustering or rematching.\n",
+      "decision": "Both A and B",
+      "notes": "Follow-through needed to avoid retaining stronger blanket claims elsewhere; preserve existing revision groups."
+    },
+    {
+      "id": "section3_historical_medoid_ties",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 510,
+      "end_line": 512,
+      "exact_existing_latex": "If the medoid is not unique, ties are broken by first selecting the unit with\nthe largest first-order inclusion probability; if a tie still remains, the unit\nwith the smallest population label is selected. \n",
+      "proposed_replacement_latex": "In the traced historical medoid-update implementation, the first minimizing\nunit in cluster order was selected.\n",
+      "decision": "A: describe the historical notebook tie convention",
+      "notes": "Do not claim the historical notebook used today's np.isclose/largest-IP tie rule. If preserving the modern definition, retain its formal rule and disclose this historical difference instead. Keep any actual RevThree wrapper."
+    },
+    {
+      "id": "algorithm2_historical_preliminary_stage",
+      "source": "/home/bardia/projects/graphical-sampling/DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex",
+      "start_line": 1485,
+      "end_line": 1487,
+      "exact_existing_latex": "\\State Apply Algorithm~\\ref{alg:IP_balanced_nmeans} using its hard-clustering\nvariant on \\(U\\), initialized by the sample units \\(s\\).\n\\label{line:upbkm}\n",
+      "proposed_replacement_latex": "\\State For the historical DI variant, initialize weighted \\(k\\)-means\nat the observed sample units and apply the historical open-TSP ordering and\ninclusion-probability refinement to construct the reference partition.\n\\label{line:upbkm}\n",
+      "decision": "A only: describe the historical pipeline; do not mix with the formal OT version",
+      "notes": "Do not change the squared clustering loss in Section2. This fragment distinguishes algorithms, does not repair the historical n-inference defect, and does not certify original reference cardinalities. Keep Comment3/RevThree marking where applicable."
+    }
+  ],
+  "optional_comment5_proof": "% Optional Comment5 explanatory paragraph. Preserve the actual RevFive wrapper.\nFor a fixed reference and a full, unweighted one-to-one assignment,\nlet \\(Q_{\\bm a}(\\tau)=\\sum_{i=1}^n\n\\|\\bm c_{\\tau(i)}+\\bm a-\\bm r_i\\|^2\\). Then\n\\[\nQ_{\\bm a}(\\tau)=Q_{\\bm0}(\\tau)\n+2\\bm a^\\top\\left(\\sum_{\\ell\\in s}\\bm c_\\ell-\n\\sum_{i=1}^n\\bm r_i\\right)+n\\|\\bm a\\|^2.\n\\]\nThe added term is independent of \\(\\tau\\), so the minimizing permutation\nset is unchanged. A consistent tie rule is needed to preserve the selected\npermutation. This expansion applies to squared distances and a full\nbijection; it does not apply in general to ordinary Euclidean matching or\nto rectangular matching that may select a different sample subset.\nWith ordinary distances, fixed reference points alone do not guarantee\nunchanged optimal matching. In either case, the conditional DI result also\nrequires an unchanged partition and a fixed bandwidth evaluated at the\ncorresponding transformed units.\n",
+  "originals_modified": false
+}

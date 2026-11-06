@@ -1,0 +1,35 @@
+% Suggested text only. No manuscript file has been edited.
+\begin{proposition}
+Let $0<\pi_i\leq1$ and $\sum_{i=1}^N\pi_i=n\in\mathbb{N}$.
+Arrange the original units in any permutation as consecutive half-open
+intervals of lengths $\pi_i$ on $[0,n)$. For $U\sim\mathrm{Unif}[0,1)$,
+select the units whose intervals contain $U,U+1,\ldots,U+n-1$.
+Then the sample contains exactly $n$ distinct units almost surely, and
+$\Pr(i\in S)=\pi_i$. Subdividing a unit interval into adjacent pieces does
+not change the design. Equal-mass exchanges of distinct units between
+two samples preserve their sizes and the first-order inclusion probabilities.
+\end{proposition}
+\begin{proof}
+Each point belongs to exactly one interval. An interval of length at
+most one contains at most one of these points, except on a null set of
+endpoints. Its projection modulo one has length $\pi_i$, giving its
+selection probability. For an exchange of mass $\delta$ between samples
+$A$ and $B$, with $a\in A\setminus B$ and $b\in B\setminus A$, move mass
+$0\leq\delta\leq\min\{p(A),p(B)\}$ to $A-a+b$ and $B-b+a$. Each unit's net
+inclusion mass is unchanged, as are the sample sizes and total probability.
+\end{proof}
+
+% Smallest corresponding replacement for an unconditional one-per-cluster claim:
+IP-balanced clusters guide the spatial ordering. Each original unit retains
+its full inclusion-probability mass (possibly represented by adjacent pieces),
+so reordering and probability-mass exchanges preserve the sample size and
+first-order inclusion probabilities; they do not generally preserve one
+selected unit or contribution per initial cluster.
+
+% Optional short response to Reviewer 2, Comment 1:
+We have distinguished preservation of inclusion probabilities from the
+stronger cluster-level statement. The former follows from the full-unit
+interval construction, irrespective of the ordering. Freezing border-unit
+identities alone would not preserve cluster contributions under zone changes
+or global reordering. We have therefore qualified the cluster-level claim
+without changing the clustering method or the saved simulation designs.

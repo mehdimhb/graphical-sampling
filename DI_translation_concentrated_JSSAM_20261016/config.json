@@ -1,0 +1,151 @@
+{
+  "N": 144,
+  "size": 12,
+  "n": 8,
+  "pi": "1/18",
+  "solver_seed": 17,
+  "candidates": [
+    {
+      "name": "compact asymmetric L",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "name": "compact skew cross",
+      "points": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    {
+      "name": "compact asymmetric wedge",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    }
+  ],
+  "shifts": [
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      1
+    ],
+    [
+      2,
+      3
+    ]
+  ],
+  "epsilon": 0.01,
+  "outer_tol": 1e-10,
+  "marginal_tol": 1e-12,
+  "tighter_outer_tol": 1e-12,
+  "tighter_marginal_tol": 1e-13,
+  "TSP_restarts": 15,
+  "threads": 1,
+  "max_outer": 2000,
+  "max_seconds_per_fit": 45,
+  "KDE": "historical spherical tophat, scalar Scott",
+  "coordinates": "population raw/11; no sample-based scaling",
+  "density_locations": "f(original unit), g(translated unit)",
+  "medoid_metric": "squared Euclidean",
+  "matching_metric": "squared Euclidean",
+  "quota": "exact EP overlap;18 whole units per cluster",
+  "method_SHA256": "5f5185014206846c9cf6649d36b5b277cc622f5544fa81ed5ef269d1f5df10fc",
+  "manuscript": "DI_reference_sensitivity_JSSAM/sources/Measuring_Spatial_Spread_current_2026-10-12.tex"
+}

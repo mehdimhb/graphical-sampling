@@ -1,0 +1,46 @@
+ D simulations/jupyters/17_graphical_maxent_die.ipynb
+ M simulations/results/graphical_maxent_die/die_game_segments_initial_vs_chaotic.pdf
+ M simulations/results/graphical_maxent_die/die_game_segments_initial_vs_chaotic.png
+ M simulations/results/graphical_maxent_die/finite_population_exchange_diagnostics.pdf
+ M simulations/results/graphical_maxent_die/finite_population_maxent.pdf
+ M simulations/results/graphical_maxent_die/finite_population_segments_madow_vs_exchanged_gfs.pdf
+ M simulations/results/graphical_maxent_die/graphical_maxent_die_comparison.pdf
+ M simulations/results/graphical_maxent_die/summary.csv
+?? .vscode/
+?? DI_Figure9_membership_audit_20261016/
+?? DI_Figure9_one_row_20261017/
+?? DI_IPNM_NUMERICAL_CORRECTION_OUTPUTS_20261014.zip
+?? DI_N32_CAUSES_OUTPUTS_20261014_PARTIAL.zip
+?? DI_TSP_RESTARTS_OUTPUTS_20261014.zip
+?? DI_TSP_STABILITY_All_Outputs.zip
+?? DI_historical_KDE_sensitivity_JSSAM_20261016/
+?? DI_historical_implementation_audit_20261016/
+?? DI_kernel_comparison_JSSAM_20261017/
+?? DI_reference_sensitivity_JSSAM/
+?? DI_translation_concentrated_JSSAM_20261016/
+?? DI_translation_equal_unequal_JSSAM_20261016/
+?? DI_translation_positions_JSSAM_20261016/
+?? DI_translation_visual_JSSAM_20261016/
+?? GFS_branch_readiness_20261016/
+?? GFS_main_integration_20261016/
+?? HARD_CLUSTER_IP_BALANCE_20261014.zip
+?? JSSAM_border_reordering_audit_20261030/
+?? JSSAM_final_historical_audit_20261017/
+?? di_approx_tsp_EP_R1C1_20261013/
+?? di_cancellation_extended_20261012/
+?? di_cancellation_focused_20261012/
+?? di_exact_tsp_R1C1_20261013/
+?? di_ipnm_numerical_correction_20261014/
+?? di_n32_causes_20261014/
+?? di_reference_quality_JSSAM_20261015/
+?? di_reference_sensitivity_R1C1_20261013/
+?? di_tsp_restarts_20261014/
+?? hard_cluster_ip_balance_20261014/
+?? simulations/di_cancellation_audit_20261012.py
+?? simulations/di_cancellation_experiment_20261012.py
+?? simulations/di_cancellation_report_20261012.py
+?? simulations/jupyters/17_graphical_maxent_die_CORRECTED.ipynb
+?? simulations/jupyters/19_exact_double_stratified_gfs.ipynb
+?? simulations/populations/store/MU284.csv
+?? simulations/results/di_cancellation_20261012/
+?? tests/test_exact_double_stratified_gfs_notebook.py
